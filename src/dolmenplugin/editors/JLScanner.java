@@ -53,6 +53,7 @@ public class JLScanner extends RuleBasedScanner {
 		keywordsRule.addWord("as", keywordOp);
 		keywordsRule.addWord("eof", keywordOp);
 		keywordsRule.addWord("_", keywordOp);
+		keywordsRule.addWord("orelse", keywordOp);
 		keywordsRule.addWord("import", keyword);
 		keywordsRule.addWord("static", keyword);
 		keywordsRule.addWord("public", keyword);
