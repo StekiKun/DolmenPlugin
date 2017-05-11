@@ -1,4 +1,4 @@
-package dolmenplugin.editors.jl;
+package dolmenplugin.editors;
 
 import java.util.Arrays;
 
@@ -19,15 +19,15 @@ import dolmenplugin.editors.ColorManager;
 import dolmenplugin.editors.IColorConstants;
 
 /**
- * The scanner for the Java semantic actions in Dolmen
- * lexer descriptions.
+ * The scanner for the Java semantic actions in both Dolmen
+ * lexer and grammar descriptions.
  * <p>
  * It uses a rule-based scanner to recognizes all Java
  * keywords, as well as Java comments and string literals.
  *
  * @author Stéphane Lescuyer
  */
-public class JLJavaScanner extends RuleBasedScanner {
+public class JavaScanner extends RuleBasedScanner {
 
 	private String[] JAVA_KEYWORDS = {
 		"false", "null", "true",	// technically reserved literals, not keywords
@@ -43,7 +43,7 @@ public class JLJavaScanner extends RuleBasedScanner {
         "const", "float", "native", "super", "while"
 	};
 	
-	public JLJavaScanner(ColorManager manager) {
+	public JavaScanner(ColorManager manager) {
 		Color bg = manager.getColor(IColorConstants.JAVA_BG);
 		
 		// Single text attribute tokens

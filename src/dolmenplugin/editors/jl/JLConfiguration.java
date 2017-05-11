@@ -11,6 +11,7 @@ import org.eclipse.jface.text.source.SourceViewerConfiguration;
 
 import dolmenplugin.editors.ColorManager;
 import dolmenplugin.editors.IColorConstants;
+import dolmenplugin.editors.JavaScanner;
 
 /**
  * The custom editor configuration for Dolmen lexer descriptions.
@@ -26,7 +27,7 @@ public class JLConfiguration extends SourceViewerConfiguration {
 	private JLScanner jlScanner;
 	private JLLiteralScanner jlLiteralScanner;
 	private JLCommentScanner jlCommentScanner;
-	private JLJavaScanner jlJavaScanner;
+	private JavaScanner jlJavaScanner;
 	
 	private ColorManager colorManager;
 
@@ -76,9 +77,9 @@ public class JLConfiguration extends SourceViewerConfiguration {
 		return jlCommentScanner;
 	}
 	
-	protected JLJavaScanner getJLJavaScanner() {
+	protected JavaScanner getJLJavaScanner() {
 		if (jlJavaScanner == null) {
-			jlJavaScanner = new JLJavaScanner(colorManager);
+			jlJavaScanner = new JavaScanner(colorManager);
 		}
 		return jlJavaScanner;
 	}

@@ -10,7 +10,19 @@
             icon="icons/sample.gif"
             contributorClass="org.eclipse.ui.texteditor.BasicTextEditorActionContributor"
             class="dolmenplugin.editors.jl.JLEditor"
-            id="dolmenplugin.editors.JLEditor">
+            id="dolmenplugin.editors.jl.JLEditor">
+      </editor>
+   </extension>
+
+   <extension
+         point="org.eclipse.ui.editors">
+      <editor
+            name="Dolmen Grammar Editor"
+            extensions="jg"
+            icon="icons/sample.gif"
+            contributorClass="org.eclipse.ui.texteditor.BasicTextEditorActionContributor"
+            class="dolmenplugin.editors.jg.JGEditor"
+            id="dolmenplugin.editors.jg.JGEditor">
       </editor>
    </extension>
 
