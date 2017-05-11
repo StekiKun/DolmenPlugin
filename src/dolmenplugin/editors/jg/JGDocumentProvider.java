@@ -24,7 +24,8 @@ public class JGDocumentProvider extends FileDocumentProvider {
 					new JGPartitionScanner(),
 					new String[] {
 						JGPartitionScanner.JG_COMMENT,
-						JGPartitionScanner.JG_JAVA});
+						JGPartitionScanner.JG_JAVA,
+						JGPartitionScanner.JG_ARGS});
 			partitioner.connect(document);
 			document.setDocumentPartitioner(partitioner);
 		}

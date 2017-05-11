@@ -27,6 +27,7 @@ public class JGConfiguration extends SourceViewerConfiguration {
 	private JGScanner jgScanner;
 	private JGCommentScanner jgCommentScanner;
 	private JavaScanner jgJavaScanner;
+	private JavaScanner jgArgsScanner;
 	
 	private ColorManager colorManager;
 
@@ -70,9 +71,16 @@ public class JGConfiguration extends SourceViewerConfiguration {
 	
 	protected JavaScanner getJGJavaScanner() {
 		if (jgJavaScanner == null) {
-			jgJavaScanner = new JavaScanner(colorManager);
+			jgJavaScanner = new JavaScanner(colorManager, IColorConstants.JAVA_BG);
 		}
 		return jgJavaScanner;
+	}
+	
+	protected JavaScanner getJGArgsScanner() {
+		if (jgArgsScanner == null) {
+			jgArgsScanner = new JavaScanner(colorManager, null);
+		}
+		return jgArgsScanner;
 	}
 	
 	public IPresentationReconciler getPresentationReconciler(ISourceViewer sourceViewer) {
@@ -89,6 +97,10 @@ public class JGConfiguration extends SourceViewerConfiguration {
         ddr = new DefaultDamagerRepairer(getJGJavaScanner());
         reconciler.setRepairer(ddr, JGPartitionScanner.JG_JAVA);
         reconciler.setDamager(ddr, JGPartitionScanner.JG_JAVA);
+
+        ddr = new DefaultDamagerRepairer(getJGArgsScanner());
+        reconciler.setRepairer(ddr, JGPartitionScanner.JG_ARGS);
+        reconciler.setDamager(ddr, JGPartitionScanner.JG_ARGS);
 
 		return reconciler;
 	}

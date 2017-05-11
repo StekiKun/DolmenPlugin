@@ -30,7 +30,7 @@ public class JLPartitionScanner extends RuleBasedPartitionScanner {
 		rules[1] = new MultiLineRule("/*", "*/", jlComment);
 		rules[2] = new SingleLineRule("\"", "\"", jlLiteral, '\\');
 		rules[3] = new SingleLineRule("'", "'", jlLiteral, '\\');
-		rules[4] = new JavaActionRule(jlJava);
+		rules[4] = new JavaActionRule(jlJava, '{', '}');
 
 		setPredicateRules(rules);
 	}

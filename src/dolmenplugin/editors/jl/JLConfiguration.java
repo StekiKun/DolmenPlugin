@@ -79,7 +79,7 @@ public class JLConfiguration extends SourceViewerConfiguration {
 	
 	protected JavaScanner getJLJavaScanner() {
 		if (jlJavaScanner == null) {
-			jlJavaScanner = new JavaScanner(colorManager);
+			jlJavaScanner = new JavaScanner(colorManager, IColorConstants.JAVA_BG);
 		}
 		return jlJavaScanner;
 	}

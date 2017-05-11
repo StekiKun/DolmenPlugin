@@ -25,26 +25,18 @@ public class JGScanner extends RuleBasedScanner {
 
 	public JGScanner(ColorManager manager) {
 		// Single text attribute tokens
-//		IToken deflt =
-//			new Token(
-//				new TextAttribute(
-//					manager.getColor(IJLColorConstants.DEFAULT)));
+		IToken deflt =
+			new Token(
+				new TextAttribute(
+					manager.getColor(IColorConstants.DEFAULT)));
 		IToken keyword =
 			new Token(
 				new TextAttribute(
 					manager.getColor(IColorConstants.KEYWORD), null, SWT.BOLD));
-//		IToken keywordOp =
-//			new Token(
-//				new TextAttribute(
-//					manager.getColor(IColorConstants.KEYWORD_OP)));
 		IToken comment =
 			new Token(
 				new TextAttribute(
 					manager.getColor(IColorConstants.COMMENT)));
-//		IToken string =
-//			new Token(
-//				new TextAttribute(
-//					manager.getColor(IColorConstants.STRING)));
 		IToken terminal =
 			new Token(
 				new TextAttribute(
@@ -58,7 +50,15 @@ public class JGScanner extends RuleBasedScanner {
 		final Pattern terminalPattern =
 			Pattern.compile("[A-Z][A-Z_0-9]*\\b");
 		RegexpLineRule terminalsRule =
-			new RegexpLineRule(terminalPattern, terminal);
+			new RegexpLineRule(terminalPattern, terminal, 
+				ch -> !Character.isJavaIdentifierPart(ch));
+		// Rule for bindings, i.e. identifiers followed by '='
+		final Pattern bindingPattern =
+			Pattern.compile("[a-zA-Z_][a-zA-Z0-9_]*[ \t\b\f]*=");
+		RegexpLineRule bindingsRule =
+			new RegexpLineRule(bindingPattern, deflt,
+				ch -> !Character.isJavaIdentifierPart(ch) &&
+					!Character.isWhitespace(ch) && ch != '=');
 		// Rule for keywords or other identifiers
 		WordRule keywordsRule = new WordRule(new IWordDetector() {
 			@Override
@@ -83,15 +83,11 @@ public class JGScanner extends RuleBasedScanner {
 		// Add rule for single-line comments and multi-line comments
 		IRule slCommentRule = new EndOfLineRule("//", comment);
 		IRule mlCommentRule = new MultiLineRule("/*", "*/", comment);
-//		// Add rule for characters and strings literals
-//		IRule stringRule = new SingleLineRule("\"", "\"", string, '\\');
-//	    IRule charRule = new SingleLineRule("'", "'", string, '\\');
 	            
 		IRule[] rules = new IRule[] {
-			terminalsRule, keywordsRule,
 			slCommentRule, mlCommentRule,
-//			stringRule, charRule,
-			new WhitespaceRule(new WhitespaceDetector())
+			new WhitespaceRule(new WhitespaceDetector()),
+			terminalsRule, bindingsRule, keywordsRule
 		};
 		setRules(rules);
 	}

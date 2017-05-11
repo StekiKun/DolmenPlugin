@@ -7,7 +7,8 @@ import org.eclipse.jface.text.rules.Token;
 
 /**
  * Predicate rule which matches Java semantic actions
- * enclosed in curly braces. It is used both by the
+ * enclosed in (possibly nested) some specifiable opening
+ * and closing characters. It is used both by the
  * lexer and parser editors.
  * 
  * @author Stéphane Lescuyer
@@ -15,9 +16,13 @@ import org.eclipse.jface.text.rules.Token;
 public class JavaActionRule implements IPredicateRule {
 
 	private final IToken successToken;
+	private final char open;
+	private final char close;
 
-	public JavaActionRule(IToken successToken) {
+	public JavaActionRule(IToken successToken, char open, char close) {
 		this.successToken = successToken;
+		this.open = open;
+		this.close = close;
 	}
 
 	@Override
@@ -36,7 +41,6 @@ public class JavaActionRule implements IPredicateRule {
 		Automaton aut = new Automaton(scanner);
 		if (resume)
 			return Token.UNDEFINED;
-			// return aut.inAction();	// I should just return UNDEFINED
 		else
 			return aut.start();
 	}
@@ -70,7 +74,7 @@ public class JavaActionRule implements IPredicateRule {
 		}
 		
 		IToken start() {
-			if (next() != '{')
+			if (next() != open)
 				return abort();
 			++depth;
 			return inAction();
@@ -80,18 +84,18 @@ public class JavaActionRule implements IPredicateRule {
 			int c;
 			loop:
 			while ((c = next()) != ICharacterScanner.EOF) {
-				switch (c) {
-				case '{': {
+				if (c == open) {
 					++depth;
 					continue;
 				}
-				case '}': {
+				else if (c == close) {
 					--depth;
 					if (depth <= 0) {	// safe, because resume may be problematic
 						return JavaActionRule.this.successToken;
 					}
-					continue;
+					continue;					
 				}
+				switch (c) {
 				case '/': {
 					switch ((int) next()) {
 					case '/': {

@@ -1,5 +1,6 @@
 package dolmenplugin.editors;
 
+import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -20,6 +21,12 @@ import org.eclipse.jface.text.rules.Token;
  * is applied to the current scanner up to end-of-input
  * or the next line terminator, and not on an char-by-char basis,
  * so that longest-match behaviour will essentially be achieved.   
+ * <p>
+ * For even more efficiency, an optional predicate can be 
+ * provided to stop the scanner even before the next line
+ * terminator. Scanning and rewinding can be expensive so 
+ * bounding the maximum look-ahead for this rule is advised
+ * when possible.
  * 
  * @author Stéphane Lescuyer
  */
@@ -27,16 +34,19 @@ public final class RegexpLineRule implements IRule {
 
 	private final Pattern pattern;
 	private final IToken token;
-	
+	private final Predicate<Character> stop;
+
 	/**
 	 * Returns a new rule which associates {@code token}
 	 * to matches of the pattern {@code pattern}
 	 * @param pattern
 	 * @param token
+	 * @param stop
 	 */
-	public RegexpLineRule(Pattern pattern, IToken token) {
+	public RegexpLineRule(Pattern pattern, IToken token, Predicate<Character> stop) {
 		this.pattern = pattern;
 		this.token = token;
+		this.stop = stop == null ? (Character c) -> { return true; } : stop;
 	}
 
 	@Override
@@ -46,7 +56,7 @@ public final class RegexpLineRule implements IRule {
 		int c = scanner.read();
 		int count = 1;
 		while (c != ICharacterScanner.EOF
-			&& c != '\r' && c != '\n') {
+			&& c != '\r' && c != '\n' && !stop.test((char)c)) {
 			buf.append((char)c);
 			c = scanner.read();
 			++count;

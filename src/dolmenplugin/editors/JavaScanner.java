@@ -14,6 +14,7 @@ import org.eclipse.jface.text.rules.Token;
 import org.eclipse.jface.text.rules.WordRule;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.RGB;
 
 import dolmenplugin.editors.ColorManager;
 import dolmenplugin.editors.IColorConstants;
@@ -43,8 +44,9 @@ public class JavaScanner extends RuleBasedScanner {
         "const", "float", "native", "super", "while"
 	};
 	
-	public JavaScanner(ColorManager manager) {
-		Color bg = manager.getColor(IColorConstants.JAVA_BG);
+	public JavaScanner(ColorManager manager, RGB background) {
+		Color bg =
+			background == null ? null : manager.getColor(background);
 		
 		// Single text attribute tokens
 		IToken deflt =
@@ -94,7 +96,6 @@ public class JavaScanner extends RuleBasedScanner {
 		
 		setDefaultReturnToken(
 			new Token(
-				new TextAttribute(null, 
-						manager.getColor(IColorConstants.JAVA_BG), 0)));
+				new TextAttribute(null, bg, 0)));
 	}
 }
