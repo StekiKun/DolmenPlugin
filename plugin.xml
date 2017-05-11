@@ -9,7 +9,7 @@
             extensions="jl"
             icon="icons/sample.gif"
             contributorClass="org.eclipse.ui.texteditor.BasicTextEditorActionContributor"
-            class="dolmenplugin.editors.JLEditor"
+            class="dolmenplugin.editors.jl.JLEditor"
             id="dolmenplugin.editors.JLEditor">
       </editor>
    </extension>

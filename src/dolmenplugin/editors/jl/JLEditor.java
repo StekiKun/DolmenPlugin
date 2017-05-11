@@ -1,7 +1,14 @@
-package dolmenplugin.editors;
+package dolmenplugin.editors.jl;
 
 import org.eclipse.ui.editors.text.TextEditor;
 
+import dolmenplugin.editors.ColorManager;
+
+/**
+ * Custom editor for Dolmen lexer descriptions (.jl)
+ * 
+ * @author Stéphane Lescuyer
+ */
 public class JLEditor extends TextEditor {
 
 	private ColorManager colorManager;

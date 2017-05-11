@@ -1,4 +1,4 @@
-package dolmenplugin.editors;
+package dolmenplugin.editors.jl;
 
 import java.util.Arrays;
 
@@ -15,6 +15,18 @@ import org.eclipse.jface.text.rules.WordRule;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
 
+import dolmenplugin.editors.ColorManager;
+import dolmenplugin.editors.IColorConstants;
+
+/**
+ * The scanner for the Java semantic actions in Dolmen
+ * lexer descriptions.
+ * <p>
+ * It uses a rule-based scanner to recognizes all Java
+ * keywords, as well as Java comments and string literals.
+ *
+ * @author Stéphane Lescuyer
+ */
 public class JLJavaScanner extends RuleBasedScanner {
 
 	private String[] JAVA_KEYWORDS = {
@@ -32,25 +44,25 @@ public class JLJavaScanner extends RuleBasedScanner {
 	};
 	
 	public JLJavaScanner(ColorManager manager) {
-		Color bg = manager.getColor(IJLColorConstants.JAVA_BG);
+		Color bg = manager.getColor(IColorConstants.JAVA_BG);
 		
 		// Single text attribute tokens
 		IToken deflt =
 			new Token(
 				new TextAttribute(
-					manager.getColor(IJLColorConstants.DEFAULT), bg, 0));
+					manager.getColor(IColorConstants.DEFAULT), bg, 0));
 		IToken keyword =
 			new Token(
 				new TextAttribute(
-					manager.getColor(IJLColorConstants.KEYWORD), bg, SWT.BOLD));
+					manager.getColor(IColorConstants.KEYWORD), bg, SWT.BOLD));
 		IToken comment =
 			new Token(
 				new TextAttribute(
-					manager.getColor(IJLColorConstants.COMMENT), bg, 0));
+					manager.getColor(IColorConstants.COMMENT), bg, 0));
 		IToken string =
 			new Token(
 				new TextAttribute(
-					manager.getColor(IJLColorConstants.STRING), bg, 0));
+					manager.getColor(IColorConstants.STRING), bg, 0));
 		
 		// Rule for keywords
 		WordRule keywordsRule = new WordRule(new IWordDetector() {
@@ -83,6 +95,6 @@ public class JLJavaScanner extends RuleBasedScanner {
 		setDefaultReturnToken(
 			new Token(
 				new TextAttribute(null, 
-						manager.getColor(IJLColorConstants.JAVA_BG), 0)));
+						manager.getColor(IColorConstants.JAVA_BG), 0)));
 	}
 }

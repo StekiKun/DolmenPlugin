@@ -5,6 +5,13 @@ import org.eclipse.jface.text.rules.IPredicateRule;
 import org.eclipse.jface.text.rules.IToken;
 import org.eclipse.jface.text.rules.Token;
 
+/**
+ * Predicate rule which matches Java semantic actions
+ * enclosed in curly braces. It is used both by the
+ * lexer and parser editors.
+ * 
+ * @author Stéphane Lescuyer
+ */
 public class JavaActionRule implements IPredicateRule {
 
 	private final IToken successToken;

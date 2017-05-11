@@ -1,4 +1,4 @@
-package dolmenplugin.editors;
+package dolmenplugin.editors.jl;
 
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.TextAttribute;
@@ -9,6 +9,18 @@ import org.eclipse.jface.text.rules.Token;
 import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.jface.text.source.SourceViewerConfiguration;
 
+import dolmenplugin.editors.ColorManager;
+import dolmenplugin.editors.IColorConstants;
+
+/**
+ * The custom editor configuration for Dolmen lexer descriptions.
+ * <p>
+ * Besides the default content type, this editor uses special
+ * rules to highlight Java semantic actions, comments and 
+ * string/char literals.
+ * 
+ * @author Stéphane Lescuyer
+ */
 public class JLConfiguration extends SourceViewerConfiguration {
 //	private JLDoubleClickStrategy doubleClickStrategy;
 	private JLScanner jlScanner;
@@ -45,7 +57,7 @@ public class JLConfiguration extends SourceViewerConfiguration {
 			jlScanner.setDefaultReturnToken(
 				new Token(
 					new TextAttribute(
-						colorManager.getColor(IJLColorConstants.DEFAULT))));
+						colorManager.getColor(IColorConstants.DEFAULT))));
 		}
 		return jlScanner;
 	}

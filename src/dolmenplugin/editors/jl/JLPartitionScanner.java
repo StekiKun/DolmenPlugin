@@ -1,7 +1,18 @@
-package dolmenplugin.editors;
+package dolmenplugin.editors.jl;
 
 import org.eclipse.jface.text.rules.*;
 
+import dolmenplugin.editors.JavaActionRule;
+
+/**
+ * The main partition scanner for Dolmen lexer descriptions.
+ * <p>
+ * Besides the default partition type, this scanner can also
+ * identify comments (both single-line and multi-line), Java
+ * semantic actions, and string and character literals.
+ * 
+ * @author Stéphane Lescuyer
+ */
 public class JLPartitionScanner extends RuleBasedPartitionScanner {
 	public final static String JL_COMMENT = "__jl_comment";
 	public final static String JL_JAVA = "__jl_java";

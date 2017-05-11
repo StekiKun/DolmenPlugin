@@ -1,9 +1,23 @@
-package dolmenplugin.editors;
+package dolmenplugin.editors.jl;
 
 import org.eclipse.jface.text.rules.*;
 import org.eclipse.swt.SWT;
+
+import dolmenplugin.editors.ColorManager;
+import dolmenplugin.editors.IColorConstants;
+import dolmenplugin.editors.WhitespaceDetector;
+
 import org.eclipse.jface.text.*;
 
+/**
+ * The scanner for the default partitions in Dolmen
+ * lexer descriptions.
+ * <p>
+ * It uses a rule-based scanner to fontify keywords,
+ * identifiers, literals, etc.
+ * 
+ * @author Stéphane Lescuyer
+ */
 public class JLScanner extends RuleBasedScanner {
 
 	public JLScanner(ColorManager manager) {
@@ -15,23 +29,23 @@ public class JLScanner extends RuleBasedScanner {
 		IToken keyword =
 			new Token(
 				new TextAttribute(
-					manager.getColor(IJLColorConstants.KEYWORD), null, SWT.BOLD));
+					manager.getColor(IColorConstants.KEYWORD), null, SWT.BOLD));
 		IToken keywordOp =
 			new Token(
 				new TextAttribute(
-					manager.getColor(IJLColorConstants.KEYWORD_OP)));
+					manager.getColor(IColorConstants.KEYWORD_OP)));
 		IToken comment =
 			new Token(
 				new TextAttribute(
-					manager.getColor(IJLColorConstants.COMMENT)));
+					manager.getColor(IColorConstants.COMMENT)));
 		IToken string =
 			new Token(
 				new TextAttribute(
-					manager.getColor(IJLColorConstants.STRING)));
+					manager.getColor(IColorConstants.STRING)));
 		IToken ident =
 			new Token(
 				new TextAttribute(
-					manager.getColor(IJLColorConstants.IDENT), null, SWT.ITALIC));
+					manager.getColor(IColorConstants.IDENT), null, SWT.ITALIC));
 		
 		// Rule for keywords
 		WordRule keywordsRule = new WordRule(new IWordDetector() {
@@ -68,7 +82,7 @@ public class JLScanner extends RuleBasedScanner {
 		IRule[] rules = new IRule[] {
 			keywordsRule, slCommentRule, mlCommentRule,
 			stringRule, charRule,
-			new WhitespaceRule(new JLWhitespaceDetector())
+			new WhitespaceRule(new WhitespaceDetector())
 		};
 		setRules(rules);
 	}

@@ -1,7 +1,12 @@
-package dolmenplugin.editors;
+package dolmenplugin.editors.jl;
 
 import org.eclipse.jface.text.*;
 
+/**
+ * <b>Unused for now...</b>
+ * 
+ * @author Stéphane Lescuyer
+ */
 public class JLDoubleClickStrategy implements ITextDoubleClickStrategy {
 	protected ITextViewer fText;
 
