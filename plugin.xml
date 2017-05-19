@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?eclipse version="3.4"?>
 <plugin>
-
+   <!-- Editor extension for .jl lexer descriptions -->
    <extension
          point="org.eclipse.ui.editors">
       <editor
@@ -14,6 +14,7 @@
       </editor>
    </extension>
 
+   <!-- Editor extension for .jg grammar descriptions -->
    <extension
          point="org.eclipse.ui.editors">
       <editor
@@ -26,4 +27,37 @@
       </editor>
    </extension>
 
+   <!-- Builder extension for .jl lexer and .jg grammar descriptions -->
+   <extension point="org.eclipse.core.resources.builders"
+         name="Dolmen Lexer and Grammar Builder"
+         id="dolmenplugin.base.Builder">
+      <builder
+            hasNature="true">
+         <run
+          class="dolmenplugin.base.Builder">
+         </run>
+      </builder>
+   </extension>
+   
+   <!-- Marker extension for Dolmen files -->
+   <extension
+         id="dolmenplugin.base.marker"
+         name="Dolmen problems"
+         point="org.eclipse.core.resources.markers">
+      <super
+            type="org.eclipse.core.resources.problemmarker">
+      </super>
+   </extension>
+
+   <!-- Nature extension for project containing Dolmen files -->
+   <extension point="org.eclipse.core.resources.natures"
+         name="Dolmen Nature"
+         id="dolmenplugin.base.Nature" >
+      <runtime>
+         <run
+          class="dolmenplugin.base.Nature">
+         </run>
+      </runtime>
+   </extension>
+   
 </plugin>
