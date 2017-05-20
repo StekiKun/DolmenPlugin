@@ -3,6 +3,7 @@ package dolmenplugin.base;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -19,6 +20,9 @@ import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.SubMonitor;
 import org.eclipse.core.runtime.jobs.ISchedulingRule;
+
+import dolmenplugin.builders.JGCompile;
+import dolmenplugin.builders.JLCompile;
 
 /**
  * ...
@@ -50,7 +54,6 @@ public final class Builder extends IncrementalProjectBuilder {
 	 * @param dolmen
 	 * @param generated
 	 */
-	@SuppressWarnings("unused")
 	private void add(IFile dolmen, IFile generated) {
 		Set<IFile> gens = generatedMap.get(dolmen);
 		if (gens == null) {
@@ -92,6 +95,7 @@ public final class Builder extends IncrementalProjectBuilder {
 	@Override
 	protected IProject[] build(int kind, Map<String, String> args, IProgressMonitor monitor)
 			throws CoreException {
+		System.out.println("Dolmen builder being called!");
 		switch (kind) {
 		case FULL_BUILD:
 			fullBuild(monitor);
@@ -211,9 +215,19 @@ public final class Builder extends IncrementalProjectBuilder {
 		case FOLDER:
 			return true;
 		case FILE: {
-			@SuppressWarnings("unused")
 			final IFile ifile = (IFile) res;
-			// TODO build the file !
+			String extension = ifile.getFileExtension();
+			if ("jl".equals(extension)) {
+				List<IFile> generated =
+					new JLCompile(System.out, monitor).compile(getProject(), ifile);
+				for (IFile gen : generated)
+					add(ifile, gen);
+			} else if ("jg".equals(extension)) {
+				List<IFile> generated =
+					new JGCompile(System.out, monitor).compile(getProject(), ifile);
+				for (IFile gen : generated)
+					add(ifile, gen);		
+			}
 			return true;
 		}
 		}

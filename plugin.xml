@@ -52,12 +52,113 @@
    <!-- Nature extension for project containing Dolmen files -->
    <extension point="org.eclipse.core.resources.natures"
          name="Dolmen Nature"
-         id="dolmenplugin.base.Nature" >
+         id="DolmenNature" >
       <runtime>
          <run
           class="dolmenplugin.base.Nature">
          </run>
       </runtime>
+      <requires-nature
+            id="org.eclipse.jdt.core.javanature">
+      </requires-nature>
+   </extension>
+   
+   <!-- Expression checking the Dolmen nature of a project -->
+   <extension
+         point="org.eclipse.core.expressions.definitions">
+      <definition
+            id="DolmenPlugin.hasNature">
+         <adapt
+               type="org.eclipse.core.resources.IProject">
+            <test
+                  property="org.eclipse.core.resources.projectNature"
+                  value="DolmenPlugin.DolmenNature">
+            </test>
+         </adapt>
+      </definition>
+   </extension>
+   
+   <!-- Declaration of the commands to add and remove the Dolmen nature -->
+   <extension
+         point="org.eclipse.ui.commands">
+      <command
+            description="Use this command to add the Dolmen nature to the selected project"
+            id="dolmenplugin.ConvertDolmenNatureCommand"
+            name="Convert to Dolmen Project">
+      </command>
+      <command
+            description="Use this command to remove the Dolmen nature from the selected project"
+            id="dolmenplugin.RemoveDolmenNatureCommand"
+            name="Remove Dolmen nature">
+      </command>
+   </extension>
+   
+   <!-- Handler for the commands to add and remove the Dolmen nature -->
+   <extension
+         point="org.eclipse.ui.handlers">
+      <handler
+            class="dolmenplugin.handlers.ConvertDolmenNatureHandler"
+            commandId="dolmenplugin.ConvertDolmenNatureCommand">
+      </handler>
+      <handler
+            class="dolmenplugin.handlers.RemoveDolmenNatureHandler"
+            commandId="dolmenplugin.RemoveDolmenNatureCommand">
+      </handler>
+   </extension>
+   
+   <!-- Menu contribution to the Project -> Configure -> -->
+   <extension
+         point="org.eclipse.ui.menus">
+      <menuContribution
+            allPopups="false"
+            locationURI="popup:org.eclipse.ui.projectConfigure">
+         <command
+               commandId="dolmenplugin.ConvertDolmenNatureCommand"
+               label="Add Dolmen nature"
+               style="push">
+            <visibleWhen
+                  checkEnabled="false">
+               <not>
+               	  <adapt
+               type="org.eclipse.core.resources.IProject">
+            <test
+                  property="org.eclipse.core.resources.projectNature"
+                  value="DolmenPlugin.DolmenNature">
+            </test>
+         </adapt>
+                  <!-- <reference
+                        definitionId="DolmenPlugin.hasNature">
+                  </reference> -->
+               </not>
+            </visibleWhen>
+         </command>
+      </menuContribution>
+      
+      <menuContribution
+            allPopups="false"
+            locationURI="popup:org.eclipse.ui.projectConfigure">
+         <command
+               commandId="dolmenplugin.RemoveDolmenNatureCommand"
+               label="Remove Dolmen nature"
+               style="push">
+            <!-- <visibleWhen
+                  checkEnabled="false">
+                <reference
+                      definitionId="DolmenPlugin.hasNature">
+                </reference>
+            </visibleWhen> -->
+         </command>
+      </menuContribution>
+   </extension>
+   
+   <!-- Defining a decorator for project with the Dolmen nature -->
+   <extension
+         point="org.eclipse.ui.ide.projectNatureImages">
+      <image
+            icon="icons/sample.gif"
+            id="DolmenPlugin.DolmenNatureImage"
+            natureId="DolmenPlugin.DolmenNature">
+      </image>
    </extension>
    
 </plugin>

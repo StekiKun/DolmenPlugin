@@ -15,9 +15,10 @@ import org.eclipse.core.runtime.CoreException;
 public final class Nature implements IProjectNature {
 
 	/**
-	 * ID of Dolmen nature (keep it sync with plugin.xml)
+	 * ID of Dolmen nature (keep it sync with plugin.xml, it's
+	 * the bundle symbolic name + the ID defined in plugin.xml)
 	 */
-	public static final String ID = "dolmenplugin.base.Nature";
+	public static final String ID = "DolmenPlugin.DolmenNature";
 	
 	private IProject project = null;
 	
