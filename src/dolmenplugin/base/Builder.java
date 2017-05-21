@@ -79,11 +79,13 @@ public final class Builder extends IncrementalProjectBuilder {
 	public void setInitializationData(IConfigurationElement config, String propertyName, Object data)
 			throws CoreException {
 		super.setInitializationData(config, propertyName, data);
+		System.out.println("DolmenBuilder.setInitializationData");
 	}
 
 	@Override
 	protected void startupOnInitialize() {
 		super.startupOnInitialize();
+		System.out.println("DolmenBuilder.startupOnInitialize");
 		// TODO Retrieve project-wide preferences or something like that?
 	}
 
@@ -188,6 +190,7 @@ public final class Builder extends IncrementalProjectBuilder {
 	
 	@Override
 	protected void clean(IProgressMonitor monitor) throws CoreException {
+		System.out.println("DolmenBuilder.clean");
 		super.clean(monitor);
 		IResource[] members = getProject().members();
 		SubMonitor subMonitor = SubMonitor.convert(monitor, members.length);
@@ -211,7 +214,7 @@ public final class Builder extends IncrementalProjectBuilder {
 		switch (Utils.IResourceKind.of(res)) {
 		case ROOT:
 		case PROJECT:
-			throw new IllegalArgumentException();
+			return true;
 		case FOLDER:
 			return true;
 		case FILE: {
@@ -266,7 +269,7 @@ public final class Builder extends IncrementalProjectBuilder {
 		switch (Utils.IResourceKind.of(resource)) {
 		case ROOT:
 		case PROJECT:
-			throw new IllegalArgumentException();
+			return;
 		case FOLDER: {
 			final IFolder ifolder = (IFolder) resource;
 			for (IResource res : ifolder.members())
