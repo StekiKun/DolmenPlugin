@@ -58,11 +58,9 @@
           class="dolmenplugin.base.Nature">
          </run>
       </runtime>
-<!--
       <requires-nature
             id="org.eclipse.jdt.core.javanature">
       </requires-nature>
--->
    </extension>
    
    <!-- Expression checking the Dolmen nature of one project -->
