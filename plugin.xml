@@ -58,18 +58,25 @@
           class="dolmenplugin.base.Nature">
          </run>
       </runtime>
+<!--
       <requires-nature
             id="org.eclipse.jdt.core.javanature">
       </requires-nature>
+-->
    </extension>
    
-   <!-- Expression checking the Dolmen nature of a project -->
+   <!-- Expression checking the Dolmen nature of one project -->
+   <!-- NB: Even when selecting only a single projects, it seems the
+   		default variable received from the Package Explorer is an array
+   		of IProject, so we need to be careful and iterate on the selection.
+   		Conversely, if the Navigator or Project Explorer sends the IProject
+   		as is, can it be adapted to a singleton iterable? I hope so... -->
    <extension
          point="org.eclipse.core.expressions.definitions">
       <definition
             id="DolmenPlugin.hasNature">
          <adapt
-               type="org.eclipse.core.resources.IProject">
+               type="org.eclipse.core.resources.IResource">
             <test
                   property="org.eclipse.core.resources.projectNature"
                   value="DolmenPlugin.DolmenNature">
@@ -116,20 +123,16 @@
                commandId="dolmenplugin.ConvertDolmenNatureCommand"
                label="Add Dolmen nature"
                style="push">
+         	<!-- Only visible when ALL selected projects are missing the Dolmen nature -->
             <visibleWhen
                   checkEnabled="false">
-               <not>
-               	  <adapt
-               type="org.eclipse.core.resources.IProject">
-            <test
-                  property="org.eclipse.core.resources.projectNature"
-                  value="DolmenPlugin.DolmenNature">
-            </test>
-         </adapt>
-                  <!-- <reference
+               <iterate ifEmpty="false">
+               	<not>
+               	  <reference
                         definitionId="DolmenPlugin.hasNature">
-                  </reference> -->
-               </not>
+               	  </reference>
+               	</not>
+               </iterate>
             </visibleWhen>
          </command>
       </menuContribution>
@@ -141,12 +144,14 @@
                commandId="dolmenplugin.RemoveDolmenNatureCommand"
                label="Remove Dolmen nature"
                style="push">
-            <!-- <visibleWhen
-                  checkEnabled="false">
-                <reference
-                      definitionId="DolmenPlugin.hasNature">
-                </reference>
-            </visibleWhen> -->
+             <!-- Only visible when ALL selected projects have the Dolmen nature -->
+             <visibleWhen checkEnabled="false">
+               <iterate ifEmpty="false">
+               	  <reference
+                        definitionId="DolmenPlugin.hasNature">
+               	  </reference>
+               </iterate>
+             </visibleWhen>
          </command>
       </menuContribution>
    </extension>
