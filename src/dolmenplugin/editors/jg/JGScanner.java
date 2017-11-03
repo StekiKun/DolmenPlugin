@@ -19,7 +19,7 @@ import org.eclipse.jface.text.*;
  * It uses a rule-based scanner to fontify keywords,
  * terminals, identifiers, etc.
  * 
- * @author Stéphane Lescuyer
+ * @author StÃ©phane Lescuyer
  */
 public class JGScanner extends RuleBasedScanner {
 

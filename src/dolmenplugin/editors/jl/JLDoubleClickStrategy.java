@@ -5,7 +5,7 @@ import org.eclipse.jface.text.*;
 /**
  * <b>Unused for now...</b>
  * 
- * @author Stéphane Lescuyer
+ * @author StÃ©phane Lescuyer
  */
 public class JLDoubleClickStrategy implements ITextDoubleClickStrategy {
 	protected ITextViewer fText;

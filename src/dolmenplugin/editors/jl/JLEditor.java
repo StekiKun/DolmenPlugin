@@ -7,7 +7,7 @@ import dolmenplugin.editors.ColorManager;
 /**
  * Custom editor for Dolmen lexer descriptions (.jl)
  * 
- * @author Stéphane Lescuyer
+ * @author StÃ©phane Lescuyer
  */
 public class JLEditor extends TextEditor {
 
@@ -19,6 +19,7 @@ public class JLEditor extends TextEditor {
 		setSourceViewerConfiguration(new JLConfiguration(colorManager));
 		setDocumentProvider(new JLDocumentProvider());
 	}
+	
 	public void dispose() {
 		colorManager.dispose();
 		super.dispose();

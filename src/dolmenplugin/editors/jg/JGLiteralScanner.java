@@ -13,7 +13,7 @@ import dolmenplugin.editors.IColorConstants;
  * The scanner for the literal partitions in Dolmen
  * grammar descriptions.
  *
- * @author Stéphane Lescuyer
+ * @author StÃ©phane Lescuyer
  */
 public class JGLiteralScanner extends RuleBasedScanner {
 

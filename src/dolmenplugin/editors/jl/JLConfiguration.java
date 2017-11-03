@@ -20,7 +20,7 @@ import dolmenplugin.editors.JavaScanner;
  * rules to highlight Java semantic actions, comments and 
  * string/char literals.
  * 
- * @author Stéphane Lescuyer
+ * @author StÃ©phane Lescuyer
  */
 public class JLConfiguration extends SourceViewerConfiguration {
 //	private JLDoubleClickStrategy doubleClickStrategy;

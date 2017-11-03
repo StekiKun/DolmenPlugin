@@ -6,7 +6,7 @@ import org.eclipse.jface.text.rules.IWhitespaceDetector;
  * Common implementation of {@link IWhitespaceDetector}
  * used by the lexer and parser editors
  * 
- * @author Stéphane Lescuyer
+ * @author StÃ©phane Lescuyer
  */
 public class WhitespaceDetector implements IWhitespaceDetector {
 

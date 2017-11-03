@@ -11,7 +11,7 @@ import dolmenplugin.editors.JavaActionRule;
  * identify comments (both single-line and multi-line), Java
  * semantic actions, and string and character literals.
  * 
- * @author Stéphane Lescuyer
+ * @author StÃ©phane Lescuyer
  */
 public class JLPartitionScanner extends RuleBasedPartitionScanner {
 	public final static String JL_COMMENT = "__jl_comment";

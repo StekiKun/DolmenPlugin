@@ -5,7 +5,7 @@ import org.eclipse.swt.graphics.RGB;
 /**
  * Constant RGB colors used by the custom editors
  * 
- * @author Stéphane Lescuyer
+ * @author StÃ©phane Lescuyer
  */
 public interface IColorConstants {
 	RGB KEYWORD = new RGB(128, 0, 0);

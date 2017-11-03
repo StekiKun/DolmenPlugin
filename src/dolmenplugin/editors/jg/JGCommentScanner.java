@@ -13,7 +13,7 @@ import dolmenplugin.editors.IColorConstants;
  * The scanner for the comment partitions in Dolmen
  * grammar descriptions.
  *
- * @author Stéphane Lescuyer
+ * @author StÃ©phane Lescuyer
  */
 public class JGCommentScanner extends RuleBasedScanner {
 

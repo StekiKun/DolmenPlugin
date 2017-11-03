@@ -15,7 +15,7 @@ import org.eclipse.swt.widgets.Display;
  * system so they must be allocated and disposed of in a 
  * controlled fashion)
  * 
- * @author Stéphane Lescuyer
+ * @author StÃ©phane Lescuyer
  */
 public class ColorManager {
 
@@ -26,6 +26,7 @@ public class ColorManager {
 		while (e.hasNext())
 			 e.next().dispose();
 	}
+	
 	public Color getColor(RGB rgb) {
 		Color color = fColorTable.get(rgb);
 		if (color == null) {

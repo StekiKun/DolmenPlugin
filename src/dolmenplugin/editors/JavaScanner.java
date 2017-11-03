@@ -26,7 +26,7 @@ import dolmenplugin.editors.IColorConstants;
  * It uses a rule-based scanner to recognizes all Java
  * keywords, as well as Java comments and string literals.
  *
- * @author Stéphane Lescuyer
+ * @author StÃ©phane Lescuyer
  */
 public class JavaScanner extends RuleBasedScanner {
 

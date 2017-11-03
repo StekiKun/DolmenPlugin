@@ -7,7 +7,7 @@ import dolmenplugin.editors.ColorManager;
 /**
  * Custom editor for Dolmen grammar descriptions (.jg)
  * 
- * @author Stéphane Lescuyer
+ * @author StÃ©phane Lescuyer
  */
 public class JGEditor extends TextEditor {
 

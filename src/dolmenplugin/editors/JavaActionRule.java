@@ -11,7 +11,7 @@ import org.eclipse.jface.text.rules.Token;
  * and closing characters. It is used both by the
  * lexer and parser editors.
  * 
- * @author Stéphane Lescuyer
+ * @author StÃ©phane Lescuyer
  */
 public class JavaActionRule implements IPredicateRule {
 

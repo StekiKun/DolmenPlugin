@@ -12,7 +12,7 @@ import org.eclipse.ui.editors.text.FileDocumentProvider;
  * Uses the custom partition scanner in {@link JGPartitionScanner}
  * to perform the document partitioning.
  * 
- * @author Stéphane Lescuyer
+ * @author StÃ©phane Lescuyer
  */
 public class JGDocumentProvider extends FileDocumentProvider {
 

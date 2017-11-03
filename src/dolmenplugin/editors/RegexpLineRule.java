@@ -28,7 +28,7 @@ import org.eclipse.jface.text.rules.Token;
  * bounding the maximum look-ahead for this rule is advised
  * when possible.
  * 
- * @author Stéphane Lescuyer
+ * @author StÃ©phane Lescuyer
  */
 public final class RegexpLineRule implements IRule {
 
