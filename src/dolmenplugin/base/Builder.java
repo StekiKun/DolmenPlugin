@@ -204,7 +204,7 @@ public final class Builder extends IncrementalProjectBuilder {
 	/**
 	 * Applies the builder to the given resource (either as part of a
 	 * full build, or if the resource has been added or changed in case
-	 * of an incremental build
+	 * of an incremental build)
 	 * 
 	 * @param res
 	 * @param monitor
@@ -289,7 +289,7 @@ public final class Builder extends IncrementalProjectBuilder {
 			// Otherwise, if the file could hold Dolmen problems, they
 			// must be deleted
 			if (Utils.isDolmenResource(ifile))
-				ifile.deleteMarkers(Marker.ID, false, IResource.DEPTH_ZERO);
+				Marker.delete(ifile);
 			return;
 		}
 		}

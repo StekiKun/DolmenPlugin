@@ -1,6 +1,5 @@
 package dolmenplugin.builders;
 
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -44,13 +43,12 @@ public final class JGCompile {
 		if (res == null || !res.exists())
 			return FAILED;
 		log.println("Compiling grammar description " + res);
-		File file = res.getLocation().toFile();
-		String dir = file.getParent();
-		String filename = file.getName();
-		String className = filename.substring(0, filename.lastIndexOf('.'));
+		Marker.delete(res);
+		
+		final ClassFactory cf = new ClassFactory(res);
 		JGLexer jgLexer = null;
-		try (FileReader reader = new FileReader(file)) {
-			jgLexer = new JGLexer(file.getPath(), reader);
+		try (FileReader reader = new FileReader(cf.file)) {
+			jgLexer = new JGLexer(cf.file.getPath(), reader);
 			JGParserGenerated jgParser = new JGParserGenerated(jgLexer, JGLexer::main);
 			Grammar grammar = jgParser.start();
 			log.println(".. Grammar description successfully parsed");
@@ -65,33 +63,24 @@ public final class JGCompile {
 			}
 			log.println(".. Grammar is LL(1)!");
 			
-			File gen = new File(dir, className + ".java");
-			try (FileWriter writer = new FileWriter(gen, false)) {
-				GrammarOutput.outputDefault(writer, className, grammar, predictTable);
-				log.println("-> Generated parser in " + gen.getAbsolutePath());
+			try (FileWriter writer = new FileWriter(cf.classFile, false)) {
+				writer.append("package " + cf.classPackage.getElementName() + ";\n\n");
+				GrammarOutput.outputDefault(writer, cf.className, grammar, predictTable);
+				log.println("-> Generated parser in " + cf.classResource);
 			} catch (IOException e) {
 				e.printStackTrace(log);
 				return FAILED;
 			}
 			
-			res.deleteMarkers(Marker.ID, true, IResource.DEPTH_ZERO);
 			project.refreshLocal(IResource.DEPTH_INFINITE, monitor);
 			
-			// TODO: is there a cleaner way to do that below?
-			String projectDir = project.getLocation().toOSString();
-			String fullGen = gen.getPath();
-			if (!fullGen.startsWith(projectDir))
-				throw new IllegalStateException(
-					"Generated file " + fullGen + " not in project " + projectDir);
-			String relGen = fullGen.substring(projectDir.length() + 1);
-			IResource newRes = project.findMember(relGen);
-			
+			final IFile newRes = cf.classResource;
 			if (!newRes.isDerived())
 				newRes.setDerived(true, monitor);
 			Date now = new Date();
-			String prop = "Generated from " + file.getAbsolutePath() + " (" + now + ")";
+			String prop = "Generated from " + cf.file.getAbsolutePath() + " (" + now + ")";
 			newRes.setPersistentProperty(Utils.GENERATED_PROPERTY, prop);
-			return Collections.singletonList((IFile) newRes);
+			return Collections.singletonList(newRes);
 		}
 		catch (LexicalError | ParsingException e) {
 			// e.printStackTrace();

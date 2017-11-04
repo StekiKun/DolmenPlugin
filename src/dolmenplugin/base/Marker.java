@@ -1,5 +1,8 @@
 package dolmenplugin.base;
 
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.CoreException;
+
 /**
  * Utility class for Dolmen problem markers
  * 
@@ -16,4 +19,16 @@ public final class Marker {
 		// Static utility only
 	}
 
+	/**
+	 * Deletes all Dolmen markers associated with the given resource
+	 * 
+	 * @param res
+	 */
+	public static void delete(IResource res) {
+		try {
+			res.deleteMarkers(Marker.ID, true, IResource.DEPTH_ZERO);
+		} catch (CoreException e) {
+			e.printStackTrace();
+		}
+	}
 }

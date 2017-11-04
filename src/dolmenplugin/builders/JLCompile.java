@@ -1,6 +1,5 @@
 package dolmenplugin.builders;
 
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -45,14 +44,17 @@ public final class JLCompile {
 		if (res == null || !res.exists())
 			return FAILED;
 		log.println("Compiling lexer description " + res);
-		File file = res.getLocation().toFile();
-		String dir = file.getParent();
-		String filename = file.getName();
-		String className = filename.substring(0, filename.lastIndexOf('.'));
+		Marker.delete(res);
+
+		final ClassFactory cf = new ClassFactory(res);
+//		File file = res.getLocation().toFile();
+//		String dir = file.getParent();
+//		String filename = file.getName();
+//		String className = filename.substring(0, filename.lastIndexOf('.'));
 		JLLexerGenerated jlLexer = null;
-		try (FileReader reader = new FileReader(file)) {
+		try (FileReader reader = new FileReader(cf.file)) {
 			jlLexer = new JLLexerGenerated(
-				file.getPath(), reader);
+				cf.file.getPath(), reader);
 			JLParser jlParser = new JLParser(jlLexer, JLLexerGenerated::main);
 			Lexer lexer = jlParser.parseLexer();
 			log.println(".. Lexer description successfully parsed");
@@ -62,31 +64,22 @@ public final class JLCompile {
 			log.println(".. (" + aut.automataCells.length + " states in " 
 					+ aut.automataEntries.size() + " automata)");
 			
-			File gen = new File(dir, className + ".java");
-			try (FileWriter writer = new FileWriter(gen, false)) {
-				AutomataOutput.output(writer, className, aut);
-				log.println("-> Generated lexer in " + gen.getAbsolutePath());
+			try (FileWriter writer = new FileWriter(cf.classFile, false)) {
+				writer.append("package " + cf.classPackage.getElementName() + ";\n\n");
+				AutomataOutput.output(writer, cf.className, aut);
+				log.println("-> Generated lexer in " + cf.classResource);
 			} catch (IOException e) {
 				e.printStackTrace(log);
 				return FAILED;
 			}
 			
-			res.deleteMarkers(Marker.ID, true, IResource.DEPTH_ZERO);
 			project.refreshLocal(IResource.DEPTH_INFINITE, monitor);
 			
-			// TODO: is there a cleaner way to do that below?
-			String projectDir = project.getLocation().toOSString();
-			String fullGen = gen.getPath();
-			if (!fullGen.startsWith(projectDir))
-				throw new IllegalStateException(
-					"Generated file " + fullGen + " not in project " + projectDir);
-			String relGen = fullGen.substring(projectDir.length() + 1);
-			IResource newRes = project.findMember(relGen);
-			
+			final IFile newRes = cf.classResource;
 			if (!newRes.isDerived())
 				newRes.setDerived(true, monitor);
 			Date now = new Date();
-			String prop = "Generated from " + file.getAbsolutePath() + " (" + now + ")";
+			String prop = "Generated from " + cf.file.getAbsolutePath() + " (" + now + ")";
 			newRes.setPersistentProperty(Utils.GENERATED_PROPERTY, prop);
 			return Collections.singletonList((IFile) newRes);
 		}
