@@ -1,17 +1,20 @@
 package dolmenplugin.editors.jl;
 
 import org.eclipse.jface.text.IDocument;
+import org.eclipse.jface.text.ITextHover;
 import org.eclipse.jface.text.TextAttribute;
 import org.eclipse.jface.text.presentation.IPresentationReconciler;
 import org.eclipse.jface.text.presentation.PresentationReconciler;
 import org.eclipse.jface.text.rules.DefaultDamagerRepairer;
 import org.eclipse.jface.text.rules.Token;
+import org.eclipse.jface.text.source.IAnnotationHover;
 import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.jface.text.source.SourceViewerConfiguration;
 
 import dolmenplugin.editors.ColorManager;
 import dolmenplugin.editors.IColorConstants;
 import dolmenplugin.editors.JavaScanner;
+import dolmenplugin.editors.MarkerAnnotationHover;
 
 /**
  * The custom editor configuration for Dolmen lexer descriptions.
@@ -23,6 +26,7 @@ import dolmenplugin.editors.JavaScanner;
  * @author Stéphane Lescuyer
  */
 public class JLConfiguration extends SourceViewerConfiguration {
+	private MarkerAnnotationHover jlAnnotationHover;
 //	private JLDoubleClickStrategy doubleClickStrategy;
 	private JLScanner jlScanner;
 	private JLLiteralScanner jlLiteralScanner;
@@ -33,8 +37,10 @@ public class JLConfiguration extends SourceViewerConfiguration {
 
 	public JLConfiguration(ColorManager colorManager) {
 		this.colorManager = colorManager;
+		this.jlAnnotationHover = new MarkerAnnotationHover();
 	}
 
+	@Override
 	public String[] getConfiguredContentTypes(ISourceViewer sourceViewer) {
 		return new String[] {
 			IDocument.DEFAULT_CONTENT_TYPE,
@@ -84,6 +90,7 @@ public class JLConfiguration extends SourceViewerConfiguration {
 		return jlJavaScanner;
 	}
 	
+	@Override
 	public IPresentationReconciler getPresentationReconciler(ISourceViewer sourceViewer) {
 		PresentationReconciler reconciler = new PresentationReconciler();
 
@@ -106,4 +113,14 @@ public class JLConfiguration extends SourceViewerConfiguration {
 		return reconciler;
 	}
 
+	@Override
+	public IAnnotationHover getAnnotationHover(ISourceViewer sourceViewer) {
+		return jlAnnotationHover;
+	}
+
+	@Override
+	public ITextHover getTextHover(ISourceViewer sourceViewer, String contentType) {
+		return jlAnnotationHover;
+	}
+	
 }

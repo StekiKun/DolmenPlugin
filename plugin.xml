@@ -61,6 +61,9 @@
       <requires-nature
             id="org.eclipse.jdt.core.javanature">
       </requires-nature>
+      <builder
+            id="dolmenplugin.base.Builder">
+      </builder>
    </extension>
    
    <!-- Expression checking the Dolmen nature of one project -->
@@ -162,6 +165,14 @@
             id="DolmenPlugin.DolmenNatureImage"
             natureId="DolmenPlugin.DolmenNature">
       </image>
+   </extension>
+   
+   <extension
+        point="org.eclipse.core.filebuffers.annotationModelCreation">
+      <factory
+         extensions="jg,jl"
+         class="org.eclipse.ui.texteditor.ResourceMarkerAnnotationModelFactory">
+      </factory>
    </extension>
    
 </plugin>

@@ -1,17 +1,20 @@
 package dolmenplugin.editors.jg;
 
 import org.eclipse.jface.text.IDocument;
+import org.eclipse.jface.text.ITextHover;
 import org.eclipse.jface.text.TextAttribute;
 import org.eclipse.jface.text.presentation.IPresentationReconciler;
 import org.eclipse.jface.text.presentation.PresentationReconciler;
 import org.eclipse.jface.text.rules.DefaultDamagerRepairer;
 import org.eclipse.jface.text.rules.Token;
+import org.eclipse.jface.text.source.IAnnotationHover;
 import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.jface.text.source.SourceViewerConfiguration;
 
 import dolmenplugin.editors.ColorManager;
 import dolmenplugin.editors.IColorConstants;
 import dolmenplugin.editors.JavaScanner;
+import dolmenplugin.editors.MarkerAnnotationHover;
 
 /**
  * The custom editor configuration for Dolmen grammar descriptions.
@@ -23,6 +26,7 @@ import dolmenplugin.editors.JavaScanner;
  * @author Stéphane Lescuyer
  */
 public class JGConfiguration extends SourceViewerConfiguration {
+	private MarkerAnnotationHover jgAnnotationHover;
 //	private JGDoubleClickStrategy doubleClickStrategy;
 	private JGScanner jgScanner;
 	private JGCommentScanner jgCommentScanner;
@@ -33,6 +37,7 @@ public class JGConfiguration extends SourceViewerConfiguration {
 
 	public JGConfiguration(ColorManager colorManager) {
 		this.colorManager = colorManager;
+		this.jgAnnotationHover = new MarkerAnnotationHover();
 	}
 
 	public String[] getConfiguredContentTypes(ISourceViewer sourceViewer) {
@@ -103,6 +108,16 @@ public class JGConfiguration extends SourceViewerConfiguration {
         reconciler.setDamager(ddr, JGPartitionScanner.JG_ARGS);
 
 		return reconciler;
+	}
+
+	@Override
+	public IAnnotationHover getAnnotationHover(ISourceViewer sourceViewer) {
+		return jgAnnotationHover;
+	}
+
+	@Override
+	public ITextHover getTextHover(ISourceViewer sourceViewer, String contentType) {
+		return jgAnnotationHover;
 	}
 
 }

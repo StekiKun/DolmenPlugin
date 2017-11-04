@@ -15,7 +15,6 @@ import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.SubMonitor;
 
 import automaton.Automata;
@@ -48,12 +47,13 @@ public final class JLCompile {
 		log.println("Compiling lexer description " + res);
 		File file = res.getLocation().toFile();
 		String dir = file.getParent();
-		String className = file.getName();
+		String filename = file.getName();
+		String className = filename.substring(0, filename.lastIndexOf('.'));
 		JLLexerGenerated jlLexer = null;
 		try (FileReader reader = new FileReader(file)) {
 			jlLexer = new JLLexerGenerated(
-				res.getName(), reader);
-			JLParser jlParser = new JLParser(jlLexer::main);
+				file.getPath(), reader);
+			JLParser jlParser = new JLParser(jlLexer, JLLexerGenerated::main);
 			Lexer lexer = jlParser.parseLexer();
 			log.println(".. Lexer description successfully parsed");
 			
@@ -71,9 +71,18 @@ public final class JLCompile {
 				return FAILED;
 			}
 			
+			res.deleteMarkers(Marker.ID, true, IResource.DEPTH_ZERO);
 			project.refreshLocal(IResource.DEPTH_INFINITE, monitor);
-			IResource newRes = 
-				project.findMember(dir + IPath.SEPARATOR + className + ".java");
+			
+			// TODO: is there a cleaner way to do that below?
+			String projectDir = project.getLocation().toOSString();
+			String fullGen = gen.getPath();
+			if (!fullGen.startsWith(projectDir))
+				throw new IllegalStateException(
+					"Generated file " + fullGen + " not in project " + projectDir);
+			String relGen = fullGen.substring(projectDir.length() + 1);
+			IResource newRes = project.findMember(relGen);
+			
 			if (!newRes.isDerived())
 				newRes.setDerived(true, monitor);
 			Date now = new Date();
@@ -82,13 +91,14 @@ public final class JLCompile {
 			return Collections.singletonList((IFile) newRes);
 		}
 		catch (LexicalError | ParsingException e) {
+			// e.printStackTrace();
 			Position start = jlLexer.getLexemeStart();
 			Position end = jlLexer.getLexemeEnd();
 			try {
 				IMarker report = res.createMarker(Marker.ID);
 				report.setAttribute(IMarker.MESSAGE, e.getMessage());
 				report.setAttribute(IMarker.SEVERITY, IMarker.SEVERITY_ERROR);
-				// report.setAttribute(IMarker.LINE_NUMBER, start.line);
+				report.setAttribute(IMarker.LINE_NUMBER, start.line);
 				report.setAttribute(IMarker.CHAR_START, start.offset);
 				report.setAttribute(IMarker.CHAR_END, end.offset);
 			} catch (CoreException e1) {

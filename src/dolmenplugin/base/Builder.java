@@ -130,6 +130,7 @@ public final class Builder extends IncrementalProjectBuilder {
 	 */
 	private void fullBuild(final IProgressMonitor monitor) throws CoreException {
 		SubMonitor subMonitor = SubMonitor.convert(monitor);
+		System.out.println("FULL BUILD");
 		getProject().accept(this.new ResourceVisitor(subMonitor));
 	}
 	
@@ -156,6 +157,8 @@ public final class Builder extends IncrementalProjectBuilder {
 	private void incrementalBuild(IResourceDelta delta, IProgressMonitor monitor)
 			throws CoreException {
 		SubMonitor subMonitor = SubMonitor.convert(monitor);
+		System.out.println("INCREMENTAL BUILD");
+		System.out.println(delta.toString());
 		delta.accept(new DeltaVisitor(subMonitor));
 	}
 	
