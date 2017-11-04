@@ -10,7 +10,6 @@ import java.util.Date;
 import java.util.List;
 
 import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
@@ -44,13 +43,9 @@ public final class JLCompile {
 		if (res == null || !res.exists())
 			return FAILED;
 		log.println("Compiling lexer description " + res);
-		Marker.delete(res);
+		Marker.deleteAll(res);
 
 		final ClassFactory cf = new ClassFactory(res);
-//		File file = res.getLocation().toFile();
-//		String dir = file.getParent();
-//		String filename = file.getName();
-//		String className = filename.substring(0, filename.lastIndexOf('.'));
 		JLLexerGenerated jlLexer = null;
 		try (FileReader reader = new FileReader(cf.file)) {
 			jlLexer = new JLLexerGenerated(
@@ -84,19 +79,12 @@ public final class JLCompile {
 			return Collections.singletonList((IFile) newRes);
 		}
 		catch (LexicalError | ParsingException e) {
-			// e.printStackTrace();
 			Position start = jlLexer.getLexemeStart();
 			Position end = jlLexer.getLexemeEnd();
-			try {
-				IMarker report = res.createMarker(Marker.ID);
-				report.setAttribute(IMarker.MESSAGE, e.getMessage());
-				report.setAttribute(IMarker.SEVERITY, IMarker.SEVERITY_ERROR);
-				report.setAttribute(IMarker.LINE_NUMBER, start.line);
-				report.setAttribute(IMarker.CHAR_START, start.offset);
-				report.setAttribute(IMarker.CHAR_END, end.offset);
-			} catch (CoreException e1) {
-				e1.printStackTrace();
-			}
+			Marker.addError(res, e.getMessage(), start.line, start.offset, end.offset);
+		}
+		catch (Lexer.IllFormedException e) {
+			Marker.addAll(res, e.reports);
 		}
 		catch (FileNotFoundException e) {
 			e.printStackTrace(log);

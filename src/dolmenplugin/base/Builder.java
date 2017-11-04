@@ -289,7 +289,7 @@ public final class Builder extends IncrementalProjectBuilder {
 			// Otherwise, if the file could hold Dolmen problems, they
 			// must be deleted
 			if (Utils.isDolmenResource(ifile))
-				Marker.delete(ifile);
+				Marker.deleteAll(ifile);
 			return;
 		}
 		}

@@ -10,7 +10,6 @@ import java.util.Date;
 import java.util.List;
 
 import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
@@ -43,7 +42,7 @@ public final class JGCompile {
 		if (res == null || !res.exists())
 			return FAILED;
 		log.println("Compiling grammar description " + res);
-		Marker.delete(res);
+		Marker.deleteAll(res);
 		
 		final ClassFactory cf = new ClassFactory(res);
 		JGLexer jgLexer = null;
@@ -83,19 +82,12 @@ public final class JGCompile {
 			return Collections.singletonList(newRes);
 		}
 		catch (LexicalError | ParsingException e) {
-			// e.printStackTrace();
 			Position start = jgLexer.getLexemeStart();
 			Position end = jgLexer.getLexemeEnd();
-			try {
-				IMarker report = res.createMarker(Marker.ID);
-				report.setAttribute(IMarker.MESSAGE, e.getMessage());
-				report.setAttribute(IMarker.SEVERITY, IMarker.SEVERITY_ERROR);
-				report.setAttribute(IMarker.LINE_NUMBER, start.line);
-				report.setAttribute(IMarker.CHAR_START, start.offset);
-				report.setAttribute(IMarker.CHAR_END, end.offset);
-			} catch (CoreException e1) {
-				e1.printStackTrace();
-			}
+			Marker.addError(res, e.getMessage(), start.line, start.offset, end.offset);
+		}
+		catch (Grammar.IllFormedException e) {
+			Marker.addAll(res, e.reports);
 		}
 		catch (FileNotFoundException e) {
 			e.printStackTrace(log);
