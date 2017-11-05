@@ -1,5 +1,6 @@
 package dolmenplugin.base;
 
+import java.io.PrintStream;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -225,12 +226,14 @@ public final class Builder extends IncrementalProjectBuilder {
 			String extension = ifile.getFileExtension();
 			if ("jl".equals(extension)) {
 				List<IFile> generated =
-					new JLCompile(System.out, monitor).compile(getProject(), ifile);
+					new JLCompile(getLoggingStream(), monitor)
+						.compile(getProject(), ifile);
 				for (IFile gen : generated)
 					add(ifile, gen);
 			} else if ("jg".equals(extension)) {
 				List<IFile> generated =
-					new JGCompile(System.out, monitor).compile(getProject(), ifile);
+					new JGCompile(getLoggingStream(), monitor)
+						.compile(getProject(), ifile);
 				for (IFile gen : generated)
 					add(ifile, gen);		
 			}
@@ -293,6 +296,14 @@ public final class Builder extends IncrementalProjectBuilder {
 			return;
 		}
 		}
+	}
+	
+	/**
+	 * @return a stream where the builders can log their progression
+	 * 	(typically, a console, or the standard output)
+	 */
+	private PrintStream getLoggingStream() {
+		return new PrintStream(Console.findDolmenConsole().newMessageStream());
 	}
 	
 }

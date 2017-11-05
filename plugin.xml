@@ -167,12 +167,23 @@
       </image>
    </extension>
    
+   <!-- Default annotation model for Dolmen markers -->
    <extension
         point="org.eclipse.core.filebuffers.annotationModelCreation">
       <factory
          extensions="jg,jl"
          class="org.eclipse.ui.texteditor.ResourceMarkerAnnotationModelFactory">
       </factory>
+   </extension>
+   
+   <!-- Custom console for reporting Dolmen builders activity -->
+   <extension
+      point="org.eclipse.ui.console.consoleFactories">
+      <consoleFactory
+         class="dolmenplugin.base.Console"
+         icon="icons/sample.gif"
+         label="Dolmen Console">
+      </consoleFactory>
    </extension>
    
 </plugin>
