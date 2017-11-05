@@ -18,9 +18,12 @@ import org.eclipse.core.resources.IResourceVisitor;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IConfigurationElement;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.SubMonitor;
 import org.eclipse.core.runtime.jobs.ISchedulingRule;
+import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.JavaCore;
 
 import dolmenplugin.builders.JGCompile;
 import dolmenplugin.builders.JLCompile;
@@ -38,6 +41,13 @@ public final class Builder extends IncrementalProjectBuilder {
 	public static final String ID = "dolmenplugin.base.Builder";
 
 	/**
+	 * The builder should only be used in a project with the 
+	 * Java nature. The Java project interface is fetched during
+	 * the builder initialization.
+	 */
+	private IJavaProject javaProject;
+	
+	/**
 	 * The builder will keep track of the various resources which
 	 * are generated, associated to the Dolmen resource that they
 	 * have been generated from
@@ -46,6 +56,7 @@ public final class Builder extends IncrementalProjectBuilder {
 	
 	public Builder() {
 		this.generatedMap = new HashMap<>();
+		this.javaProject = null;
 	}
 
 	/**
@@ -87,7 +98,9 @@ public final class Builder extends IncrementalProjectBuilder {
 	protected void startupOnInitialize() {
 		super.startupOnInitialize();
 		System.out.println("DolmenBuilder.startupOnInitialize");
-		// TODO Retrieve project-wide preferences or something like that?
+		
+		IProject project = getProject();
+		javaProject = JavaCore.create(project);
 	}
 
 	@Override
@@ -159,7 +172,7 @@ public final class Builder extends IncrementalProjectBuilder {
 			throws CoreException {
 		SubMonitor subMonitor = SubMonitor.convert(monitor);
 		System.out.println("INCREMENTAL BUILD");
-		System.out.println(delta.toString());
+		displayDelta(System.out, delta);
 		delta.accept(new DeltaVisitor(subMonitor));
 	}
 	
@@ -219,11 +232,34 @@ public final class Builder extends IncrementalProjectBuilder {
 		case ROOT:
 		case PROJECT:
 			return true;
-		case FOLDER:
+		case FOLDER: {
+			// Try and avoid visiting the output folder
+			// because the JDT builder will keep copying our lexer
+			// and grammar descriptions to the Java output folder and
+			// if we don't pay attention, we will generate Java files
+			// in there as well.
+			// NB: Other specific output folders may be specified for
+			//  in the project's configuration, so avoiding the default
+			//  output folder is not enough in general.
+			IPath outputFolder = javaProject.getOutputLocation();
+			if (res.getProjectRelativePath().equals(outputFolder))
+				return false;
 			return true;
+		}
 		case FILE: {
 			final IFile ifile = (IFile) res;
 			String extension = ifile.getFileExtension();
+			// Avoid checking classpaths for .java files, of which 
+			// there may be many and which we always want to ignore
+			if (!"jl".equals(extension) && !"jg".equals(extension)) 
+				return false;
+			// Users should not explicitly try to exclude .jl/.jg files
+			// from the classpath to prevent JDT from copying them, because
+			// we deal with it in the builder.
+			// This should also take care of all files in all output folders,
+			// unless output folders and classpath entries are not exclusive?
+			if (!javaProject.isOnClasspath(res)) return false;
+			
 			if ("jl".equals(extension)) {
 				List<IFile> generated =
 					new JLCompile(getLoggingStream(), monitor)
@@ -304,6 +340,67 @@ public final class Builder extends IncrementalProjectBuilder {
 	 */
 	private PrintStream getLoggingStream() {
 		return new PrintStream(Console.findDolmenConsole().newMessageStream());
+	}
+	
+	/**
+	 * Class to pretty-print a resource delta
+	 * 
+	 * @author Stéphane Lescuyer
+	 */
+	private static class DeltaDisplayer {
+		private final PrintStream out;
+		private int indent = 0;
+		
+		DeltaDisplayer(PrintStream out) {
+			this.out = out;
+		}
+		
+		private void println(String line) {
+			for (int i = 0; i < indent; i++)
+				out.append(' ');
+			out.append(line);
+			out.append("\n");
+		}
+		
+		private void open() {
+			indent += 2;
+		}
+		
+		private void close() {
+			indent -= 2;
+		}
+		
+		private String kindToString(int k) {
+			switch (k) {
+			case IResourceDelta.ADDED:
+				return " [ADDED] ";
+			case IResourceDelta.CHANGED:
+				return " [CHANGED] ";
+			case IResourceDelta.REMOVED:
+				return " [REMOVED] ";
+			default:
+				return " [?" + k + "?] ";
+			}
+		}
+		
+		void display(IResourceDelta delta) {
+			println(delta.getResource() + kindToString(delta.getKind())
+					+ "{");
+			open();
+			for (IResourceDelta child : delta.getAffectedChildren())
+				display(child);
+			close();
+			println("}");
+		}
+	}
+	
+	/**
+	 * Pretty-prints the given resource delta to the given stream
+	 * @param out
+	 * @param delta
+	 */
+	private void displayDelta(PrintStream out, IResourceDelta delta) {
+		new DeltaDisplayer(out).display(delta);
 	}
 	
 }
