@@ -52,19 +52,20 @@ public final class JLCompile {
 				cf.file.getPath(), reader);
 			JLParser jlParser = new JLParser(jlLexer, JLLexerGenerated::main);
 			Lexer lexer = jlParser.parseLexer();
-			log.println(".. Lexer description successfully parsed");
+			log.println("├─ Lexer description successfully parsed");
 			
 			Automata aut = Determinize.lexer(lexer, true);
-			log.println(".. Compiled lexer description to automata");
-			log.println(".. (" + aut.automataCells.length + " states in " 
+			log.println("├─ Compiled lexer description to automata");
+			log.println("│  (" + aut.automataCells.length + " states in " 
 					+ aut.automataEntries.size() + " automata)");
 			
 			try (FileWriter writer = new FileWriter(cf.classFile, false)) {
 				writer.append("package " + cf.classPackage.getElementName() + ";\n\n");
 				AutomataOutput.output(writer, cf.className, aut);
-				log.println("-> Generated lexer in " + cf.classResource);
+				log.println("└─ Generated lexer in " + cf.classResource);
 			} catch (IOException e) {
 				e.printStackTrace(log);
+				log.println("╧  Could not output generated lexer");
 				return FAILED;
 			}
 			
@@ -82,9 +83,11 @@ public final class JLCompile {
 			Position start = jlLexer.getLexemeStart();
 			Position end = jlLexer.getLexemeEnd();
 			Marker.addError(res, e.getMessage(), start.line, start.offset, end.offset);
+			log.println("╧  Syntax error in lexer description");
 		}
 		catch (Lexer.IllFormedException e) {
 			Marker.addAll(res, e.reports);
+			log.println("╧  Lexer description is not well-formed");
 		}
 		catch (FileNotFoundException e) {
 			e.printStackTrace(log);

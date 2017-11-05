@@ -25,6 +25,7 @@ import jg.JGLexer;
 import jg.JGParserGenerated;
 import syntax.Grammar;
 import syntax.Grammars;
+import syntax.IReport;
 
 public final class JGCompile {
 
@@ -50,24 +51,26 @@ public final class JGCompile {
 			jgLexer = new JGLexer(cf.file.getPath(), reader);
 			JGParserGenerated jgParser = new JGParserGenerated(jgLexer, JGLexer::main);
 			Grammar grammar = jgParser.start();
-			log.println(".. Grammar description successfully parsed");
+			log.println("├─ Grammar description successfully parsed");
 			
 			Grammars.PredictionTable predictTable =
 				Grammars.predictionTable(grammar, Grammars.analyseGrammar(grammar, null));
-			log.println(".. Analysed grammar and built prediction table");
-			if (!predictTable.isLL1()) {
-				// TODO: return error report instead, and add markers
-				System.out.println(predictTable.toString());
+			log.println("├─ Analysed grammar and built prediction table");
+			List<IReport> conflicts = predictTable.findConflicts();
+			if (!conflicts.isEmpty()) {
+				Marker.addAll(res, conflicts);
+				log.println("╧  Grammar is not LL(1)");
 				return FAILED;
 			}
-			log.println(".. Grammar is LL(1)!");
+			log.println("├─ Grammar is LL(1)");
 			
 			try (FileWriter writer = new FileWriter(cf.classFile, false)) {
 				writer.append("package " + cf.classPackage.getElementName() + ";\n\n");
 				GrammarOutput.outputDefault(writer, cf.className, grammar, predictTable);
-				log.println("-> Generated parser in " + cf.classResource);
+				log.println("└─ Generated parser in " + cf.classResource);
 			} catch (IOException e) {
 				e.printStackTrace(log);
+				log.println("╧  Could not output generated parser");
 				return FAILED;
 			}
 			
@@ -85,9 +88,11 @@ public final class JGCompile {
 			Position start = jgLexer.getLexemeStart();
 			Position end = jgLexer.getLexemeEnd();
 			Marker.addError(res, e.getMessage(), start.line, start.offset, end.offset);
+			log.println("╧  Syntax error in grammar description");
 		}
 		catch (Grammar.IllFormedException e) {
 			Marker.addAll(res, e.reports);
+			log.println("╧  Grammar description is not well-formed");
 		}
 		catch (FileNotFoundException e) {
 			e.printStackTrace(log);
