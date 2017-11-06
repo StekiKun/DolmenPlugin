@@ -271,7 +271,7 @@ public final class Builder extends IncrementalProjectBuilder {
 					new JGCompile(getLoggingStream(), monitor)
 						.compile(getProject(), ifile);
 				for (IFile gen : generated)
-					add(ifile, gen);		
+					add(ifile, gen);
 			}
 			return true;
 		}
@@ -384,10 +384,15 @@ public final class Builder extends IncrementalProjectBuilder {
 		}
 		
 		void display(IResourceDelta delta) {
+			IResourceDelta[] children = delta.getAffectedChildren();
+			if (children.length == 0) {
+				println(delta.getResource() + kindToString(delta.getKind()));
+				return;
+			}
 			println(delta.getResource() + kindToString(delta.getKind())
 					+ "{");
 			open();
-			for (IResourceDelta child : delta.getAffectedChildren())
+			for (IResourceDelta child : children)
 				display(child);
 			close();
 			println("}");
