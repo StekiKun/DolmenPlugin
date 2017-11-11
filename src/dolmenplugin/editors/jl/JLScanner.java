@@ -5,7 +5,10 @@ import org.eclipse.swt.SWT;
 
 import dolmenplugin.editors.ColorManager;
 import dolmenplugin.editors.IColorConstants;
+import dolmenplugin.editors.RegexpLineRule;
 import dolmenplugin.editors.WhitespaceDetector;
+
+import java.util.regex.Pattern;
 
 import org.eclipse.jface.text.*;
 
@@ -42,6 +45,10 @@ public class JLScanner extends RuleBasedScanner {
 			new Token(
 				new TextAttribute(
 					manager.getColor(IColorConstants.STRING)));
+		IToken numeral =
+				new Token(
+					new TextAttribute(
+						manager.getColor(IColorConstants.KEYWORD_OP), null, SWT.ITALIC));
 		IToken ident =
 			new Token(
 				new TextAttribute(
@@ -78,10 +85,14 @@ public class JLScanner extends RuleBasedScanner {
 		// Add rule for characters and strings literals
 		IRule stringRule = new SingleLineRule("\"", "\"", string, '\\');
 	    IRule charRule = new SingleLineRule("'", "'", string, '\\');
-	            
+	    // Add rule for integer literals
+	    Pattern integer = Pattern.compile("0|([1-9][0-9]*)");
+	    IRule integerRule = new RegexpLineRule(integer, numeral,
+	    	c -> !Character.isDigit(c));       
+	    
 		IRule[] rules = new IRule[] {
 			keywordsRule, slCommentRule, mlCommentRule,
-			stringRule, charRule,
+			stringRule, charRule, integerRule,
 			new WhitespaceRule(new WhitespaceDetector())
 		};
 		setRules(rules);
