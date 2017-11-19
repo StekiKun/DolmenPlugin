@@ -25,6 +25,7 @@ import dolmenplugin.base.Marker;
 import dolmenplugin.base.Utils;
 import jl.JLLexerGenerated;
 import jl.JLParser;
+import syntax.IReport;
 import syntax.Lexer;
 
 public final class JLCompile {
@@ -58,6 +59,13 @@ public final class JLCompile {
 			log.println("├─ Compiled lexer description to automata");
 			log.println("│  (" + aut.automataCells.length + " states in " 
 					+ aut.automataEntries.size() + " automata)");
+			
+			List<IReport> autReports = aut.findProblems(lexer);
+			if (!autReports.isEmpty()) {
+				Marker.addAll(res, autReports);
+				log.println("│  (" + autReports.size() + " potential problem" +
+						(autReports.size() > 1 ? "s" : "") + " found)");
+			}
 			
 			try (FileWriter writer = new FileWriter(cf.classFile, false)) {
 				writer.append("package " + cf.classPackage.getElementName() + ";\n\n");

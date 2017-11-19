@@ -51,7 +51,7 @@ public final class Marker {
 		try {
 			IMarker report = res.createMarker(Marker.ID);
 			report.setAttribute(IMarker.MESSAGE, message);
-			report.setAttribute(IMarker.SEVERITY, IMarker.SEVERITY_ERROR);
+			report.setAttribute(IMarker.SEVERITY, severity);
 			report.setAttribute(IMarker.LINE_NUMBER, line);
 			report.setAttribute(IMarker.CHAR_START, start);
 			report.setAttribute(IMarker.CHAR_END, end);
