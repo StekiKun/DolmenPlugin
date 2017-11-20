@@ -6,6 +6,7 @@ import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
+import org.eclipse.jface.text.IRewriteTarget;
 import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.text.TextSelection;
 import org.eclipse.jface.viewers.ISelection;
@@ -52,7 +53,13 @@ public class ToggleCommentHandler extends AbstractHandler {
 			return null;
 		}
 	    
-	    // Perform all changes, line by line
+	    
+	    // Perform all changes, line by line, but try to group them in a 
+	    // single change for the undo/redo stack
+	    IRewriteTarget rwTarget = editor.getAdapter(IRewriteTarget.class);
+	    final IDocument document =
+	    	rwTarget == null ? selection.document : rwTarget.getDocument();
+	    if (rwTarget != null) rwTarget.beginCompoundChange();
 	    final int replaceLength = addComment ? 0 : COMMENT_LENGTH;
 	    final String newContent = addComment ? COMMENT_PREFIX : "";
 	    for (int l = selection.firstLine; l <= selection.lastLine; ++l) {
@@ -62,11 +69,12 @@ public class ToggleCommentHandler extends AbstractHandler {
 	    	else
 	    		replaceOffset = -insertionPoints[l - selection.firstLine]-1;
 	    	try {
-				selection.document.replace(replaceOffset, replaceLength, newContent);
+				document.replace(replaceOffset, replaceLength, newContent);
 			} catch (BadLocationException e) {
 				return null;
 			}
 	    }
+	    if (rwTarget != null) rwTarget.endCompoundChange();
 	    
 	    // Finally, try to reproduce the original selection
 	    final int shiftPerLine = COMMENT_LENGTH * (addComment ? 1 : -1); 
