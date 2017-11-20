@@ -50,6 +50,11 @@ public class JLConfiguration extends SourceViewerConfiguration {
 		};
 	}
 
+	@Override
+	public String getConfiguredDocumentPartitioning(ISourceViewer sourceViewer) {
+		return JLDocumentSetupParticipant.PARTITIONING_ID;
+	}
+
 //	public ITextDoubleClickStrategy getDoubleClickStrategy(
 //		ISourceViewer sourceViewer,
 //		String contentType) {
@@ -57,7 +62,7 @@ public class JLConfiguration extends SourceViewerConfiguration {
 //			doubleClickStrategy = new JLDoubleClickStrategy();
 //		return doubleClickStrategy;
 //	}
-
+	
 	protected JLScanner getJLScanner() {
 		if (jlScanner == null) {
 			jlScanner = new JLScanner(colorManager);
@@ -93,6 +98,7 @@ public class JLConfiguration extends SourceViewerConfiguration {
 	@Override
 	public IPresentationReconciler getPresentationReconciler(ISourceViewer sourceViewer) {
 		PresentationReconciler reconciler = new PresentationReconciler();
+		reconciler.setDocumentPartitioning(JLDocumentSetupParticipant.PARTITIONING_ID);
 
         DefaultDamagerRepairer ddr = new DefaultDamagerRepairer(getJLScanner());
         reconciler.setRepairer(ddr, IDocument.DEFAULT_CONTENT_TYPE);

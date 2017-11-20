@@ -44,8 +44,14 @@ public class JGConfiguration extends SourceViewerConfiguration {
 		return new String[] {
 			IDocument.DEFAULT_CONTENT_TYPE,
 			JGPartitionScanner.JG_COMMENT,
-			JGPartitionScanner.JG_JAVA
+			JGPartitionScanner.JG_JAVA,
+			JGPartitionScanner.JG_ARGS
 		};
+	}
+
+	@Override
+	public String getConfiguredDocumentPartitioning(ISourceViewer sourceViewer) {
+		return JGDocumentSetupParticipant.PARTITIONING_ID;
 	}
 
 //	public ITextDoubleClickStrategy getDoubleClickStrategy(
@@ -90,6 +96,7 @@ public class JGConfiguration extends SourceViewerConfiguration {
 	
 	public IPresentationReconciler getPresentationReconciler(ISourceViewer sourceViewer) {
 		PresentationReconciler reconciler = new PresentationReconciler();
+		reconciler.setDocumentPartitioning(JGDocumentSetupParticipant.PARTITIONING_ID);
 
         DefaultDamagerRepairer ddr = new DefaultDamagerRepairer(getJGScanner());
         reconciler.setRepairer(ddr, IDocument.DEFAULT_CONTENT_TYPE);

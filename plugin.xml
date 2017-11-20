@@ -244,5 +244,38 @@
         schemeId="org.eclipse.ui.defaultAcceleratorConfiguration">
       </key>
    </extension>
+   
+   <!-- Document setup participants for Dolmen files
+        NB: These are necessary in order to connect the adequate partitioners
+            and use TextFileDocumentProviders because TextFileDocumentProvider
+            does not have an overridable #createDocument like FileDocumentProvider
+            has
+     -->
+   <extension
+         id="JLDocumentSetupParticipant"
+         name="Dolmen lexer descriptions setup participant"
+         point="org.eclipse.core.filebuffers.documentSetup">
+      <participant
+         extensions="jl"
+         class="dolmenplugin.editors.jl.JLDocumentSetupParticipant">
+      </participant>
+   </extension>
+   <extension
+         id="JGDocumentSetupParticipant"
+         name="Dolmen grammar descriptions setup participant"
+         point="org.eclipse.core.filebuffers.documentSetup">
+      <participant
+         extensions="jg"
+         class="dolmenplugin.editors.jg.JGDocumentSetupParticipant">
+      </participant>
+   </extension>
+   <!-- <extension
+         point="org.eclipse.ui.editors.documentProviders">
+      <provider
+         class="org.eclipse.ui.editors.text.TextFileDocumentProvider"
+         inputTypes="org.eclipse.ui.IStorageEditorInput"
+         id="org.eclipse.ui.editors.text.StorageDocumentProvider">
+      </provider>
+   </extension> -->
       
 </plugin>

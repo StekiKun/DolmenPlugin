@@ -18,8 +18,10 @@ public class JLPartitionScanner extends RuleBasedPartitionScanner {
 	public final static String JL_JAVA = "__jl_java";
 	public final static String JL_LITERAL = "__jl_literal";
 
+	public final static String[] CONTENT_TYPES =
+		new String[] { JL_COMMENT, JL_LITERAL, JL_JAVA };
+	
 	public JLPartitionScanner() {
-
 		IToken jlComment = new Token(JL_COMMENT);
 		IToken jlJava = new Token(JL_JAVA);
 		IToken jlLiteral = new Token(JL_LITERAL);

@@ -18,6 +18,9 @@ public class JGPartitionScanner extends RuleBasedPartitionScanner {
 	public final static String JG_JAVA = "__jg_java";
 	public final static String JG_ARGS = "__jg_args";
 
+	public final static String[] CONTENT_TYPES = 
+		new String[] { JG_COMMENT, JG_JAVA, JG_ARGS };
+	
 	public JGPartitionScanner() {
 
 		IToken jgComment = new Token(JG_COMMENT);

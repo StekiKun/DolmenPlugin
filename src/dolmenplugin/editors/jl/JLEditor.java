@@ -17,12 +17,12 @@ public class JLEditor extends TextEditor {
 		super();
 		colorManager = new ColorManager();
 		setSourceViewerConfiguration(new JLConfiguration(colorManager));
-		setDocumentProvider(new JLDocumentProvider());
+		// setDocumentProvider(new TextFileDocumentProvider());
 	}
 	
 	public void dispose() {
 		colorManager.dispose();
 		super.dispose();
 	}
-
+	
 }
