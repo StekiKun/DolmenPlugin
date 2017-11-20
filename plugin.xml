@@ -186,4 +186,63 @@
       </consoleFactory>
    </extension>
    
+   <!-- Declaration of the commands that appear in the Source menu -->
+   <extension
+         point="org.eclipse.ui.commands">
+      <command
+            description="Comment or uncomment the lines of the current selection"
+            id="dolmenplugin.ToggleCommentCommand"
+            name="Toggle  Comment">
+      </command>
+   </extension>
+   
+   <!-- Handler for the commands that appear in the custom Source menu-->
+   <extension
+         point="org.eclipse.ui.handlers">
+      <handler
+            class="dolmenplugin.handlers.ToggleCommentHandler"
+            commandId="dolmenplugin.ToggleCommentCommand">
+      </handler>
+   </extension>
+   
+   <!-- Custom source menus for .jl and .jg editors -->
+   <extension
+         point="org.eclipse.ui.menus">
+      <menuContribution
+         locationURI="menu:org.eclipse.ui.main.menu?after=edit">
+         <menu
+            label="Source"
+            id="dolmenplugin.menus.source">
+            
+            <!-- Only visible when the active editor is either a JLEditor or a JGEditor -->
+            <visibleWhen
+                checkEnabled="false">
+                <with variable="activeEditorId">
+                    <or>
+                        <equals value="dolmenplugin.editors.jl.JLEditor"/>
+                        <equals value="dolmenplugin.editors.jg.JGEditor"/>
+                    </or>
+                </with>
+            </visibleWhen>
+            
+            <!-- The Toggle Comment command -->
+            <command
+               commandId="dolmenplugin.ToggleCommentCommand"
+               label="Toggle Comment">
+            </command>
+         </menu>
+      </menuContribution>
+   </extension>
+
+   <!-- Keyboard shortcuts for some of the Dolmen commands -->   
+   <extension
+         point="org.eclipse.ui.bindings">
+      <!-- Toggle Comment is bound to "Ctrl + /", as in Java -->
+      <key
+        sequence="M1+/"
+        commandId="dolmenplugin.ToggleCommentCommand"
+        schemeId="org.eclipse.ui.defaultAcceleratorConfiguration">
+      </key>
+   </extension>
+      
 </plugin>

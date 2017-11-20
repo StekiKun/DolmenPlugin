@@ -19,9 +19,10 @@ public class JGEditor extends TextEditor {
 		setSourceViewerConfiguration(new JGConfiguration(colorManager));
 		setDocumentProvider(new JGDocumentProvider());
 	}
+	
 	public void dispose() {
 		colorManager.dispose();
 		super.dispose();
 	}
-
+	
 }
