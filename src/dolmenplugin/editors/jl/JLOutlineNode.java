@@ -26,10 +26,12 @@ public abstract class JLOutlineNode extends OutlineNode<JLOutlineNode> {
 			Lexer lexer = (Lexer) input;
 			List<OutlineNode<JLOutlineNode>> roots =
 				new ArrayList<>(lexer.entryPoints.size() + lexer.regulars.size());
+			roots.add(of("Header", lexer.header));
 			for (Map.Entry<Located<String>, Regular> def : lexer.regulars.entrySet())
 				roots.add(ofDefinition(def));
 			for (Lexer.Entry entry : lexer.entryPoints)
 				roots.add(of(entry));
+			roots.add(of("Footer", lexer.footer));
 			return roots;
 		}
 		else if (input instanceof LexBuffer.LexicalError) {

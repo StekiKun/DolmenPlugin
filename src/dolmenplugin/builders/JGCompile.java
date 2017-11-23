@@ -84,10 +84,23 @@ public final class JGCompile {
 			newRes.setPersistentProperty(Utils.GENERATED_PROPERTY, prop);
 			return Collections.singletonList(newRes);
 		}
-		catch (LexicalError | ParsingException e) {
+		catch (LexicalError e) {
 			Position start = jgLexer.getLexemeStart();
 			Position end = jgLexer.getLexemeEnd();
 			Marker.addError(res, e.getMessage(), start.line, start.offset, end.offset);
+			log.println("╧  Lexical error in grammar description");
+		}
+		catch (ParsingException e) {
+			final Position start;
+			final int end;
+			if (e.pos == null) {
+				start = jgLexer.getLexemeStart();
+				end = jgLexer.getLexemeEnd().offset;
+			} else {
+				start = e.pos;
+				end = e.pos.offset + e.length;
+			}
+			Marker.addError(res, e.getMessage(), start.line, start.offset, end);
 			log.println("╧  Syntax error in grammar description");
 		}
 		catch (Grammar.IllFormedException e) {

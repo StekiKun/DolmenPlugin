@@ -15,7 +15,6 @@ import syntax.Grammar;
 import syntax.Grammar.TokenDecl;
 import syntax.GrammarRule;
 import syntax.IReport;
-import syntax.Lexer;
 import syntax.Production;
 import syntax.Production.Actual;
 
@@ -25,11 +24,13 @@ public abstract class JGOutlineNode extends OutlineNode<JGOutlineNode> {
 		if (input instanceof Grammar) {
 			Grammar grammar = (Grammar) input;
 			List<OutlineNode<JGOutlineNode>> roots =
-				new ArrayList<>(grammar.tokenDecls.size() + grammar.rules.size());
+				new ArrayList<>(grammar.tokenDecls.size() + grammar.rules.size() + 2);
 			for (TokenDecl decl : grammar.tokenDecls)
 				roots.add(of(decl));
+			roots.add(of("Header", grammar.header));
 			for (GrammarRule rule : grammar.rules.values())
 				roots.add(of(rule));
+			roots.add(of("Footer", grammar.footer));
 			return roots;
 		}
 		else if (input instanceof LexBuffer.LexicalError) {
@@ -38,8 +39,8 @@ public abstract class JGOutlineNode extends OutlineNode<JGOutlineNode> {
 		else if (input instanceof BaseParser.ParsingException) {
 			return Lists.singleton(of((BaseParser.ParsingException) input));
 		}
-		else if (input instanceof Lexer.IllFormedException) {
-			List<IReport> reports = ((Lexer.IllFormedException) input).reports;
+		else if (input instanceof Grammar.IllFormedException) {
+			List<IReport> reports = ((Grammar.IllFormedException) input).reports;
 			List<OutlineNode<JGOutlineNode>> roots = new ArrayList<>(reports.size());
 			for (IReport report : reports)
 				roots.add(of(report));

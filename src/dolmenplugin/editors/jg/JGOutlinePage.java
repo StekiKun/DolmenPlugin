@@ -11,6 +11,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.ui.views.contentoutline.ContentOutlinePage;
 
+import dolmenplugin.editors.OutlineNode;
 import syntax.Grammar;
 
 /**
@@ -84,8 +85,8 @@ public class JGOutlinePage extends ContentOutlinePage {
 	    Object element = sel.getFirstElement();
 	    
 	    // If it is an outline node, proceed, otherwise ignore
-	    if (element instanceof JGOutlineNode) {
-	    	JGOutlineNode node = (JGOutlineNode) element;
+	    if (element instanceof OutlineNode<?>) {
+	    	OutlineNode<?> node = (OutlineNode<?>) element;
 	    	final int start = node.getOffset();
 	    	final int length = node.getLength();
 	    	if (start >= 0 && length >= 0) { 
@@ -108,15 +109,15 @@ public class JGOutlinePage extends ContentOutlinePage {
 		
 		@Override
 		public Image getImage(Object element) {
-			if (element instanceof JGOutlineNode)
-				return ((JGOutlineNode) element).getImage();
+			if (element instanceof OutlineNode<?>)
+				return ((OutlineNode<?>) element).getImage();
 			return null;
 		}
 
 		@Override
 		public String getText(Object element) {
-			if (element instanceof JGOutlineNode)
-				return ((JGOutlineNode) element).getText(editor.getDocument());
+			if (element instanceof OutlineNode<?>)
+				return ((OutlineNode<?>) element).getText(editor.getDocument());
 			return null;
 		}
 
@@ -128,8 +129,8 @@ public class JGOutlinePage extends ContentOutlinePage {
 		private final Object[] NO_CHILDREN = new Object[0];
 		@Override
 		public Object[] getChildren(Object parentElement) {
-			if (parentElement instanceof JGOutlineNode)
-				return ((JGOutlineNode) parentElement).getChildren();
+			if (parentElement instanceof OutlineNode<?>)
+				return ((OutlineNode<?>) parentElement).getChildren();
 			return NO_CHILDREN;
 		}
 
@@ -141,8 +142,8 @@ public class JGOutlinePage extends ContentOutlinePage {
 
 		@Override
 		public boolean hasChildren(Object element) {
-			if (element instanceof JGOutlineNode)
-				return ((JGOutlineNode) element).hasChildren();
+			if (element instanceof OutlineNode<?>)
+				return ((OutlineNode<?>) element).hasChildren();
 			return false;
 		}
 

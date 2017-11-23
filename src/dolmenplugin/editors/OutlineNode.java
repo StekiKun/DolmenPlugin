@@ -91,7 +91,7 @@ public abstract class OutlineNode<T extends OutlineNode<T>> {
 
 		@Override
 		public int getLength() {
-			return 0;
+			return exn.length;
 		}
 	}
 	public static <T extends OutlineNode<T>> 
@@ -139,6 +139,51 @@ public abstract class OutlineNode<T extends OutlineNode<T>> {
 	}
 	public static <T extends OutlineNode<T>> OutlineNode<T> of(IReport report) {
 		return new Report<T>(report);
+	}
+	
+	private static class Snippet<T extends OutlineNode<T>> extends OutlineNode<T> {
+		final String text;
+		final Extent extent;
+		
+		Snippet(String text, Extent extent) {
+			this.text = text;
+			this.extent = extent;
+		}
+
+		@Override
+		public boolean hasChildren() {
+			return false;
+		}
+
+		@SuppressWarnings("unchecked")
+		@Override
+		public T[] getChildren() {
+			return (T[]) NO_CHILDREN;
+		}
+
+		@Override
+		public Image getImage() {
+			return Activator.getImage("icons/sem_action.gif");
+		}
+
+		@Override
+		public String getText(IDocument document) {
+			return text;
+		}
+
+		@Override
+		public int getOffset() {
+			return extent.startPos;
+		}
+
+		@Override
+		public int getLength() {
+			return extent.length();
+		}
+	}
+	public static <T extends OutlineNode<T>> OutlineNode<T>
+		of(String name, Extent extent) {
+		return new Snippet<T>(name, extent);
 	}
 	
 	protected static String resolveExtentIn(IDocument doc, Extent ext) {

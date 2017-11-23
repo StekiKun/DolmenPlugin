@@ -87,10 +87,23 @@ public final class JLCompile {
 			newRes.setPersistentProperty(Utils.GENERATED_PROPERTY, prop);
 			return Collections.singletonList((IFile) newRes);
 		}
-		catch (LexicalError | ParsingException e) {
+		catch (LexicalError e) {
 			Position start = jlLexer.getLexemeStart();
 			Position end = jlLexer.getLexemeEnd();
 			Marker.addError(res, e.getMessage(), start.line, start.offset, end.offset);
+			log.println("╧  Lexical error in lexer description");
+		}
+		catch (ParsingException e) {
+			final Position start;
+			final int end;
+			if (e.pos == null) {
+				start = jlLexer.getLexemeStart();
+				end = jlLexer.getLexemeEnd().offset;
+			} else {
+				start = e.pos;
+				end = e.pos.offset + e.length;
+			}
+			Marker.addError(res, e.getMessage(), start.line, start.offset, end);
 			log.println("╧  Syntax error in lexer description");
 		}
 		catch (Lexer.IllFormedException e) {
