@@ -2,14 +2,16 @@ package dolmenplugin.editors;
 
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
-import org.eclipse.jface.viewers.ILabelProvider;
+import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider.IStyledLabelProvider;
 import org.eclipse.jface.viewers.ITreeContentProvider;
+import org.eclipse.jface.viewers.StyledString;
 import org.eclipse.swt.graphics.Image;
 
 import codegen.BaseParser;
 import codegen.LexBuffer;
 import dolmenplugin.Activator;
 import dolmenplugin.editors.jg.JGEditor;
+import dolmenplugin.editors.jl.JLEditor;
 import syntax.Extent;
 import syntax.IReport;
 
@@ -21,8 +23,8 @@ import syntax.IReport;
  * Implementations of this class must
  * fill in the various abstract methods, which together provide
  * the necessary features to implement instances of
- * {@link ILabelProvider} and {@link ITreeContentProvider} for
- * the outline view. Outline nodes can also be associated to
+ * {@link IStyledLabelProvider} and {@link ITreeContentProvider} 
+ * for the outline view. Outline nodes can also be associated to
  * a range of characters in the editor's contents, to handle
  * selection via the outline.
  * <p>
@@ -60,7 +62,7 @@ public abstract class OutlineNode<T extends OutlineNode<T>> {
 	 * @param document	the editor's document
 	 * @return the associated label in the tree viewer, if any
 	 */
-	public abstract String getText(IDocument document);
+	public abstract StyledString getText(IDocument document);
 	
 	/**
 	 * @return the absolute offset of the range in 
@@ -100,8 +102,8 @@ public abstract class OutlineNode<T extends OutlineNode<T>> {
 		}
 		
 		@Override
-		public String getText(IDocument document) {
-			return exn.getMessage();
+		public StyledString getText(IDocument document) {
+			return new StyledString(exn.getMessage());
 		}
 		
 		@Override
@@ -200,8 +202,8 @@ public abstract class OutlineNode<T extends OutlineNode<T>> {
 		}
 
 		@Override
-		public String getText(IDocument document) {
-			return report.getMessage();
+		public StyledString getText(IDocument document) {
+			return new StyledString(report.getMessage());
 		}
 
 		@Override
@@ -266,8 +268,8 @@ public abstract class OutlineNode<T extends OutlineNode<T>> {
 		}
 
 		@Override
-		public String getText(IDocument document) {
-			return text;
+		public StyledString getText(IDocument document) {
+			return new StyledString(text);
 		}
 
 		@Override

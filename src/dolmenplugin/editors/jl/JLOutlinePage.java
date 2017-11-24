@@ -1,11 +1,15 @@
 package dolmenplugin.editors.jl;
 
+import org.eclipse.core.runtime.ListenerList;
+import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider;
+import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider.IStyledLabelProvider;
 import org.eclipse.jface.viewers.ILabelProvider;
+import org.eclipse.jface.viewers.ILabelProviderListener;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.ITreeContentProvider;
-import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
+import org.eclipse.jface.viewers.StyledString;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Composite;
@@ -42,7 +46,7 @@ public class JLOutlinePage extends ContentOutlinePage {
 		TreeViewer viewer = getTreeViewer();
 		JLContentProvider provider = this.new JLContentProvider();
 		viewer.setContentProvider(provider);
-		viewer.setLabelProvider(provider);
+		viewer.setLabelProvider(new DelegatingStyledCellLabelProvider(provider));
 		viewer.addSelectionChangedListener(this);
 
 		if (input != null)
@@ -117,7 +121,8 @@ public class JLOutlinePage extends ContentOutlinePage {
 	 * @author Stéphane Lescuyer
 	 */
 	public final class JLContentProvider
-		extends LabelProvider implements ITreeContentProvider {
+		extends ListenerList<ILabelProviderListener>
+		implements IStyledLabelProvider, ITreeContentProvider {
 		
 		@Override
 		public Image getImage(Object element) {
@@ -127,7 +132,7 @@ public class JLOutlinePage extends ContentOutlinePage {
 		}
 
 		@Override
-		public String getText(Object element) {
+		public StyledString getStyledText(Object element) {
 			if (element instanceof OutlineNode<?>)
 				return ((OutlineNode<?>) element).getText(editor.getDocument());
 			return null;
@@ -157,6 +162,26 @@ public class JLOutlinePage extends ContentOutlinePage {
 			if (element instanceof OutlineNode<?>)
 				return ((OutlineNode<?>) element).hasChildren();
 			return false;
+		}
+
+		@Override
+		public boolean isLabelProperty(Object element, String property) {
+			return true;
+		}
+
+		@Override
+		public void addListener(ILabelProviderListener listener) {
+			add(listener);
+		}
+
+		@Override
+		public void removeListener(ILabelProviderListener listener) {
+			remove(listener);
+		}
+
+		@Override
+		public void dispose() {
+			clear();
 		}
 
 	}

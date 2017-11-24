@@ -1,11 +1,14 @@
 package dolmenplugin.editors.jg;
 
-import org.eclipse.jface.viewers.ILabelProvider;
+import org.eclipse.core.runtime.ListenerList;
+import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider;
+import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider.IStyledLabelProvider;
+import org.eclipse.jface.viewers.ILabelProviderListener;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.ITreeContentProvider;
-import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
+import org.eclipse.jface.viewers.StyledString;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Composite;
@@ -42,7 +45,7 @@ public class JGOutlinePage extends ContentOutlinePage {
 		TreeViewer viewer = getTreeViewer();
 		JGContentProvider provider = this.new JGContentProvider();
 		viewer.setContentProvider(provider);
-		viewer.setLabelProvider(provider);
+		viewer.setLabelProvider(new DelegatingStyledCellLabelProvider(provider));
 		viewer.addSelectionChangedListener(this);
 
 		if (input != null)
@@ -111,13 +114,14 @@ public class JGOutlinePage extends ContentOutlinePage {
 	
 	/**
 	 * Implementation of {@link ITreeContentProvider} and 
-	 * {@link ILabelProvider} which delegates operations
+	 * {@link IStyledLabelProvider} which delegates operations
 	 * to {@link JGOutlineNode}s
 	 * 
 	 * @author Stéphane Lescuyer
 	 */
 	public final class JGContentProvider
-		extends LabelProvider implements ITreeContentProvider {
+		extends ListenerList<ILabelProviderListener>
+		implements ITreeContentProvider, IStyledLabelProvider {
 		
 		@Override
 		public Image getImage(Object element) {
@@ -127,7 +131,7 @@ public class JGOutlinePage extends ContentOutlinePage {
 		}
 
 		@Override
-		public String getText(Object element) {
+		public StyledString getStyledText(Object element) {
 			if (element instanceof OutlineNode<?>)
 				return ((OutlineNode<?>) element).getText(editor.getDocument());
 			return null;
@@ -159,5 +163,25 @@ public class JGOutlinePage extends ContentOutlinePage {
 			return false;
 		}
 
+		@Override
+		public boolean isLabelProperty(Object element, String property) {
+			return false;
+		}
+		
+		@Override
+		public void addListener(ILabelProviderListener listener) {
+			add(listener);
+		}
+
+
+		@Override
+		public void removeListener(ILabelProviderListener listener) {
+			remove(listener);
+		}
+
+		@Override
+		public void dispose() {
+			clear();
+		}
 	}
 }

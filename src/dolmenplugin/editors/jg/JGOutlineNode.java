@@ -3,7 +3,9 @@ package dolmenplugin.editors.jg;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.jface.text.IDocument;
+import org.eclipse.jface.viewers.StyledString;
 import org.eclipse.swt.graphics.Image;
 
 import codegen.BaseParser;
@@ -11,10 +13,12 @@ import codegen.LexBuffer;
 import common.Lists;
 import dolmenplugin.Activator;
 import dolmenplugin.editors.OutlineNode;
+import syntax.Extent;
 import syntax.Grammar;
 import syntax.Grammar.TokenDecl;
 import syntax.GrammarRule;
 import syntax.IReport;
+import syntax.Located;
 import syntax.Production;
 import syntax.Production.Actual;
 
@@ -89,14 +93,24 @@ public abstract class JGOutlineNode extends OutlineNode<JGOutlineNode> {
 	
 	/**
 	 * Abstract class for internal nodes, with a caching
-	 * mechanism for children computation
+	 * mechanism for children computation and styled label
 	 * 
 	 * @author Stéphane Lescuyer
 	 */
 	private static abstract class Internal extends JGOutlineNode {
 		private JGOutlineNode[] children = null;
+		private StyledString label = null;
 		
+		protected abstract StyledString computeText(IDocument document);
 		protected abstract JGOutlineNode[] computeChildren();
+		
+		@Override
+		public final StyledString getText(IDocument document) {
+			if (label == null) {
+				label = computeText(document);
+			}
+			return label;
+		}
 		
 		@Override
 		public final JGOutlineNode[] getChildren() {
@@ -126,10 +140,11 @@ public abstract class JGOutlineNode extends OutlineNode<JGOutlineNode> {
 		}
 
 		@Override
-		public String getText(IDocument document) {
-			String text = decl.name.val;
+		public StyledString getText(IDocument document) {
+			StyledString text = new StyledString(decl.name.val);
 			if (decl.valueType != null) {
-				text += " : " + resolveExtentIn(document, decl.valueType);
+				text.append(" : ", StyledString.DECORATIONS_STYLER)
+					.append(resolveExtentIn(document, decl.valueType), StyledString.DECORATIONS_STYLER);
 			}
 			return text;
 		}
@@ -186,13 +201,15 @@ public abstract class JGOutlineNode extends OutlineNode<JGOutlineNode> {
 		}
 
 		@Override
-		public String getText(IDocument document) {
-			String text = rule.name.val;
+		public StyledString computeText(IDocument document) {
+			StyledString text = new StyledString(rule.name.val);
 			if (rule.args != null) {
-				text += "(" + resolveExtentIn(document, rule.args) + ")";
+				text.append("(")
+					.append(resolveExtentIn(document, rule.args), StyledString.QUALIFIER_STYLER)
+					.append(")");
 			}
-			text += " : ";
-			text += resolveExtentIn(document, rule.returnType);
+			text.append(" : ", StyledString.DECORATIONS_STYLER)
+				.append(resolveExtentIn(document, rule.returnType), StyledString.DECORATIONS_STYLER);
 			return text;
 		}
 		
@@ -234,15 +251,28 @@ public abstract class JGOutlineNode extends OutlineNode<JGOutlineNode> {
 		}
 
 		@Override
-		public String getText(IDocument document) {
-			StringBuilder buf = new StringBuilder();
+		public StyledString getText(IDocument document) {
+			StyledString text = new StyledString();
 			boolean first = true;
 			for (Actual actual : prod.actuals()) {
 				if (first) first = false;
-				else buf.append(" ");
-				buf.append(actual.toString());
+				else text.append(" ");
+				
+				Located<String> bind = actual.binding;
+				if (bind != null)
+					text.append(bind.val, StyledString.QUALIFIER_STYLER)
+						.append(" = ", StyledString.QUALIFIER_STYLER);
+				if (!actual.isTerminal())
+					text.append(actual.item.val);
+				else
+					text.append(actual.item.val, StyledString.COUNTER_STYLER);
+				@Nullable Extent args_ = actual.args;
+				if (args_ != null)
+					text.append("(")
+						.append(resolveExtentIn(document, args_), StyledString.QUALIFIER_STYLER)
+						.append(")");
 			}
-			return buf.toString();
+			return text;
 		}
 
 		@Override

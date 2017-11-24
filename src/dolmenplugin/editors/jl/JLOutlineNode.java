@@ -6,6 +6,7 @@ import java.util.Map;
 
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
+import org.eclipse.jface.viewers.StyledString;
 import org.eclipse.swt.graphics.Image;
 
 import codegen.BaseParser;
@@ -90,14 +91,24 @@ public abstract class JLOutlineNode extends OutlineNode<JLOutlineNode> {
 
 	/**
 	 * Abstract class for internal nodes, with a caching
-	 * mechanism for children computation
+	 * mechanism for children computation and styled label
 	 * 
 	 * @author Stéphane Lescuyer
 	 */
 	private static abstract class Internal extends JLOutlineNode {
 		private JLOutlineNode[] children = null;
+		private StyledString label = null;
 		
+		protected abstract StyledString computeText(IDocument document);
 		protected abstract JLOutlineNode[] computeChildren();
+		
+		@Override
+		public final StyledString getText(IDocument document) {
+			if (label == null) {
+				label = computeText(document);
+			}
+			return label;
+		}
 		
 		@Override
 		public final JLOutlineNode[] getChildren() {
@@ -130,8 +141,8 @@ public abstract class JLOutlineNode extends OutlineNode<JLOutlineNode> {
 		}
 
 		@Override
-		public String getText(IDocument document) {
-			return ident.val;
+		public StyledString getText(IDocument document) {
+			return new StyledString(ident.val);
 		}
 
 		@Override
@@ -187,13 +198,15 @@ public abstract class JLOutlineNode extends OutlineNode<JLOutlineNode> {
 		}
 
 		@Override
-		public String getText(IDocument document) {
-			String text = entry.name.val;
+		protected StyledString computeText(IDocument document) {
+			StyledString text = new StyledString(entry.name.val);
 			if (entry.args != null) {
-				text += "(" + resolveExtentIn(document, entry.args) + ")";
+				text.append("(")
+					.append(resolveExtentIn(document, entry.args), StyledString.QUALIFIER_STYLER)
+					.append(")");
 			}
-			text += " : ";
-			text += resolveExtentIn(document, entry.returnType);
+			text.append(" : ", StyledString.DECORATIONS_STYLER)
+				.append(resolveExtentIn(document, entry.returnType), StyledString.DECORATIONS_STYLER);
 			return text;
 		}
 
@@ -236,13 +249,15 @@ public abstract class JLOutlineNode extends OutlineNode<JLOutlineNode> {
 		}
 
 		@Override
-		public String getText(IDocument doc) {
-			if (doc == null) return "[Document is unavailable]";
+		public StyledString getText(IDocument doc) {
+			if (doc == null) 
+				return new StyledString("[Document is unavailable]", StyledString.QUALIFIER_STYLER);
 			try {
-				return doc.get(reg.start.offset, reg.length());
+				return new StyledString(doc.get(reg.start.offset, reg.length()));
 			} catch (BadLocationException e1) {
-				return "[Position is invalid in document: start=" + reg.start.offset + 
-						", length=" + reg.length() + "]";
+				return new StyledString(
+					"[Position is invalid in document: start=" + reg.start.offset + 
+					", length=" + reg.length() + "]", StyledString.QUALIFIER_STYLER);
 			}
 		}
 
