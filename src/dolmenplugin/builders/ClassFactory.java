@@ -9,6 +9,14 @@ import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.JavaCore;
 
+/**
+ * Class which computes and gathers all the various useful
+ * information to generate a Java compilation unit either
+ * from a lexer or a grammar description: various project 
+ * and resource handles, names and top-level Java elements
+ * 
+ * @author Stéphane Lescuyer
+ */
 public final class ClassFactory {
 
 	// The project containing the Dolmen resource from which

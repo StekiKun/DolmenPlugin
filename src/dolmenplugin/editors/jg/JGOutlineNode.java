@@ -18,8 +18,32 @@ import syntax.IReport;
 import syntax.Production;
 import syntax.Production.Actual;
 
+/**
+ * {@link JGOutlineNode} is a specialization of {@link OutlineNode}
+ * for the structured contents of the outline view associated with
+ * the {@link JGEditor grammar editor}.
+ * <p>
+ * A grammar description's outline view has the following structure
+ * when the description is parsed successfully:
+ * <ul>
+ * <li> one node for each {@link Token token declaration}
+ * <li> the grammar's header
+ * <li> one node for each {@link Rule grammar rule} with:
+ * 	<ul>
+ * 	<li> one node for each of the {@link Prod productions} in this rule
+ * 	</ul>
+ * </ul>
+ * 
+ * @author Stéphane Lescuyer
+ */
 public abstract class JGOutlineNode extends OutlineNode<JGOutlineNode> {
 	
+	/**
+	 * @param input
+	 * @return the roots of the outline view's contents for the
+	 * 	given input, which is assumed to be either a {@link Grammar grammar
+	 *  description} or an exception
+	 */
 	public static List<OutlineNode<JGOutlineNode>> roots(Object input) {
 		if (input instanceof Grammar) {
 			Grammar grammar = (Grammar) input;
@@ -63,6 +87,12 @@ public abstract class JGOutlineNode extends OutlineNode<JGOutlineNode> {
 		}
 	}
 	
+	/**
+	 * Abstract class for internal nodes, with a caching
+	 * mechanism for children computation
+	 * 
+	 * @author Stéphane Lescuyer
+	 */
 	private static abstract class Internal extends JGOutlineNode {
 		private JGOutlineNode[] children = null;
 		
@@ -77,6 +107,11 @@ public abstract class JGOutlineNode extends OutlineNode<JGOutlineNode> {
 		}
 	}
 
+	/**
+	 * Outline node representing a {@link TokenDecl token declaration}
+	 * 
+	 * @author Stéphane Lescuyer
+	 */
 	private static final class Token extends Leaf {
 		final TokenDecl decl;
 		
@@ -109,10 +144,19 @@ public abstract class JGOutlineNode extends OutlineNode<JGOutlineNode> {
 			return decl.name.length();
 		}
 	}
+	/**
+	 * @param decl
+	 * @return the outline node associated to the given token declaration
+	 */
 	public static JGOutlineNode of(TokenDecl decl) {
 		return new Token(decl);
 	}	
 
+	/**
+	 * Outline node representing a {@link GrammarRule grammar rule}
+	 * 
+	 * @author Stéphane Lescuyer
+	 */
 	private static final class Rule extends Internal {
 		final GrammarRule rule;
 		
@@ -162,10 +206,21 @@ public abstract class JGOutlineNode extends OutlineNode<JGOutlineNode> {
 			return rule.name.length();
 		}
 	}
+	/**
+	 * @param rule
+	 * @return the outline node representing the given rule
+	 */
 	public static JGOutlineNode of(GrammarRule rule) {
 		return new Rule(rule);
 	}
 	
+	/**
+	 * Outline node representing a {@link Production production}
+	 * in a grammar rule.
+	 * <i>It does not have associated input location for now.</i>
+	 * 
+	 * @author Stéphane Lescuyer
+	 */
 	private static final class Prod extends Leaf {
 		final Production prod;
 		
@@ -200,6 +255,10 @@ public abstract class JGOutlineNode extends OutlineNode<JGOutlineNode> {
 			return -1;	// Not located
 		}
 	}
+	/**
+	 * @param prod
+	 * @return the outline node representing the given production
+	 */
 	public static JGOutlineNode of(Production prod) {
 		return new Prod(prod);
 	}

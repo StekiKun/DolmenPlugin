@@ -19,8 +19,32 @@ import syntax.Lexer;
 import syntax.Located;
 import syntax.Regular;
 
+/**
+ * {@link JLOutlineNode} is a specialization of {@link OutlineNode}
+ * for the structured contents of the outline view associated with
+ * the {@link JLEditor lexer editor}.
+ * <p>
+ * A lexer description's outline view has the following structure
+ * when the description is parsed successfully:
+ * <ul>
+ * <li> the lexer's header
+ * <li> one node for each regular expression {@link Definition definition}
+ * <li> one node for each {@link LexerEntry lexer entry} with:
+ * 	<ul>
+ * 	<li> one node for each of the {@link Clause clauses} in this entry
+ * 	</ul>
+ * </ul>
+ * 
+ * @author Stéphane Lescuyer
+ */
 public abstract class JLOutlineNode extends OutlineNode<JLOutlineNode> {
 	
+	/**
+	 * @param input
+	 * @return the roots of the outline view's contents for the
+	 * 	given input, which is assumed to be either a {@link Lexer lexer
+	 *  description} or an exception
+	 */
 	public static List<OutlineNode<JLOutlineNode>> roots(Object input) {
 		if (input instanceof Lexer) {
 			Lexer lexer = (Lexer) input;
@@ -63,7 +87,13 @@ public abstract class JLOutlineNode extends OutlineNode<JLOutlineNode> {
 			return NO_CHILDREN;
 		}
 	}
-	
+
+	/**
+	 * Abstract class for internal nodes, with a caching
+	 * mechanism for children computation
+	 * 
+	 * @author Stéphane Lescuyer
+	 */
 	private static abstract class Internal extends JLOutlineNode {
 		private JLOutlineNode[] children = null;
 		
@@ -78,6 +108,12 @@ public abstract class JLOutlineNode extends OutlineNode<JLOutlineNode> {
 		}
 	}
 	
+	/**
+	 * Outline node representing an auxiliary regular expression definition
+	 * 
+	 * @see Lexer#regulars
+	 * @author Stéphane Lescuyer
+	 */
 	private static final class Definition extends Leaf {
 		final Located<String> ident;
 		@SuppressWarnings("unused")
@@ -108,10 +144,20 @@ public abstract class JLOutlineNode extends OutlineNode<JLOutlineNode> {
 			return ident.length();
 		}
 	}
+	/**
+	 * @param entry
+	 * @return the outline node representing the regular
+	 * 	expression definition given by {@code entry}
+	 */
 	public static JLOutlineNode ofDefinition(Map.Entry<Located<String>, Regular> entry) {
 		return new Definition(entry);
 	}	
 	
+	/**
+	 * Outline node representing a {@link Lexer.Entry lexer entry}
+	 * 
+	 * @author Stéphane Lescuyer
+	 */
 	private static final class LexerEntry extends Internal {
 		final Lexer.Entry entry;
 		
@@ -161,10 +207,19 @@ public abstract class JLOutlineNode extends OutlineNode<JLOutlineNode> {
 			return entry.name.length();
 		}
 	}
+	/**
+	 * @param entry
+	 * @return the outline node representing the given lexer entry
+	 */
 	public static JLOutlineNode of(Lexer.Entry entry) {
 		return new LexerEntry(entry);
 	}
 
+	/**
+	 * Outline node representing an entry's clause.
+	 * 
+	 * @author Stéphane Lescuyer
+	 */
 	private static final class Clause extends Leaf {
 		final Located<Regular> reg;
 		@SuppressWarnings("unused")
@@ -201,6 +256,10 @@ public abstract class JLOutlineNode extends OutlineNode<JLOutlineNode> {
 			return reg.length();
 		}
 	}
+	/**
+	 * @param entry
+	 * @return the outline node associated to the given clause
+	 */
 	public static JLOutlineNode ofClause(Map.Entry<Located<Regular>, Extent> entry) {
 		return new Clause(entry);
 	}

@@ -1,5 +1,6 @@
 package dolmenplugin.editors.jg;
 
+import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.ITreeContentProvider;
@@ -15,8 +16,12 @@ import dolmenplugin.editors.OutlineNode;
 import syntax.Grammar;
 
 /**
- * WIP
- * TODO: document
+ * Implementation of the <i>outline view</i> for 
+ * {@link JGEditor}. It simply extends {@link ContentOutlinePage}
+ * and takes care of updating the input (a grammar or an exception)
+ * and handling selection.
+ * <p>
+ * The structured contents are described by {@link JGOutlineNode}.
  * 
  * @author Stéphane Lescuyer
  */
@@ -104,6 +109,13 @@ public class JGOutlinePage extends ContentOutlinePage {
 	    return;	    
 	}
 	
+	/**
+	 * Implementation of {@link ITreeContentProvider} and 
+	 * {@link ILabelProvider} which delegates operations
+	 * to {@link JGOutlineNode}s
+	 * 
+	 * @author Stéphane Lescuyer
+	 */
 	public final class JGContentProvider
 		extends LabelProvider implements ITreeContentProvider {
 		
