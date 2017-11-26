@@ -5,6 +5,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.io.Writer;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -19,6 +20,8 @@ import codegen.BaseParser.ParsingException;
 import codegen.GrammarOutput;
 import codegen.LexBuffer.LexicalError;
 import codegen.LexBuffer.Position;
+import codegen.SourceMapping;
+import common.CountingWriter;
 import dolmenplugin.base.Marker;
 import dolmenplugin.base.Utils;
 import jg.JGLexer;
@@ -64,9 +67,11 @@ public final class JGCompile {
 			}
 			log.println("├─ Grammar is LL(1)");
 			
-			try (FileWriter writer = new FileWriter(cf.classFile, false)) {
+			SourceMapping smap;
+			try (Writer writer =
+					new CountingWriter(new FileWriter(cf.classFile, false))) {
 				writer.append("package " + cf.classPackage.getElementName() + ";\n\n");
-				GrammarOutput.outputDefault(writer, cf.className, grammar, predictTable);
+				smap = GrammarOutput.outputDefault(writer, cf.className, grammar, predictTable);
 				log.println("└─ Generated parser in " + cf.classResource);
 			} catch (IOException e) {
 				e.printStackTrace(log);
@@ -82,6 +87,8 @@ public final class JGCompile {
 			Date now = new Date();
 			String prop = "Generated from " + cf.file.getAbsolutePath() + " (" + now + ")";
 			newRes.setPersistentProperty(Utils.GENERATED_PROPERTY, prop);
+			Marker.addMappings(newRes, smap);
+			
 			return Collections.singletonList(newRes);
 		}
 		catch (LexicalError e) {

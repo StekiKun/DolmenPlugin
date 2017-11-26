@@ -1,9 +1,11 @@
 package dolmenplugin.base;
 
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 
+import codegen.SourceMapping;
 import syntax.IReport;
 
 /**
@@ -115,6 +117,22 @@ public final class Marker {
 	public static void addAll(IResource res, Iterable<? extends IReport> reports) {
 		for (IReport report : reports)
 			add(res, report);
+	}
+
+	private static void addMapping(IFile res, SourceMapping.Mapping mapping) {
+		try {
+			IMarker report = res.createMarker(Marker.ID);
+			report.setAttribute(IMarker.MESSAGE, mapping);
+			report.setAttribute(IMarker.SEVERITY, IMarker.SEVERITY_INFO);
+			report.setAttribute(IMarker.CHAR_START, mapping.offset);
+			report.setAttribute(IMarker.CHAR_END, mapping.offset + mapping.length);
+		} catch (CoreException e1) {
+			e1.printStackTrace();
+		}
+	}
+	
+	public static void addMappings(IFile res, SourceMapping smap) {
+		smap.forEach(c -> addMapping(res, c));
 	}
 
 }

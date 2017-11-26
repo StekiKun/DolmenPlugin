@@ -5,6 +5,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.io.Writer;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -21,6 +22,8 @@ import codegen.AutomataOutput;
 import codegen.BaseParser.ParsingException;
 import codegen.LexBuffer.LexicalError;
 import codegen.LexBuffer.Position;
+import codegen.SourceMapping;
+import common.CountingWriter;
 import dolmenplugin.base.Marker;
 import dolmenplugin.base.Utils;
 import jl.JLLexerGenerated;
@@ -67,9 +70,11 @@ public final class JLCompile {
 						(autReports.size() > 1 ? "s" : "") + " found)");
 			}
 			
-			try (FileWriter writer = new FileWriter(cf.classFile, false)) {
+			SourceMapping smap;
+			try (Writer writer = 
+					new CountingWriter(new FileWriter(cf.classFile, false))) {
 				writer.append("package " + cf.classPackage.getElementName() + ";\n\n");
-				AutomataOutput.output(writer, cf.className, aut);
+				smap = AutomataOutput.output(writer, cf.className, aut);
 				log.println("└─ Generated lexer in " + cf.classResource);
 			} catch (IOException e) {
 				e.printStackTrace(log);
@@ -85,6 +90,8 @@ public final class JLCompile {
 			Date now = new Date();
 			String prop = "Generated from " + cf.file.getAbsolutePath() + " (" + now + ")";
 			newRes.setPersistentProperty(Utils.GENERATED_PROPERTY, prop);
+			Marker.addMappings(newRes, smap);
+			
 			return Collections.singletonList((IFile) newRes);
 		}
 		catch (LexicalError e) {
