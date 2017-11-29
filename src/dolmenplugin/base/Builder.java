@@ -157,17 +157,17 @@ public final class Builder extends IncrementalProjectBuilder
 			IMarker jdtMarker = delta.getMarker();
 			switch (delta.getKind()) {
 			case IResourceDelta.ADDED: {
-				System.out.println("ADDED marker " + delta.getId());
+				// System.out.println("ADDED marker " + delta.getId());
 				markerJobs.add(addMarker(jdtMarker, dolmenRes, smap));
 				break;
 			}
 			case IResourceDelta.CHANGED: {
-				System.out.println("CHANGED marker " + delta.getId());
+				// System.out.println("CHANGED marker " + delta.getId());
 				markerJobs.add(addMarker(jdtMarker, dolmenRes, smap));
 				break;
 			}
 			case IResourceDelta.REMOVED: {
-				System.out.println("REMOVED marker " + delta.getId());
+				// System.out.println("REMOVED marker " + delta.getId());
 				markerJobs.add(removeMarker(jdtMarker));
 				break;
 			}
@@ -180,7 +180,6 @@ public final class Builder extends IncrementalProjectBuilder
 			public IStatus run(IProgressMonitor monitor) {
 				for (MarkerJob job : markerJobs)
 					job.run(monitor);
-				System.out.println("Ran marker jobs");
 				return Status.OK_STATUS;
 			}
 		}).schedule();
@@ -492,11 +491,23 @@ public final class Builder extends IncrementalProjectBuilder
 	}
 	
 	
+	/**
+	 * Common class for all atomic jobs scheduled when
+	 * listening to JDT problem markers
+	 * 
+	 * @author Stéphane Lescuyer
+	 */
 	private abstract class MarkerJob implements IJobFunction {
 		@Override
 		public abstract IStatus run(IProgressMonitor monitor);
 	}
 
+	/**
+	 * @param jdtMarker
+	 * @return a marker job for when the given JDT marker is
+	 * 	removed, which removes the corresponding copied marker
+	 * 	in Dolmen if any
+	 */
 	MarkerJob removeMarker(IMarker jdtMarker) {
 		return new MarkerJob() {
 			@Override
@@ -515,6 +526,14 @@ public final class Builder extends IncrementalProjectBuilder
 		};
 	}
 	
+	/**
+	 * @param jdtMarker
+	 * @param dolmenRes
+	 * @param smap
+	 * @return a marker job which reacts to the change or creation of
+	 * 	the given JDT problem marker by copying it on {@code dolmenRes}
+	 * 	if the marker's position can be mapped via the given source mapping
+	 */
 	MarkerJob addMarker(IMarker jdtMarker, IFile dolmenRes, SourceMapping smap) {
 		return new MarkerJob() {
 			@Override
@@ -523,8 +542,6 @@ public final class Builder extends IncrementalProjectBuilder
 				int end = jdtMarker.getAttribute(IMarker.CHAR_END, -1);
 				int length = end - start;
 				int srcPos = smap.map(start, length);
-				System.out.println("Looking for " + start + "," 
-						+ length + " in " + smap + ": " + srcPos);
 				if (srcPos == -1) return Status.OK_STATUS;
 				IMarker copy = Marker.copyFromJDT(dolmenRes, jdtMarker, srcPos, srcPos + length);
 				forwardedMarkers.put(jdtMarker, copy);

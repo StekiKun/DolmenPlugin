@@ -29,6 +29,11 @@ public final class Marker {
 	 * Marker source value for markers created from JDT markers
 	 */
 	private static final String JDT_SOURCE_ID = "JDT";
+
+	/**
+	 * Whether source mappings should be turned into markers
+	 */
+	private static boolean markSourceMappings = false;
 	
 	private Marker() {
 		// Static utility only
@@ -133,17 +138,19 @@ public final class Marker {
 	private static void addMapping(IFile res, SourceMapping.Mapping mapping) {
 		try {
 			IMarker report = res.createMarker(Marker.ID);
-			report.setAttribute(IMarker.MESSAGE, mapping);
+			report.setAttribute(IMarker.MESSAGE, mapping.toString());
 			report.setAttribute(IMarker.SEVERITY, IMarker.SEVERITY_INFO);
 			report.setAttribute(IMarker.CHAR_START, mapping.offset);
 			report.setAttribute(IMarker.CHAR_END, mapping.offset + mapping.length);
+			report.setAttribute(IMarker.TRANSIENT, true);
 		} catch (CoreException e1) {
 			e1.printStackTrace();
 		}
 	}
 	
 	public static void addMappings(IFile res, SourceMapping smap) {
-		smap.forEach(c -> addMapping(res, c));
+		if (markSourceMappings)
+			smap.forEach(c -> addMapping(res, c));
 	}
 
 	/**

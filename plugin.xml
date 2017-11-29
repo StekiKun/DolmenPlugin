@@ -42,11 +42,12 @@
    <!-- Marker extension for Dolmen files -->
    <extension
          id="dolmenplugin.base.marker"
-         name="Dolmen problems"
+         name="Dolmen Problems"
          point="org.eclipse.core.resources.markers">
       <super
             type="org.eclipse.core.resources.problemmarker">
       </super>
+      <persistent value="true"/>
    </extension>
 
    <!-- Nature extension for project containing Dolmen files -->
