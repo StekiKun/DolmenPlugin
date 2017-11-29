@@ -20,6 +20,16 @@ public final class Marker {
 	 */
 	public static final String ID = "dolmenplugin.base.marker";
 	
+	/**
+	 * Marker source value for markers created from Dolmen reports
+	 */
+	private static final String DOLMEN_SOURCE_ID = "Dolmen";
+	
+	/**
+	 * Marker source value for markers created from JDT markers
+	 */
+	private static final String JDT_SOURCE_ID = "JDT";
+	
 	private Marker() {
 		// Static utility only
 	}
@@ -52,6 +62,7 @@ public final class Marker {
 			int line, int start, int end) {
 		try {
 			IMarker report = res.createMarker(Marker.ID);
+			report.setAttribute(IMarker.SOURCE_ID, DOLMEN_SOURCE_ID);
 			report.setAttribute(IMarker.MESSAGE, message);
 			report.setAttribute(IMarker.SEVERITY, severity);
 			report.setAttribute(IMarker.LINE_NUMBER, line);
@@ -135,4 +146,44 @@ public final class Marker {
 		smap.forEach(c -> addMapping(res, c));
 	}
 
+	/**
+	 * Adds a Dolmen marker mimicking a JDT problem marker to the given 
+	 * resource {@code res}, with the same attributes as the given
+	 * {@code jdtMarker} and the positional attributes overriden
+	 * by the given parameters
+	 * 
+	 * @param res
+	 * @param jdtMarker	the marker to copy
+	 * @param start		the start offset
+	 * @param end		the end offset
+	 */
+	public static IMarker copyFromJDT(IResource res, IMarker jdtMarker,
+			int start, int end) {
+		try {
+			IMarker jdtProblem = res.createMarker(Marker.ID);
+			jdtMarker.getAttributes().forEach((s, o) -> {
+				try {
+					// Tweak message to show its true origin
+					if (IMarker.MESSAGE.equals(s)) {
+						String msg = "[Java Problem] " + o;
+						jdtProblem.setAttribute(s, msg);
+					}
+					else 
+						jdtProblem.setAttribute(s, o);
+				} catch (CoreException e) {
+					e.printStackTrace();
+				}
+			});
+			// Override the positional and source attributes
+			jdtProblem.setAttribute(IMarker.SOURCE_ID, JDT_SOURCE_ID);
+			// jdtProblem.setAttribute(IMarker.LINE_NUMBER, line);
+			jdtProblem.setAttribute(IMarker.CHAR_START, start);
+			jdtProblem.setAttribute(IMarker.CHAR_END, end);
+			return jdtProblem;
+		} catch (CoreException e1) {
+			e1.printStackTrace();
+			return null;
+		}
+	}
+	
 }

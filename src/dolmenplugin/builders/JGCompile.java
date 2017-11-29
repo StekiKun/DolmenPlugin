@@ -9,6 +9,7 @@ import java.io.Writer;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
@@ -40,9 +41,9 @@ public final class JGCompile {
 		this.monitor = monitor;
 	}
 
-	private static final List<IFile> FAILED = Collections.emptyList();
+	private static final Map<IFile, SourceMapping> FAILED = Collections.emptyMap();
 	
-	public List<IFile> compile(IProject project, IFile res) {
+	public Map<IFile, SourceMapping> compile(IProject project, IFile res) {
 		if (res == null || !res.exists())
 			return FAILED;
 		log.println("Compiling grammar description " + res);
@@ -89,7 +90,7 @@ public final class JGCompile {
 			newRes.setPersistentProperty(Utils.GENERATED_PROPERTY, prop);
 			Marker.addMappings(newRes, smap);
 			
-			return Collections.singletonList(newRes);
+			return Collections.singletonMap(newRes, smap);
 		}
 		catch (LexicalError e) {
 			Position start = jgLexer.getLexemeStart();
