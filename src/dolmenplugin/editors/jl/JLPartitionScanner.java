@@ -1,7 +1,13 @@
 package dolmenplugin.editors.jl;
 
-import org.eclipse.jface.text.rules.*;
+import org.eclipse.jface.text.rules.EndOfLineRule;
+import org.eclipse.jface.text.rules.IPredicateRule;
+import org.eclipse.jface.text.rules.IToken;
+import org.eclipse.jface.text.rules.MultiLineRule;
+import org.eclipse.jface.text.rules.SingleLineRule;
+import org.eclipse.jface.text.rules.Token;
 
+import dolmenplugin.editors.DolmenPartitionScanner;
 import dolmenplugin.editors.JavaActionRule;
 
 /**
@@ -13,7 +19,7 @@ import dolmenplugin.editors.JavaActionRule;
  * 
  * @author Stéphane Lescuyer
  */
-public class JLPartitionScanner extends RuleBasedPartitionScanner {
+public class JLPartitionScanner extends DolmenPartitionScanner {
 	public final static String JL_COMMENT = "__jl_comment";
 	public final static String JL_JAVA = "__jl_java";
 	public final static String JL_LITERAL = "__jl_literal";
@@ -22,6 +28,7 @@ public class JLPartitionScanner extends RuleBasedPartitionScanner {
 		new String[] { JL_COMMENT, JL_LITERAL, JL_JAVA };
 	
 	public JLPartitionScanner() {
+		super(JL_JAVA);
 		IToken jlComment = new Token(JL_COMMENT);
 		IToken jlJava = new Token(JL_JAVA);
 		IToken jlLiteral = new Token(JL_LITERAL);

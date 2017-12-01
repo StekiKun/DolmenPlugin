@@ -112,13 +112,11 @@ public final class Builder extends IncrementalProjectBuilder
 	public void setInitializationData(IConfigurationElement config, String propertyName, Object data)
 			throws CoreException {
 		super.setInitializationData(config, propertyName, data);
-		System.out.println("DolmenBuilder.setInitializationData");
 	}
 
 	@Override
 	protected void startupOnInitialize() {
 		super.startupOnInitialize();
-		System.out.println("DolmenBuilder.startupOnInitialize");
 		
 		IProject project = getProject();
 		javaProject = JavaCore.create(project);
@@ -193,7 +191,6 @@ public final class Builder extends IncrementalProjectBuilder
 	@Override
 	protected IProject[] build(int kind, Map<String, String> args, IProgressMonitor monitor)
 			throws CoreException {
-		System.out.println("Dolmen builder being called!");
 		switch (kind) {
 		case FULL_BUILD:
 			fullBuild(monitor);
@@ -253,7 +250,6 @@ public final class Builder extends IncrementalProjectBuilder
 	private void incrementalBuild(IResourceDelta delta, IProgressMonitor monitor)
 			throws CoreException {
 		SubMonitor subMonitor = SubMonitor.convert(monitor);
-		System.out.println("INCREMENTAL BUILD");
 		displayDelta(null, delta);
 		delta.accept(new DeltaVisitor(subMonitor));
 	}

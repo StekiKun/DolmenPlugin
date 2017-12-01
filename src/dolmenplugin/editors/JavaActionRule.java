@@ -37,10 +37,11 @@ public class JavaActionRule implements IPredicateRule {
 
 	@Override
 	public IToken evaluate(ICharacterScanner scanner, boolean resume) {
-		assert (resume);	// Just for now
 		Automaton aut = new Automaton(scanner);
-		if (resume)
+		if (resume) {
+			System.err.println("JavaActionRule#evaluate with resume=true: should not happen");
 			return Token.UNDEFINED;
+		}
 		else
 			return aut.start();
 	}
@@ -49,6 +50,11 @@ public class JavaActionRule implements IPredicateRule {
 		private final ICharacterScanner scanner;
 		private int read;
 		private int depth;
+		
+		// Minimum positive depth reached on a closing character
+		private int minDepth = Integer.MAX_VALUE;
+		// Number of character reads up to that minimal closing character, if any
+		private int minRead = -1;
 		
 		Automaton(ICharacterScanner scanner) {
 			this.scanner = scanner;
@@ -68,9 +74,13 @@ public class JavaActionRule implements IPredicateRule {
 		}
 		
 		private IToken abort() {
-			for (; read > 0; --read)
+			// Fall back to last 'acceptable state' if any,
+			// otherwise rewind all read characters and return UNDEFINED
+			int fallback = minRead < 0 ? 0 : minRead;
+			IToken token = minRead < 0 ? Token.UNDEFINED : JavaActionRule.this.successToken;
+			for (; read > fallback; --read)
 				scanner.unread();
-			return Token.UNDEFINED;
+			return token;
 		}
 		
 		IToken start() {
@@ -90,8 +100,14 @@ public class JavaActionRule implements IPredicateRule {
 				}
 				else if (c == close) {
 					--depth;
-					if (depth <= 0) {	// safe, because resume may be problematic
+					if (depth == 0)
 						return JavaActionRule.this.successToken;
+					// < -> shortest match, <= -> longest match
+					// Assuming the remainder of the file is well-braced,
+					// it is more likely that we should stop at the shortest match
+					if (depth < minDepth) { 
+						minDepth = depth;
+						minRead = read;
 					}
 					continue;					
 				}

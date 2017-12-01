@@ -1,7 +1,12 @@
 package dolmenplugin.editors.jg;
 
-import org.eclipse.jface.text.rules.*;
+import org.eclipse.jface.text.rules.EndOfLineRule;
+import org.eclipse.jface.text.rules.IPredicateRule;
+import org.eclipse.jface.text.rules.IToken;
+import org.eclipse.jface.text.rules.MultiLineRule;
+import org.eclipse.jface.text.rules.Token;
 
+import dolmenplugin.editors.DolmenPartitionScanner;
 import dolmenplugin.editors.JavaActionRule;
 
 /**
@@ -13,7 +18,7 @@ import dolmenplugin.editors.JavaActionRule;
  * 
  * @author Stéphane Lescuyer
  */
-public class JGPartitionScanner extends RuleBasedPartitionScanner {
+public class JGPartitionScanner extends DolmenPartitionScanner {
 	public final static String JG_COMMENT = "__jg_comment";
 	public final static String JG_JAVA = "__jg_java";
 	public final static String JG_ARGS = "__jg_args";
@@ -22,7 +27,7 @@ public class JGPartitionScanner extends RuleBasedPartitionScanner {
 		new String[] { JG_COMMENT, JG_JAVA, JG_ARGS };
 	
 	public JGPartitionScanner() {
-
+		super(JG_JAVA);
 		IToken jgComment = new Token(JG_COMMENT);
 		IToken jgJava = new Token(JG_JAVA);
 		IToken jgArgs = new Token(JG_ARGS);
@@ -35,5 +40,5 @@ public class JGPartitionScanner extends RuleBasedPartitionScanner {
 		rules[3] = new JavaActionRule(jgArgs, '(', ')');
 		
 		setPredicateRules(rules);
-	}
+	}	
 }
