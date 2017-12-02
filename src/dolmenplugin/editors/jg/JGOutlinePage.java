@@ -64,7 +64,7 @@ public class JGOutlinePage extends ContentOutlinePage {
 	        {
 	            control.setRedraw(false);
 	            viewer.setInput(input);
-	            viewer.expandAll();
+	            viewer.expandToLevel(1);
 	            control.setRedraw(true);
 	        }
 	    }

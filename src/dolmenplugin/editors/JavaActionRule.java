@@ -103,9 +103,7 @@ public class JavaActionRule implements IPredicateRule {
 					if (depth == 0)
 						return JavaActionRule.this.successToken;
 					// < -> shortest match, <= -> longest match
-					// Assuming the remainder of the file is well-braced,
-					// it is more likely that we should stop at the shortest match
-					if (depth < minDepth) { 
+					if (depth <= minDepth) { 
 						minDepth = depth;
 						minRead = read;
 					}
