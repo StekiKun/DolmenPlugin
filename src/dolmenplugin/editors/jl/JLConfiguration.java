@@ -159,6 +159,7 @@ public class JLConfiguration extends SourceViewerConfiguration {
 		assistant.setShowEmptyList(true); // for now, for debug
 		assistant.setStatusLineVisible(true);
 		assistant.enableAutoInsert(true);
+		assistant.enableColoredLabels(true);
 		assistant.setSorter(JLContentAssistProcessor.SORTER);
 		
 		// Now, the actual processors
