@@ -6,8 +6,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.Writer;
+import java.time.Instant;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -50,6 +50,11 @@ public final class JGCompile {
 		Marker.deleteAll(res);
 		
 		final ClassFactory cf = new ClassFactory(res);
+		if (!cf.isStale()) {
+			log.println("└─ Up-to-date grammar " + cf.classResource);
+			return Collections.emptyMap();
+		}
+
 		JGLexer jgLexer = null;
 		try (FileReader reader = new FileReader(cf.file)) {
 			jgLexer = new JGLexer(cf.file.getPath(), reader);
@@ -85,7 +90,7 @@ public final class JGCompile {
 			final IFile newRes = cf.classResource;
 			if (!newRes.isDerived())
 				newRes.setDerived(true, monitor);
-			Date now = new Date();
+			String now = Instant.now().toString();
 			String prop = "Generated from " + cf.file.getAbsolutePath() + " (" + now + ")";
 			newRes.setPersistentProperty(Utils.GENERATED_PROPERTY, prop);
 			Marker.addMappings(newRes, smap);

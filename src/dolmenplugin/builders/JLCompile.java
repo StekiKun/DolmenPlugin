@@ -6,8 +6,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.Writer;
+import java.time.Instant;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -52,10 +52,14 @@ public final class JLCompile {
 		Marker.deleteAll(res);
 
 		final ClassFactory cf = new ClassFactory(res);
+		if (!cf.isStale()) {
+			log.println("└─ Up-to-date lexer " + cf.classResource);
+			return Collections.emptyMap();
+		}
+		
 		JLLexerGenerated jlLexer = null;
 		try (FileReader reader = new FileReader(cf.file)) {
-			jlLexer = new JLLexerGenerated(
-				cf.file.getPath(), reader);
+			jlLexer = new JLLexerGenerated(cf.file.getPath(), reader);
 			JLParser jlParser = new JLParser(jlLexer, JLLexerGenerated::main);
 			Lexer lexer = jlParser.parseLexer();
 			log.println("├─ Lexer description successfully parsed");
@@ -89,7 +93,7 @@ public final class JLCompile {
 			final IFile newRes = cf.classResource;
 			if (!newRes.isDerived())
 				newRes.setDerived(true, monitor);
-			Date now = new Date();
+			String now = Instant.now().toString();
 			String prop = "Generated from " + cf.file.getAbsolutePath() + " (" + now + ")";
 			newRes.setPersistentProperty(Utils.GENERATED_PROPERTY, prop);
 			Marker.addMappings(newRes, smap);

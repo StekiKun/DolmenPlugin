@@ -1,13 +1,18 @@
 package dolmenplugin.builders;
 
 import java.io.File;
+import java.time.Instant;
+import java.time.format.DateTimeParseException;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.JavaCore;
+
+import dolmenplugin.base.Utils;
 
 /**
  * Class which computes and gathers all the various useful
@@ -97,4 +102,33 @@ public final class ClassFactory {
 		return relPath;
 	}
 
+	/**
+	 * @param cf
+	 * @return {@code true} if and only if the generated class
+	 * 	    {@link #classFile} described by {@code this} is less 
+	 * 		recent than the last modifications of {@link #file}
+	 */
+	public boolean isStale() {
+		if (!classFile.exists()) return true;
+		String genProp;
+		try {
+			genProp = classResource.getPersistentProperty(Utils.GENERATED_PROPERTY);
+		} catch (CoreException e) {
+			// ignore and rebuild
+			return true;
+		}
+		int c = genProp.lastIndexOf('(');
+		String date = genProp.substring(c + 1, genProp.length() - 1);
+		Instant genTime;
+		try {
+			genTime = Instant.parse(date);
+		} catch (DateTimeParseException e) {
+			// ignore and rebuild
+			return true;
+		}
+		Instant lastMod = Instant.ofEpochMilli(file.lastModified());
+		// Now the file must be rebuilt only if the source
+		// was changed since the last generation
+		return lastMod.isAfter(genTime);
+	}
 }
