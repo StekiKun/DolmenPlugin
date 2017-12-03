@@ -1,4 +1,4 @@
-package dolmenplugin.editors.jl;
+package dolmenplugin.editors.jg;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -20,19 +20,19 @@ import org.eclipse.jface.viewers.StyledString;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 
-import common.Iterables;
 import dolmenplugin.Activator;
-import syntax.Lexer;
-import syntax.Located;
+import syntax.Grammar;
+import syntax.GrammarRule;
+import syntax.Grammar.TokenDecl;
 
 /**
  * WIP
  * 
- * Implements content-assist proposals for {@link JLEditor}
+ * Implements content-assist proposals for {@link JGEditor}
  * 
  * @author Stéphane Lescuyer
  */
-public final class JLContentAssistProcessor implements IContentAssistProcessor {
+public final class JGContentAssistProcessor implements IContentAssistProcessor {
 
 	/**
 	 * Content types for which the content-assist process can be configured
@@ -43,17 +43,17 @@ public final class JLContentAssistProcessor implements IContentAssistProcessor {
 		DEFAULT, JAVA
 	}
 	
-	private final JLEditor editor;
+	private final JGEditor editor;
 	private final ContentType contentType;
 	private String lastErrorMessage = null;
 	
 	/**
-	 * Creates a new content-assist processor for the given {@link JLEditor}
+	 * Creates a new content-assist processor for the given {@link JGEditor}
 	 * and the partitions of the given {@code content_type}
 	 * @param editor		must not be {@code null}
 	 * @param contentType	
 	 */
-	public JLContentAssistProcessor(JLEditor editor, ContentType contentType) {
+	public JGContentAssistProcessor(JGEditor editor, ContentType contentType) {
 		if (editor == null)
 			throw new IllegalArgumentException(
 				"Cannot create content-assist processor with null editor");
@@ -77,7 +77,7 @@ public final class JLContentAssistProcessor implements IContentAssistProcessor {
 		lastErrorMessage = null; // in case of success
 		final IDocument doc = viewer.getDocument();
 		if (!doc.equals(editor.getDocument())) {
-			return fail("Given viewer is not attached to the configured lexer editor");
+			return fail("Given viewer is not attached to the configured grammar editor");
 		}
 		
 		ProposalCollector collector = new ProposalCollector(doc, offset);
@@ -85,34 +85,40 @@ public final class JLContentAssistProcessor implements IContentAssistProcessor {
 		// Try keywords corresponding to the content type
 		switch (contentType) {
 		case DEFAULT:
-			addPrefixCompletions(collector, prefix, CAT_KEYWORD, JL_KEYWORDS);
+			addPrefixCompletions(collector, prefix, CAT_KEYWORD, JG_KEYWORDS);
 			break;
 		case JAVA:
 			addPrefixCompletions(collector, prefix, CAT_KEYWORD, JAVA_KEYWORDS);
 			break;
 		}
-		final Lexer lexer = editor.getLexer();
-		if (lexer != null) {
+		final Grammar grammar = editor.getGrammar();
+		if (grammar != null) {
 			switch (contentType) {
 			case DEFAULT:
-				// Try regexps in lexer rules and regexps
-				addPrefixCompletions(collector, prefix, CAT_REGEXP,
-						Iterables.transform(lexer.regulars.keySet(), 
-											(Located<String> l) -> l.val));
+				// Try rules and tokens in grammar rules
+				addFieldCompletions(collector, prefix, CAT_TOKEN,
+					grammar.tokenDecls.stream().filter(e -> !e.isValued())
+						.map(JGContentAssistProcessor::completionDescrOfToken)
+						::iterator);
+				addFieldCompletions(collector, prefix, CAT_TOKEN_VALUED,
+						grammar.tokenDecls.stream().filter(e -> e.isValued())
+							.map(JGContentAssistProcessor::completionDescrOfToken)
+							::iterator);
+				addMethodCompletions(collector, prefix, CAT_PUBLIC_RULE,
+						grammar.rules.values().stream().filter(r -> r.visibility)
+							.map(JGContentAssistProcessor::completionDescrOfRule)
+							::iterator);
+				addMethodCompletions(collector, prefix, CAT_PRIVATE_RULE,
+						grammar.rules.values().stream().filter(r -> !r.visibility)
+							.map(JGContentAssistProcessor::completionDescrOfRule)
+							::iterator);
 				break;
 			case JAVA:
-				// Try rules in semantic actions
-				addMethodCompletions(collector, prefix, CAT_PRIVATE_ENTRY,
-						lexer.entryPoints.stream().filter(e -> !e.visibility)
-								.map(JLContentAssistProcessor::completionDescrOfEntry)
-								::iterator);
-				addMethodCompletions(collector, prefix, CAT_PUBLIC_ENTRY,
-						lexer.entryPoints.stream().filter(e -> e.visibility)
-								.map(JLContentAssistProcessor::completionDescrOfEntry)
-								::iterator);
-				// Try methods from LexBuffer
-				addMethodCompletions(collector, prefix, CAT_LEXER_METHOD,
-						LEXBUFFER_METHODS);
+				// Try methods and fields from BaseParser
+				addMethodCompletions(collector, prefix, CAT_PARSER_METHOD,
+					BASEPARSER_METHODS);
+				addFieldCompletions(collector, prefix, CAT_PARSER_FIELD,
+						BASEPARSER_FIELDS);
 				break;
 			}
 		}
@@ -158,7 +164,7 @@ public final class JLContentAssistProcessor implements IContentAssistProcessor {
 				e.printStackTrace();
 				return "";
 			}
-			if (!isJLWordPart(ch)) break;
+			if (!isJGWordPart(ch)) break;
 			--soffset;
 		}
 		++soffset;
@@ -173,27 +179,33 @@ public final class JLContentAssistProcessor implements IContentAssistProcessor {
 		}
 	}
 
-	private static boolean isJLWordPart(char ch) {
+	private static boolean isJGWordPart(char ch) {
 		if (ch == '_') return true;
 		if (ch >= 'a' && ch <= 'z') return true;
 		if (ch >= 'A' && ch <= 'Z') return true;
 		if (ch >= '0' && ch <= '9') return true;
 		return false;
 	}
-	
-	private static String[] completionDescrOfEntry(Lexer.Entry entry) {
-		String display = entry.name.val + "(" + 
-			(entry.args == null ? "" : entry.args.find()) + ")" +
-			" : " + entry.returnType.find();
-		String replacement = entry.name.val + 
-			(entry.args == null ? "()" : "(?)");
+
+	private static String[] completionDescrOfToken(TokenDecl decl) {
+		String display = decl.name.val +
+			(decl.valueType == null ? "" : " : " + decl.valueType.find());
+		String replacement = decl.name.val;
+		return new String[] { replacement, display };
+	}
+
+	private static String[] completionDescrOfRule(GrammarRule rule) {
+		String display = rule.name.val + "(" + 
+			(rule.args == null ? "" : rule.args.find()) + ")" +
+			" : " + rule.returnType.find();
+		String replacement = rule.name.val + 
+			(rule.args == null ? "()" : "(?)");
 		return new String[] { replacement, display };
 	}
 	
-	private static final List<String> JL_KEYWORDS =
+	private static final List<String> JG_KEYWORDS =
 		Arrays.asList(
-			"rule", "shortest", "public", "private", "eof",
-			"as", "orelse", "import", "static"
+			"rule", "token", "public", "private", "import", "static"
 		);
 	private static final List<String> JAVA_KEYWORDS =
 		Arrays.asList(
@@ -209,33 +221,37 @@ public final class JLContentAssistProcessor implements IContentAssistProcessor {
 			"const",      "float",      "native",       "super",       "while",
 			"true", "false", "null"
 		);
-	private static final List<String[]> LEXBUFFER_METHODS =
+	private static final List<String[]> BASEPARSER_METHODS =
 		Arrays.asList(
-			new String[] { "getLexeme()", "getLexeme() : String" },
-			new String[] { "getLexemeStart()", "getLexemeStart() : Position" },
-			new String[] { "getLexemeEnd()", "getLexemeEnd() : Position" },
-			new String[] { "getSubLexeme(start, end)", "getSubLexeme(int, int) : String" },
-			new String[] { "getSubLexemeOpt(start, end)", "getSubLexemeOpt(int, int) : Optional<String>" },
-			new String[] { "getSubLexemeChar(pos)", "getSubLexemeChar(int) : char" },
-			new String[] { "getSubLexemeOptChar(pos)", "getSubLexemeOptChar(int) : Optional<Character>" },
-			new String[] { "newline()", "newline() : void" },
-			new String[] { "error(msg)", "error(String) : LexicalError" }
+			new String[] { "parsingError(msg)", "parsingError(String) : ParsingException" },
+			new String[] { "tokenError(found, expected...)", "tokenError(Object, Object...) : ParsingException" }
+			// TODO: add methods from BaseParser.WithPositions depending on config?
 		);
+	private static final List<String[]> BASEPARSER_FIELDS =
+			Arrays.asList(
+				new String[] { "_jl_lexbuf", "_jl_lexbuf : LexBuffer" },
+				new String[] { "_jl_lastTokenStart", "_jl_lastTokenStart : LexBuffer.Position" },
+				new String[] { "_jl_lastTokenEnd", "_jl_lastTokenEnd : LexBuffer.Position" }
+			);
 	
 	private static final String CAT_KEYWORD = "3_keyword";
-	private static final String CAT_REGEXP = "0_regexp";
-	private static final String CAT_PRIVATE_ENTRY = "1_pubentry";
-	private static final String CAT_PUBLIC_ENTRY = "1_prientry";
-	private static final String CAT_LEXER_METHOD = "2_method";
+	private static final String CAT_TOKEN = "0_token";
+	private static final String CAT_TOKEN_VALUED = "0_token_valued";
+	private static final String CAT_PRIVATE_RULE = "1_pubrule";
+	private static final String CAT_PUBLIC_RULE = "1_prirule";
+	private static final String CAT_PARSER_METHOD = "2_method";
+	private static final String CAT_PARSER_FIELD = "2_field";
 	
 	private static final Map<String, String> CAT_IMAGES;
 	static {
 		CAT_IMAGES = new HashMap<>();
 		CAT_IMAGES.put(CAT_KEYWORD, null);
-		CAT_IMAGES.put(CAT_REGEXP, "icons/regexp_def.gif");
-		CAT_IMAGES.put(CAT_PRIVATE_ENTRY, "icons/lexer_entry_pri.gif");
-		CAT_IMAGES.put(CAT_PUBLIC_ENTRY, "icons/lexer_entry_pub.gif");
-		CAT_IMAGES.put(CAT_LEXER_METHOD, "icons/protected_method.gif");
+		CAT_IMAGES.put(CAT_TOKEN, "icons/token_decl.gif");
+		CAT_IMAGES.put(CAT_TOKEN_VALUED, "icons/token_decl_valued.gif");
+		CAT_IMAGES.put(CAT_PRIVATE_RULE, "icons/rule_pri.gif");
+		CAT_IMAGES.put(CAT_PUBLIC_RULE, "icons/rule_pub.gif");
+		CAT_IMAGES.put(CAT_PARSER_METHOD, "icons/protected_method.gif");
+		CAT_IMAGES.put(CAT_PARSER_FIELD, "icons/protected_field.gif");
 	}
 	
 	private void addPrefixCompletions(ProposalCollector collector, 
@@ -245,10 +261,28 @@ public final class JLContentAssistProcessor implements IContentAssistProcessor {
 				int pl = prefix.length();
 				// Check that the candidate is not already there
 				if (collector.startsWith(candidate.substring(pl))) continue;
-				JLCompletionProposal proposal = JLCompletionProposal.of(
+				JGCompletionProposal proposal = JGCompletionProposal.of(
 					category, 
 					candidate.substring(pl), collector.offset, 0,
 					candidate.length() - pl, candidate);
+				collector.add(proposal);
+			}
+		}
+	}
+
+	private void addFieldCompletions(ProposalCollector collector, 
+			String prefix, String category, Iterable<String[]> candidates) {
+		for (String[] candidate : candidates) {
+			String replacement = candidate[0];
+			String display = candidate[1];
+			if (replacement.startsWith(prefix)) {
+				int pl = prefix.length();
+				// Check that the candidate is not already there
+				if (collector.startsWith(replacement.substring(pl))) continue;
+				JGCompletionProposal proposal = JGCompletionProposal.of(
+					category, 
+					replacement.substring(pl), collector.offset, 0,
+					replacement.length() - pl, display);
 				collector.add(proposal);
 			}
 		}
@@ -271,7 +305,7 @@ public final class JLContentAssistProcessor implements IContentAssistProcessor {
 				if (replacement.charAt(match.length() + 1) == '?') {
 					replacement = match + "(" + replacement.substring(match.length() + 2);
 				}
-				JLCompletionProposal proposal = JLCompletionProposal.of(
+				JGCompletionProposal proposal = JGCompletionProposal.of(
 					category,
 					replacement.substring(pl), collector.offset, 0,
 					cursor, display);
@@ -281,7 +315,7 @@ public final class JLContentAssistProcessor implements IContentAssistProcessor {
 	}
 
 	private /* non-static */ class ProposalCollector {
-		private List<JLCompletionProposal> proposals;
+		private List<JGCompletionProposal> proposals;
 		final IDocument doc;
 		final int offset;
 		
@@ -300,26 +334,26 @@ public final class JLContentAssistProcessor implements IContentAssistProcessor {
 			}
 		}
 		
-		void add(JLCompletionProposal prop) {
+		void add(JGCompletionProposal prop) {
 			if (proposals == null) {
 				proposals = new ArrayList<>();
 			}
 			proposals.add(prop);
 		}
 		
-		JLCompletionProposal[] collect() {
+		JGCompletionProposal[] collect() {
 			if (proposals == null) return null;
-			return proposals.toArray(new JLCompletionProposal[proposals.size()]);
+			return proposals.toArray(new JGCompletionProposal[proposals.size()]);
 		}
 	}
 	
-	private static class JLCompletionProposal 
+	private static class JGCompletionProposal 
 		implements ICompletionProposal, ICompletionProposalExtension6,
-				   Comparable<JLCompletionProposal> {
+				   Comparable<JGCompletionProposal> {
 		final String category;
 		final CompletionProposal delegate;
 		
-		private JLCompletionProposal(
+		private JGCompletionProposal(
 				String category, CompletionProposal delegate) {
 			this.category = category;
 			this.delegate = delegate;
@@ -360,19 +394,19 @@ public final class JLContentAssistProcessor implements IContentAssistProcessor {
 			return delegate.getContextInformation();
 		}
 		
-		static JLCompletionProposal of(
+		static JGCompletionProposal of(
 			String category, String replacementString, int replacementOffset, int replacementLength,
 			int cursorPosition, String displayString) {
 			String imagePath = CAT_IMAGES.get(category);
 			Image image = imagePath == null ? null : Activator.getImage(imagePath);
-			return new JLCompletionProposal(category,
+			return new JGCompletionProposal(category,
 				new CompletionProposal(
 					replacementString, replacementOffset, replacementLength, 
 					cursorPosition, image, displayString, null, null));
 		}
 
 		@Override
-		public int compareTo(JLCompletionProposal o) {
+		public int compareTo(JGCompletionProposal o) {
 			int c = category.compareTo(o.category);
 			if (c != 0) return c;
 			return delegate.getDisplayString().compareToIgnoreCase(
@@ -387,9 +421,9 @@ public final class JLContentAssistProcessor implements IContentAssistProcessor {
 		new ICompletionProposalSorter() {
 			@Override
 			public int compare(ICompletionProposal p1, ICompletionProposal p2) {
-				if (p1 instanceof JLCompletionProposal &&
-					p2 instanceof JLCompletionProposal) {
-					return ((JLCompletionProposal) p1).compareTo((JLCompletionProposal) p2);
+				if (p1 instanceof JGCompletionProposal &&
+					p2 instanceof JGCompletionProposal) {
+					return ((JGCompletionProposal) p1).compareTo((JGCompletionProposal) p2);
 				}
 				return 0;
 			}

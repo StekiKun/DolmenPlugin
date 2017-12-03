@@ -3,6 +3,8 @@ package dolmenplugin.editors.jg;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.ITextHover;
 import org.eclipse.jface.text.TextAttribute;
+import org.eclipse.jface.text.contentassist.ContentAssistant;
+import org.eclipse.jface.text.contentassist.IContentAssistant;
 import org.eclipse.jface.text.presentation.IPresentationReconciler;
 import org.eclipse.jface.text.presentation.PresentationReconciler;
 import org.eclipse.jface.text.rules.DefaultDamagerRepairer;
@@ -15,6 +17,10 @@ import dolmenplugin.editors.ColorManager;
 import dolmenplugin.editors.IColorConstants;
 import dolmenplugin.editors.JavaScanner;
 import dolmenplugin.editors.MarkerAnnotationHover;
+import dolmenplugin.editors.jg.JGContentAssistProcessor;
+import dolmenplugin.editors.jg.JGContentAssistProcessor.ContentType;
+import dolmenplugin.editors.jg.JGDocumentSetupParticipant;
+import dolmenplugin.editors.jg.JGPartitionScanner;
 
 /**
  * The custom editor configuration for Dolmen grammar descriptions.
@@ -34,10 +40,12 @@ public class JGConfiguration extends SourceViewerConfiguration {
 	private JavaScanner jgArgsScanner;
 	
 	private ColorManager colorManager;
+	private JGEditor jgEditor;
 
-	public JGConfiguration(ColorManager colorManager) {
+	public JGConfiguration(ColorManager colorManager, JGEditor jgEditor) {
 		this.colorManager = colorManager;
 		this.jgAnnotationHover = new MarkerAnnotationHover();
+		this.jgEditor = jgEditor;
 	}
 
 	public String[] getConfiguredContentTypes(ISourceViewer sourceViewer) {
@@ -125,6 +133,27 @@ public class JGConfiguration extends SourceViewerConfiguration {
 	@Override
 	public ITextHover getTextHover(ISourceViewer sourceViewer, String contentType) {
 		return jgAnnotationHover;
+	}
+	
+	@Override
+	public IContentAssistant getContentAssistant(ISourceViewer sourceViewer) {
+		ContentAssistant assistant = new ContentAssistant();
+		// General configuration
+		assistant.setContextInformationPopupOrientation(ContentAssistant.CONTEXT_INFO_BELOW);
+		assistant.setDocumentPartitioning(JGDocumentSetupParticipant.PARTITIONING_ID);
+		assistant.setEmptyMessage("Di me mas!");
+		// assistant.setProposalPopupOrientation(ContentAssistant.PROPOSAL_STACKED);
+		assistant.setShowEmptyList(true); // for now, for debug
+		assistant.setStatusLineVisible(true);
+		assistant.enableAutoInsert(true);
+		assistant.setSorter(JGContentAssistProcessor.SORTER);
+		
+		// Now, the actual processors
+		assistant.setContentAssistProcessor(
+			new JGContentAssistProcessor(jgEditor, ContentType.JAVA), JGPartitionScanner.JG_JAVA);
+		assistant.setContentAssistProcessor(
+			new JGContentAssistProcessor(jgEditor, ContentType.DEFAULT), IDocument.DEFAULT_CONTENT_TYPE);
+		return assistant;
 	}
 
 }
