@@ -195,6 +195,11 @@
             id="dolmenplugin.ToggleCommentCommand"
             name="Toggle  Comment">
       </command>
+      <command
+            description="Go to declaration of element currently selected"
+            id="dolmenplugin.OpenDeclarationCommand"
+            name="Open Declaration">
+      </command>
    </extension>
    
    <!-- Handler for the commands that appear in the custom Source menu-->
@@ -203,6 +208,10 @@
       <handler
             class="dolmenplugin.handlers.ToggleCommentHandler"
             commandId="dolmenplugin.ToggleCommentCommand">
+      </handler>
+      <handler
+            class="dolmenplugin.handlers.OpenDeclarationHandler"
+            commandId="dolmenplugin.OpenDeclarationCommand">
       </handler>
    </extension>
    
@@ -231,17 +240,42 @@
                commandId="dolmenplugin.ToggleCommentCommand"
                label="Toggle Comment">
             </command>
+            <!-- The Open Declaration command -->
+            <command
+                commandId="dolmenplugin.OpenDeclarationCommand"
+                label="Open Declaration">
+            </command>
          </menu>
       </menuContribution>
+   </extension>
+   
+   <!-- Contexts Extension -->
+   <!-- This defines the Editor context (scope) for commands and key bindings -->
+   <!-- Requires 'setEditorContextMenuId(String editor.id);' in Editor contructor -->
+   <extension
+         point="org.eclipse.ui.contexts">
+      <context
+            id="dolmenplugin.editors.DolmenScope"
+            name="Dolmen editors"
+            parentId="org.eclipse.jdt.ui.javaEditorScope">
+      </context>
    </extension>
 
    <!-- Keyboard shortcuts for some of the Dolmen commands -->   
    <extension
          point="org.eclipse.ui.bindings">
-      <!-- Toggle Comment is bound to "Ctrl + /", as in Java -->
+      <!-- Toggle Comment is bound to "Ctrl + /", as in the JDT -->
       <key
         sequence="M1+/"
         commandId="dolmenplugin.ToggleCommentCommand"
+        contextId="dolmenplugin.editors.DolmenScope"
+        schemeId="org.eclipse.ui.defaultAcceleratorConfiguration">
+      </key>
+      <!-- Open Declaration is bound to "F3", as in the JDT -->
+      <key
+        sequence="F3"
+        commandId="dolmenplugin.OpenDeclarationCommand"
+        contextId="dolmenplugin.editors.DolmenScope"
         schemeId="org.eclipse.ui.defaultAcceleratorConfiguration">
       </key>
    </extension>

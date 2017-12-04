@@ -15,6 +15,7 @@ import org.eclipse.jface.text.contentassist.IContentAssistProcessor;
 import org.eclipse.jface.text.contentassist.IContextInformation;
 import org.eclipse.jface.text.contentassist.IContextInformationValidator;
 
+import dolmenplugin.base.Utils;
 import dolmenplugin.editors.DolmenCompletionProposal.Category;
 import dolmenplugin.editors.jg.JGContentAssistProcessor;
 import dolmenplugin.editors.jl.JLContentAssistProcessor;
@@ -130,7 +131,7 @@ public abstract class DolmenContentAssistProcessor<T, U extends DolmenEditor<T>>
 				e.printStackTrace();
 				return "";
 			}
-			if (!isDolmenWordPart(ch)) break;
+			if (!Utils.isDolmenWordPart(ch)) break;
 			--soffset;
 		}
 		++soffset;
@@ -144,14 +145,6 @@ public abstract class DolmenContentAssistProcessor<T, U extends DolmenEditor<T>>
 		}
 	}
 
-	private static boolean isDolmenWordPart(char ch) {
-		if (ch == '_') return true;
-		if (ch >= 'a' && ch <= 'z') return true;
-		if (ch >= 'A' && ch <= 'Z') return true;
-		if (ch >= '0' && ch <= '9') return true;
-		return false;
-	}
-	
 	protected static final List<String> JAVA_KEYWORDS =
 		Arrays.asList(
 			"abstract", "continue", "for", "new", "switch",

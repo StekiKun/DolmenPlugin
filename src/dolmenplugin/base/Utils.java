@@ -94,4 +94,29 @@ public abstract class Utils {
 		}
 		return true;
 	}
+	
+	/**
+	 * @param ch
+	 * @return {@code true} if and only if {@code ch} is 
+	 * 	a valid character inside Dolmen's identifiers
+	 */
+	public static boolean isDolmenWordPart(char ch) {
+		if (ch == '_') return true;
+		if (ch >= 'a' && ch <= 'z') return true;
+		if (ch >= 'A' && ch <= 'Z') return true;
+		if (ch >= '0' && ch <= '9') return true;
+		return false;
+	}
+
+	/**
+	 * @param ch
+	 * @return {@code true} if and only if {@code ch} is 
+	 * 	a valid character starting a Dolmen identifier
+	 */
+	public static boolean isDolmenWordStart(char ch) {
+		if (ch == '_') return true;
+		if (ch >= 'a' && ch <= 'z') return true;
+		if (ch >= 'A' && ch <= 'Z') return true;
+		return false;
+	}
 }

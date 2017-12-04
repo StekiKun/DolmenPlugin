@@ -15,6 +15,9 @@ import dolmenplugin.editors.DolmenEditor;
 import jg.JGLexer;
 import jg.JGParserGenerated;
 import syntax.Grammar;
+import syntax.Grammar.TokenDecl;
+import syntax.GrammarRule;
+import syntax.Located;
 
 /**
  * Custom editor for Dolmen grammar descriptions (.jg)
@@ -94,4 +97,44 @@ public class JGEditor extends DolmenEditor<Grammar> {
 			contentOutlinePage.setInput(model);
 	}
 
+	/**
+	 * {@inheritDoc}
+	 * 
+	 * Can look for token declarations and grammar rules
+	 */
+	@Override
+	public @Nullable Located<?> findDeclarationFor(String name) {
+		if (model == null) return null;
+		for (TokenDecl token : model.tokenDecls) {
+			if (token.name.val.equals(name)) return token.name;
+		}
+		for (GrammarRule rule : model.rules.values()) {
+			if (rule.name.val.equals(name)) return rule.name;
+		}
+		return null;
+	}
+	
+	/**
+	 * {@inheritDoc}
+	 * 
+	 * Only supports {@link GrammarRule.class} and {@link TokenDecl.class}
+	 */
+	@Override
+	public <Decl> @Nullable Decl 
+		findDeclarationFor(String name, Class<Decl> clazz) {
+		if (clazz == TokenDecl.class) {
+			for (TokenDecl token : model.tokenDecls) {
+				if (token.name.val.equals(name)) return clazz.cast(token);
+			}
+			return null;
+		}
+		if (clazz == GrammarRule.class) {
+			for (GrammarRule rule : model.rules.values()) {
+				if (rule.name.val.equals(name)) return clazz.cast(rule);
+			}
+			return null;
+		}
+		return null;
+	}
+	
 }

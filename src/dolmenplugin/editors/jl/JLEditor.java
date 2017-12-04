@@ -15,6 +15,7 @@ import dolmenplugin.editors.DolmenEditor;
 import jl.JLLexerGenerated;
 import jl.JLParser;
 import syntax.Lexer;
+import syntax.Located;
 
 /**
  * Custom editor for Dolmen lexer descriptions (.jl)
@@ -96,4 +97,38 @@ public class JLEditor extends DolmenEditor<Lexer> {
 			contentOutlinePage.setInput(lexer);
 	}
 
+	/**
+	 * {@inheritDoc}
+	 * 
+	 * Can look for regexp definitions and lexer entries
+	 */
+	@Override
+	public @Nullable Located<?> findDeclarationFor(String name) {
+		if (model == null) return null;
+		for (Located<String> s : model.regulars.keySet()) {
+			if (s.val.equals(name)) return s;
+		}
+		for (Lexer.Entry entry : model.entryPoints) {
+			if (entry.name.val.equals(name)) return entry.name;
+		}
+		return null;
+	}
+	
+	/**
+	 * {@inheritDoc}
+	 * 
+	 * Only supports {@link Lexer.Entry.class}
+	 */
+	@Override
+	public <Decl> @Nullable Decl 
+		findDeclarationFor(String name, Class<Decl> clazz) {
+		if (clazz == Lexer.Entry.class) {
+			for (Lexer.Entry entry : model.entryPoints) {
+				if (entry.name.val.equals(name)) 
+					return clazz.cast(entry);
+			}
+			return null;
+		}
+		return null;
+	}
 }

@@ -1,7 +1,5 @@
 package dolmenplugin.handlers;
 
-import java.util.Arrays;
-
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
@@ -59,9 +57,9 @@ public final class RemoveDolmenNatureHandler extends AbstractHandler {
 					project.setDescription(description, null);
 				}
 
-				System.out.println("Removed Dolmen nature of project " + project);
-				System.out.println(" - natures now " + Arrays.toString(project.getDescription().getNatureIds()));
-				System.out.println(" - has nature: " + project.hasNature(Nature.ID));
+//				System.out.println("Removed Dolmen nature of project " + project);
+//				System.out.println(" - natures now " + Arrays.toString(project.getDescription().getNatureIds()));
+//				System.out.println(" - has nature: " + project.hasNature(Nature.ID));
 					
 				return status;
 			} catch (CoreException e) {

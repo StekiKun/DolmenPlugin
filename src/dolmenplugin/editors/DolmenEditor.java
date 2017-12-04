@@ -7,6 +7,7 @@ import org.eclipse.ui.editors.text.TextEditor;
 import dolmenplugin.editors.jg.JGEditor;
 import dolmenplugin.editors.jl.JLEditor;
 import dolmenplugin.lib.ByRef;
+import syntax.Located;
 
 /**
  * Base implementation common to editors for both lexer
@@ -27,6 +28,11 @@ import dolmenplugin.lib.ByRef;
  */
 public abstract class DolmenEditor<T> extends TextEditor {
 	
+	/**
+	 * The Dolmen editors' common keybindings scope
+	 */
+	public static final String DOLMEN_EDITOR_SCOPE = "dolmenplugin.editors.DolmenScope";
+	
 	/** 
 	 * See {@link #getLexer()}
 	 */
@@ -41,6 +47,11 @@ public abstract class DolmenEditor<T> extends TextEditor {
 	protected DolmenEditor() {
 		this.model = null;
 		this.uptodate = true;
+	}
+	
+	@Override
+	protected void initializeKeyBindingScopes() {
+		setKeyBindingScopes(new String[] { DOLMEN_EDITOR_SCOPE });
 	}
 	
 	/**
@@ -113,6 +124,30 @@ public abstract class DolmenEditor<T> extends TextEditor {
 	protected void editorSaved() {
 		super.editorSaved();
 		updateModel();
-	}	
+	}
 
+	/**
+	 * If there are several different kinds of entities which
+	 * can share the same name, which one is returned is not
+	 * specified. Use {@link #findDeclarationFor(String, Class)}
+	 * instead in this case.
+	 * 
+	 * @param name
+	 * @return the place where an entity called {@code name} 
+	 * 	is declared in this editor's model, or {@code null}
+	 * 	if none could be found
+	 */
+	public abstract @Nullable Located<?> findDeclarationFor(String name);
+	
+	/**
+	 * 
+	 * @param name
+	 * @param clazz
+	 * @return the declaration of the type given by {@code clazz}
+	 * 	with the given {@code name} in this editor's model, or
+	 * 	{@code null} if none could be found
+	 */
+	public abstract <Decl> @Nullable Decl 
+		findDeclarationFor(String name, Class<Decl> clazz);
+	
 }

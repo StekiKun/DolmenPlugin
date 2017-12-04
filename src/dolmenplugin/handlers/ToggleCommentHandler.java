@@ -10,12 +10,9 @@ import org.eclipse.jface.text.IRewriteTarget;
 import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.text.TextSelection;
 import org.eclipse.jface.viewers.ISelection;
-import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.editors.text.TextEditor;
-import org.eclipse.ui.handlers.HandlerUtil;
 
-import dolmenplugin.editors.jg.JGEditor;
-import dolmenplugin.editors.jl.JLEditor;
+import dolmenplugin.editors.DolmenEditor;
 
 /**
  * This handler implements the comment <i>Toggle Comment</i>,
@@ -35,7 +32,7 @@ public class ToggleCommentHandler extends AbstractHandler {
 	public Object execute(ExecutionEvent event) throws ExecutionException {
 		// Find the editor where the command was executed, it must be
 		// one of ours, or we simply ignore the command
-	    final TextEditor editor = findActiveDolmenEditor(event);
+	    final DolmenEditor<?> editor = HandlerUtils.findActiveDolmenEditor(event);
 	    if (editor == null) return null;
 
 	    // Find the selection to which the command should be applied
@@ -88,22 +85,6 @@ public class ToggleCommentHandler extends AbstractHandler {
 	
 	private final static String COMMENT_PREFIX = "//";
 	private final static int COMMENT_LENGTH = COMMENT_PREFIX.length();
-	
-	/**
-	 * @param event
-	 * @return the text editor where the command originated, if it
-	 * 	is either one of the custom Dolmen editors, or {@code null}
-	 *  otherwise
-	 */
-	private TextEditor findActiveDolmenEditor(ExecutionEvent event) {
-		IEditorPart editor = HandlerUtil.getActiveEditor(event);
-		if (editor == null) return null;
-		
-		if (!(editor instanceof JLEditor)
-			&& !(editor instanceof JGEditor))
-			return null;
-		return (TextEditor) editor;
-	}
 	
 	/**
 	 * Describes the text selection on which Toggle Comment should be
