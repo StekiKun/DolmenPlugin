@@ -1,6 +1,7 @@
 package dolmenplugin.editors.jg;
 
 import org.eclipse.core.runtime.ListenerList;
+import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider;
 import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider.IStyledLabelProvider;
 import org.eclipse.jface.viewers.ILabelProviderListener;
@@ -10,11 +11,14 @@ import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.StyledString;
 import org.eclipse.jface.viewers.TreeViewer;
+import org.eclipse.jface.viewers.Viewer;
+import org.eclipse.jface.viewers.ViewerFilter;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.ui.views.contentoutline.ContentOutlinePage;
 
+import dolmenplugin.editors.OutlineFilterAction;
 import dolmenplugin.editors.OutlineNode;
 import syntax.Grammar;
 
@@ -48,10 +52,24 @@ public class JGOutlinePage extends ContentOutlinePage {
 		viewer.setLabelProvider(new DelegatingStyledCellLabelProvider(provider));
 		viewer.addSelectionChangedListener(this);
 
+		IToolBarManager manager = getSite().getActionBars().getToolBarManager();
+		addFilterActions(manager, viewer);
+		
 		if (input != null)
 			viewer.setInput(input);
 	}
 	
+	private void addFilterActions(IToolBarManager manager, TreeViewer viewer) {
+		manager.add(
+				new OutlineFilterAction(viewer, NoTokensFilter::new,
+					"Hide token declarations", "icons/no_token_decl.gif"));
+		manager.add(
+				new OutlineFilterAction(viewer, ValuedTokensFilter::new,
+					"Hide non-valued tokens", "icons/token_decl_valued.gif"));
+		manager.add(
+			new OutlineFilterAction(viewer, PublicRulesFilter::new,
+				"Hide non-public rules", "icons/rule_pub.gif"));
+	}	
 	
 	void setInput(Object input) {
 		if (!(acceptable(input))) return;
@@ -182,6 +200,31 @@ public class JGOutlinePage extends ContentOutlinePage {
 		@Override
 		public void dispose() {
 			clear();
+		}
+	}
+	
+	private static final class PublicRulesFilter extends ViewerFilter {
+		@Override
+		public boolean select(Viewer viewer, Object parentElement, Object element) {
+			if (!(element instanceof JGOutlineNode.Rule)) return true;
+			JGOutlineNode.Rule rule = (JGOutlineNode.Rule) element;
+			return rule.rule.visibility;
+		}
+	}
+	
+	private static final class NoTokensFilter extends ViewerFilter {
+		@Override
+		public boolean select(Viewer viewer, Object parentElement, Object element) {
+			return (!(element instanceof JGOutlineNode.Token));
+		}
+	}
+	
+	private static final class ValuedTokensFilter extends ViewerFilter {
+		@Override
+		public boolean select(Viewer viewer, Object parentElement, Object element) {
+			if (!(element instanceof JGOutlineNode.Token)) return true;
+			JGOutlineNode.Token token = (JGOutlineNode.Token) element;
+			return token.decl.isValued();
 		}
 	}
 }

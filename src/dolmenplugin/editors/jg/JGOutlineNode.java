@@ -126,7 +126,7 @@ public abstract class JGOutlineNode extends OutlineNode<JGOutlineNode> {
 	 * 
 	 * @author Stéphane Lescuyer
 	 */
-	private static final class Token extends Leaf {
+	static final class Token extends Leaf {
 		final TokenDecl decl;
 		
 		Token(TokenDecl decl) {
@@ -172,7 +172,7 @@ public abstract class JGOutlineNode extends OutlineNode<JGOutlineNode> {
 	 * 
 	 * @author Stéphane Lescuyer
 	 */
-	private static final class Rule extends Internal {
+	static final class Rule extends Internal {
 		final GrammarRule rule;
 		
 		Rule(GrammarRule rule) {
@@ -238,7 +238,7 @@ public abstract class JGOutlineNode extends OutlineNode<JGOutlineNode> {
 	 * 
 	 * @author Stéphane Lescuyer
 	 */
-	private static final class Prod extends Leaf {
+	static final class Prod extends Leaf {
 		final Production prod;
 		
 		Prod(Production prod) {

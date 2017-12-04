@@ -1,6 +1,7 @@
 package dolmenplugin.editors.jl;
 
 import org.eclipse.core.runtime.ListenerList;
+import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider;
 import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider.IStyledLabelProvider;
 import org.eclipse.jface.viewers.ILabelProvider;
@@ -11,11 +12,14 @@ import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.StyledString;
 import org.eclipse.jface.viewers.TreeViewer;
+import org.eclipse.jface.viewers.Viewer;
+import org.eclipse.jface.viewers.ViewerFilter;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.ui.views.contentoutline.ContentOutlinePage;
 
+import dolmenplugin.editors.OutlineFilterAction;
 import dolmenplugin.editors.OutlineNode;
 import syntax.Lexer;
 
@@ -48,11 +52,22 @@ public class JLOutlinePage extends ContentOutlinePage {
 		viewer.setContentProvider(provider);
 		viewer.setLabelProvider(new DelegatingStyledCellLabelProvider(provider));
 		viewer.addSelectionChangedListener(this);
-
+		
+		IToolBarManager manager = getSite().getActionBars().getToolBarManager();
+		addFilterActions(manager, viewer);
+		
 		if (input != null)
 			viewer.setInput(input);
 	}
 	
+	private void addFilterActions(IToolBarManager manager, TreeViewer viewer) {
+		manager.add(
+				new OutlineFilterAction(viewer, NoRegexpsFilter::new,
+					"Hide regexp definitions", "icons/no_regexp_def.gif"));
+		manager.add(
+			new OutlineFilterAction(viewer, PublicEntryFilter::new,
+				"Hide non-public entries", "icons/lexer_entry_pub.gif"));
+	}
 	
 	void setInput(Object input) {
 		if (!(acceptable(input))) return;
@@ -184,5 +199,21 @@ public class JLOutlinePage extends ContentOutlinePage {
 			clear();
 		}
 
+	}
+	
+	private static final class PublicEntryFilter extends ViewerFilter {
+		@Override
+		public boolean select(Viewer viewer, Object parentElement, Object element) {
+			if (!(element instanceof JLOutlineNode.LexerEntry)) return true;
+			JLOutlineNode.LexerEntry entry = (JLOutlineNode.LexerEntry) element;
+			return entry.entry.visibility;
+		}
+	}
+	
+	private static final class NoRegexpsFilter extends ViewerFilter {
+		@Override
+		public boolean select(Viewer viewer, Object parentElement, Object element) {
+			return (!(element instanceof JLOutlineNode.Definition));
+		}
 	}
 }

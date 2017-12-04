@@ -125,9 +125,8 @@ public abstract class JLOutlineNode extends OutlineNode<JLOutlineNode> {
 	 * @see Lexer#regulars
 	 * @author Stéphane Lescuyer
 	 */
-	private static final class Definition extends Leaf {
+	static final class Definition extends Leaf {
 		final Located<String> ident;
-		@SuppressWarnings("unused")
 		final Regular reg;
 		
 		Definition(Map.Entry<Located<String>, Regular> entry) {
@@ -169,7 +168,7 @@ public abstract class JLOutlineNode extends OutlineNode<JLOutlineNode> {
 	 * 
 	 * @author Stéphane Lescuyer
 	 */
-	private static final class LexerEntry extends Internal {
+	static final class LexerEntry extends Internal {
 		final Lexer.Entry entry;
 		
 		LexerEntry(Lexer.Entry entry) {
@@ -233,9 +232,8 @@ public abstract class JLOutlineNode extends OutlineNode<JLOutlineNode> {
 	 * 
 	 * @author Stéphane Lescuyer
 	 */
-	private static final class Clause extends Leaf {
+	static final class Clause extends Leaf {
 		final Located<Regular> reg;
-		@SuppressWarnings("unused")
 		final Extent extent;
 		
 		Clause(Map.Entry<Located<Regular>, Extent> entry) {
