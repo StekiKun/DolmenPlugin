@@ -19,6 +19,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.ui.views.contentoutline.ContentOutlinePage;
 
+import dolmenplugin.base.Images;
 import dolmenplugin.editors.OutlineFilterAction;
 import dolmenplugin.editors.OutlineNode;
 import syntax.Lexer;
@@ -63,10 +64,10 @@ public class JLOutlinePage extends ContentOutlinePage {
 	private void addFilterActions(IToolBarManager manager, TreeViewer viewer) {
 		manager.add(
 				new OutlineFilterAction(viewer, NoRegexpsFilter::new,
-					"Hide regexp definitions", "icons/no_regexp_def.gif"));
+					"Hide regexp definitions", Images.NO_REGEXP_DEF));
 		manager.add(
 			new OutlineFilterAction(viewer, PublicEntryFilter::new,
-				"Hide non-public entries", "icons/lexer_entry_pub.gif"));
+				"Hide non-public entries", Images.PUBLIC_LEXER_ENTRY));
 	}
 	
 	void setInput(Object input) {

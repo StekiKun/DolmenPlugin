@@ -10,6 +10,7 @@ import org.eclipse.swt.graphics.Image;
 import codegen.BaseParser;
 import codegen.LexBuffer;
 import dolmenplugin.Activator;
+import dolmenplugin.base.Images;
 import dolmenplugin.editors.jg.JGEditor;
 import dolmenplugin.editors.jl.JLEditor;
 import syntax.Extent;
@@ -98,7 +99,7 @@ public abstract class OutlineNode<T extends OutlineNode<T>> {
 		
 		@Override
 		public Image getImage() {
-			return Activator.getImage("icons/warning_sign.gif");
+			return Activator.getImage(Images.WARNING_SIGN);
 		}
 		
 		@Override
@@ -198,7 +199,7 @@ public abstract class OutlineNode<T extends OutlineNode<T>> {
 
 		@Override
 		public Image getImage() {
-			return Activator.getImage("icons/warning_sign.gif");
+			return Activator.getImage(Images.WARNING_SIGN);
 		}
 
 		@Override
@@ -264,7 +265,7 @@ public abstract class OutlineNode<T extends OutlineNode<T>> {
 
 		@Override
 		public Image getImage() {
-			return Activator.getImage("icons/sem_action.gif");
+			return Activator.getImage(Images.SEMANTIC_ACTION);
 		}
 
 		@Override

@@ -18,6 +18,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.ui.views.contentoutline.ContentOutlinePage;
 
+import dolmenplugin.base.Images;
 import dolmenplugin.editors.OutlineFilterAction;
 import dolmenplugin.editors.OutlineNode;
 import syntax.Grammar;
@@ -62,13 +63,13 @@ public class JGOutlinePage extends ContentOutlinePage {
 	private void addFilterActions(IToolBarManager manager, TreeViewer viewer) {
 		manager.add(
 				new OutlineFilterAction(viewer, NoTokensFilter::new,
-					"Hide token declarations", "icons/no_token_decl.gif"));
+					"Hide token declarations", Images.NO_TOKEN_DECL));
 		manager.add(
 				new OutlineFilterAction(viewer, ValuedTokensFilter::new,
-					"Hide non-valued tokens", "icons/token_decl_valued.gif"));
+					"Hide non-valued tokens", Images.VALUED_TOKEN_DECL));
 		manager.add(
 			new OutlineFilterAction(viewer, PublicRulesFilter::new,
-				"Hide non-public rules", "icons/rule_pub.gif"));
+				"Hide non-public rules", Images.PUBLIC_RULE));
 	}	
 	
 	void setInput(Object input) {

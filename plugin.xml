@@ -7,7 +7,7 @@
       <editor
             name="Dolmen Lexer Editor"
             extensions="jl"
-            icon="icons/sample.gif"
+            icon="icons/dolmen_lexer.gif"
             contributorClass="org.eclipse.ui.texteditor.BasicTextEditorActionContributor"
             class="dolmenplugin.editors.jl.JLEditor"
             id="dolmenplugin.editors.jl.JLEditor">
@@ -20,7 +20,7 @@
       <editor
             name="Dolmen Grammar Editor"
             extensions="jg"
-            icon="icons/sample.gif"
+            icon="icons/dolmen_parser3.gif"
             contributorClass="org.eclipse.ui.texteditor.BasicTextEditorActionContributor"
             class="dolmenplugin.editors.jg.JGEditor"
             id="dolmenplugin.editors.jg.JGEditor">
@@ -159,14 +159,14 @@
    </extension>
    
    <!-- Defining a decorator for project with the Dolmen nature -->
-   <extension
+   <!-- <extension
          point="org.eclipse.ui.ide.projectNatureImages">
       <image
             icon="icons/sample.gif"
             id="DolmenPlugin.DolmenNatureImage"
             natureId="DolmenPlugin.DolmenNature">
       </image>
-   </extension>
+   </extension> -->
    
    <!-- Default annotation model for Dolmen markers -->
    <extension

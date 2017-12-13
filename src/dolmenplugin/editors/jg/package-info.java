@@ -3,6 +3,6 @@
  * editor for Dolmen grammar descriptions,
  * which must have .jg extension.
  * 
- * @author Stéphane Lescuyer
+ * @author StÃ©phane Lescuyer
  */
 package dolmenplugin.editors.jg;

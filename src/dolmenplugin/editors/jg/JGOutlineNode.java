@@ -12,6 +12,7 @@ import codegen.BaseParser;
 import codegen.LexBuffer;
 import common.Lists;
 import dolmenplugin.Activator;
+import dolmenplugin.base.Images;
 import dolmenplugin.editors.OutlineNode;
 import syntax.Extent;
 import syntax.Grammar;
@@ -135,8 +136,7 @@ public abstract class JGOutlineNode extends OutlineNode<JGOutlineNode> {
 
 		@Override
 		public Image getImage() {
-			String valued = decl.isValued() ? "_valued" : "";
-			return Activator.getImage("icons/token_decl" + valued + ".gif");
+			return Activator.getImage(Images.TOKEN_DECL(decl.isValued()));
 		}
 
 		@Override
@@ -196,8 +196,7 @@ public abstract class JGOutlineNode extends OutlineNode<JGOutlineNode> {
 
 		@Override
 		public Image getImage() {
-			String vis = rule.visibility ? "pub" : "pri";
-			return Activator.getImage("icons/rule_" + vis + ".gif");
+			return Activator.getImage(Images.RULE(rule.visibility));
 		}
 
 		@Override
@@ -247,7 +246,7 @@ public abstract class JGOutlineNode extends OutlineNode<JGOutlineNode> {
 
 		@Override
 		public Image getImage() {
-			return Activator.getImage("icons/rightarrow.gif");
+			return Activator.getImage(Images.PRODUCTION);
 		}
 
 		@Override

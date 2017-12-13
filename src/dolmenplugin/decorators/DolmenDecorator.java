@@ -10,6 +10,7 @@ import org.eclipse.jface.viewers.IDecoration;
 import org.eclipse.jface.viewers.ILightweightLabelDecorator;
 
 import dolmenplugin.Activator;
+import dolmenplugin.base.Images;
 import dolmenplugin.base.Utils;
 
 /**
@@ -59,5 +60,5 @@ public class DolmenDecorator extends BaseLabelProvider
 	}
 	
 	private ImageDescriptor generatedDescriptor =
-		Activator.getImageDescriptor("icons/generated.gif");
+		Activator.getImageDescriptor(Images.GENERATED);
 }

@@ -12,6 +12,7 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 
 import dolmenplugin.Activator;
+import dolmenplugin.base.Images;
 import syntax.Grammar.TokenDecl;
 import syntax.GrammarRule;
 import syntax.Lexer;
@@ -157,7 +158,7 @@ public abstract class DolmenCompletionProposal
 		
 		private Regexp(String name, syntax.Regular regexp, int offset, int length) {
 			super(Category.REGEXP, name, offset, length,
-					name.length(), "icons/regexp_def.gif", new StyledString(name));
+					name.length(), Images.REGEXP_DEF, new StyledString(name));
 			this.name = name;
 			this.regexp = regexp;
 		}
@@ -173,8 +174,8 @@ public abstract class DolmenCompletionProposal
 		
 		private LexerEntry(Lexer.Entry entry, int offset, int length) {
 			super(Category.LEXER_ENTRY, entry.name.val + "()", offset, length,
-					cursor(entry), 
-					entry.visibility ? "icons/lexer_entry_pub.gif" : "icons/lexer_entry_pri.gif", 
+					cursor(entry),
+					Images.LEXER_ENTRY(entry.visibility), 
 					display(entry));
 			this.entry = entry;
 		}
@@ -204,8 +205,8 @@ public abstract class DolmenCompletionProposal
 		
 		private Token(TokenDecl tokenDecl, int offset, int length) {
 			super(Category.TOKEN, tokenDecl.name.val, offset, length,
-					tokenDecl.name.val.length(), 
-					tokenDecl.isValued() ? "icons/token_decl_valued.gif" : "icons/token_decl.gif", 
+					tokenDecl.name.val.length(),
+					Images.TOKEN_DECL(tokenDecl.isValued()), 
 					display(tokenDecl));
 			this.tokenDecl = tokenDecl;
 		}
@@ -227,7 +228,7 @@ public abstract class DolmenCompletionProposal
 		private Rule(GrammarRule rule, int offset, int length) {
 			super(Category.GRAMMAR_RULE, rule.name.val + "()", offset, length,
 					cursor(rule),
-					rule.visibility ? "icons/rule_pub.gif" : "icons/rule_pri.gif", 
+					Images.RULE(rule.visibility), 
 					display(rule));
 		}
 		
@@ -254,7 +255,7 @@ public abstract class DolmenCompletionProposal
 		private Method(Category category, String template, String prototype, 
 				int offset, int length) {
 			super(category, template, offset, length,
-					cursor(template), "icons/protected_method.gif", 
+					cursor(template), Images.PROTECTED_METHOD, 
 					display(prototype));
 		}
 		
@@ -278,7 +279,7 @@ public abstract class DolmenCompletionProposal
 	private static final class Field extends DolmenCompletionProposal {
 		private Field(Category category, String name, String type, int offset, int length) {
 			super(category, name, offset, length, 
-					name.length(), "icons/protected_field.gif", 
+					name.length(), Images.PROTECTED_FIELD, 
 					display(name, type));
 		}
 		
