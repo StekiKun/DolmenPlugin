@@ -24,6 +24,7 @@ import codegen.BaseParser.ParsingException;
 import codegen.LexBuffer.LexicalError;
 import codegen.LexBuffer.Position;
 import codegen.SourceMapping;
+import common.Bookkeeper;
 import common.CountingWriter;
 import dolmenplugin.base.Marker;
 import dolmenplugin.base.Utils;
@@ -48,12 +49,12 @@ public final class JLCompile {
 	public Map<IFile, SourceMapping> compile(IProject project, IFile res) {
 		if (res == null || !res.exists())
 			return FAILED;
-		log.println("Compiling lexer description " + res);
+		final Bookkeeper tasks = Bookkeeper.start(log, "Compiling lexer description " + res);
 		Marker.deleteAll(res);
 
 		final ClassFactory cf = new ClassFactory(res);
 		if (!cf.isStale()) {
-			log.println("└─ Up-to-date lexer " + cf.classResource);
+			tasks.leaveWith("Up-to-date lexer " + cf.classResource);
 			return Collections.emptyMap();
 		}
 		
@@ -62,17 +63,17 @@ public final class JLCompile {
 			jlLexer = new JLLexerGenerated(cf.file.getPath(), reader);
 			JLParser jlParser = new JLParser(jlLexer, JLLexerGenerated::main);
 			Lexer lexer = jlParser.parseLexer();
-			log.println("├─ Lexer description successfully parsed");
+			tasks.done("Lexer description successfully parsed");
 			
 			Automata aut = Determinize.lexer(lexer, true);
-			log.println("├─ Compiled lexer description to automata");
-			log.println("│  (" + aut.automataCells.length + " states in " 
+			tasks.done("Compiled lexer description to automata");
+			tasks.infos("(" + aut.automataCells.length + " states in " 
 					+ aut.automataEntries.size() + " automata)");
 			
 			List<IReport> autReports = aut.findProblems(lexer);
 			if (!autReports.isEmpty()) {
 				Marker.addAll(res, autReports);
-				log.println("│  (" + autReports.size() + " potential problem" +
+				tasks.infos("(" + autReports.size() + " potential problem" +
 						(autReports.size() > 1 ? "s" : "") + " found)");
 			}
 			
@@ -81,10 +82,10 @@ public final class JLCompile {
 					new CountingWriter(new FileWriter(cf.classFile, false))) {
 				writer.append("package " + cf.classPackage.getElementName() + ";\n\n");
 				smap = AutomataOutput.output(writer, cf.className, aut);
-				log.println("└─ Generated lexer in " + cf.classResource);
+				tasks.leaveWith("Generated lexer in " + cf.classResource);
 			} catch (IOException e) {
 				e.printStackTrace(log);
-				log.println("╧  Could not output generated lexer");
+				tasks.aborted("Could not output generated lexer");
 				return FAILED;
 			}
 			
@@ -104,7 +105,7 @@ public final class JLCompile {
 			Position start = jlLexer.getLexemeStart();
 			Position end = jlLexer.getLexemeEnd();
 			Marker.addError(res, e.getMessage(), start.line, start.offset, end.offset);
-			log.println("╧  Lexical error in lexer description");
+			tasks.aborted("Lexical error in lexer description");
 		}
 		catch (ParsingException e) {
 			final Position start;
@@ -117,11 +118,11 @@ public final class JLCompile {
 				end = e.pos.offset + e.length;
 			}
 			Marker.addError(res, e.getMessage(), start.line, start.offset, end);
-			log.println("╧  Syntax error in lexer description");
+			tasks.aborted("Syntax error in lexer description");
 		}
 		catch (Lexer.IllFormedException e) {
 			Marker.addAll(res, e.reports);
-			log.println("╧  Lexer description is not well-formed");
+			tasks.aborted("Lexer description is not well-formed");
 		}
 		catch (FileNotFoundException e) {
 			e.printStackTrace(log);

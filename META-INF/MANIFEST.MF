@@ -20,3 +20,4 @@ Bundle-ActivationPolicy: lazy
 Bundle-ClassPath: .,
  lib/Dolmen_1.0.0.jar,
  lib/org.eclipse.jdt.annotation_2.0.100.v20150311-1658.jar
+Automatic-Module-Name: DolmenPlugin

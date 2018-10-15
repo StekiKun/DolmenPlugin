@@ -22,6 +22,7 @@ import codegen.GrammarOutput;
 import codegen.LexBuffer.LexicalError;
 import codegen.LexBuffer.Position;
 import codegen.SourceMapping;
+import common.Bookkeeper;
 import common.CountingWriter;
 import dolmenplugin.base.Marker;
 import dolmenplugin.base.Utils;
@@ -46,12 +47,12 @@ public final class JGCompile {
 	public Map<IFile, SourceMapping> compile(IProject project, IFile res) {
 		if (res == null || !res.exists())
 			return FAILED;
-		log.println("Compiling grammar description " + res);
+		final Bookkeeper tasks = Bookkeeper.start(log, "Compiling grammar description " + res);
 		Marker.deleteAll(res);
 		
 		final ClassFactory cf = new ClassFactory(res);
 		if (!cf.isStale()) {
-			log.println("└─ Up-to-date grammar " + cf.classResource);
+			tasks.leaveWith("Up-to-date grammar " + cf.classResource);
 			return Collections.emptyMap();
 		}
 
@@ -60,28 +61,28 @@ public final class JGCompile {
 			jgLexer = new JGLexer(cf.file.getPath(), reader);
 			JGParserGenerated jgParser = new JGParserGenerated(jgLexer, JGLexer::main);
 			Grammar grammar = jgParser.start();
-			log.println("├─ Grammar description successfully parsed");
+			tasks.done("Grammar description successfully parsed");
 			
 			Grammars.PredictionTable predictTable =
 				Grammars.predictionTable(grammar, Grammars.analyseGrammar(grammar, null));
-			log.println("├─ Analysed grammar and built prediction table");
+			tasks.done("Analysed grammar and built prediction table");
 			List<IReport> conflicts = predictTable.findConflicts();
 			if (!conflicts.isEmpty()) {
 				Marker.addAll(res, conflicts);
-				log.println("╧  Grammar is not LL(1)");
+				tasks.aborted("Grammar is not LL(1)");
 				return FAILED;
 			}
-			log.println("├─ Grammar is LL(1)");
+			tasks.done("Grammar is LL(1)");
 			
 			SourceMapping smap;
 			try (Writer writer =
 					new CountingWriter(new FileWriter(cf.classFile, false))) {
 				writer.append("package " + cf.classPackage.getElementName() + ";\n\n");
 				smap = GrammarOutput.outputDefault(writer, cf.className, grammar, predictTable);
-				log.println("└─ Generated parser in " + cf.classResource);
+				tasks.leaveWith("Generated parser in " + cf.classResource);
 			} catch (IOException e) {
 				e.printStackTrace(log);
-				log.println("╧  Could not output generated parser");
+				tasks.aborted("Could not output generated parser");
 				return FAILED;
 			}
 			
@@ -101,7 +102,7 @@ public final class JGCompile {
 			Position start = jgLexer.getLexemeStart();
 			Position end = jgLexer.getLexemeEnd();
 			Marker.addError(res, e.getMessage(), start.line, start.offset, end.offset);
-			log.println("╧  Lexical error in grammar description");
+			tasks.aborted("Lexical error in grammar description");
 		}
 		catch (ParsingException e) {
 			final Position start;
@@ -114,11 +115,11 @@ public final class JGCompile {
 				end = e.pos.offset + e.length;
 			}
 			Marker.addError(res, e.getMessage(), start.line, start.offset, end);
-			log.println("╧  Syntax error in grammar description");
+			tasks.aborted("Syntax error in grammar description");
 		}
 		catch (Grammar.IllFormedException e) {
 			Marker.addAll(res, e.reports);
-			log.println("╧  Grammar description is not well-formed");
+			tasks.aborted("Grammar description is not well-formed");
 		}
 		catch (FileNotFoundException e) {
 			e.printStackTrace(log);

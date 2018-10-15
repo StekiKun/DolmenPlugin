@@ -117,6 +117,7 @@ public final class ClassFactory {
 			// ignore and rebuild
 			return true;
 		}
+		if (genProp == null) return true;
 		int c = genProp.lastIndexOf('(');
 		String date = genProp.substring(c + 1, genProp.length() - 1);
 		Instant genTime;
