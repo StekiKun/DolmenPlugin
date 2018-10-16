@@ -35,6 +35,7 @@ public class JGConfiguration extends SourceViewerConfiguration {
 	private MarkerAnnotationHover jgAnnotationHover;
 //	private JGDoubleClickStrategy doubleClickStrategy;
 	private JGScanner jgScanner;
+	private JGOptionsScanner jgOptionsScanner;
 	private JGCommentScanner jgCommentScanner;
 	private JavaScanner jgJavaScanner;
 	private JavaScanner jgArgsScanner;
@@ -51,6 +52,7 @@ public class JGConfiguration extends SourceViewerConfiguration {
 	public String[] getConfiguredContentTypes(ISourceViewer sourceViewer) {
 		return new String[] {
 			IDocument.DEFAULT_CONTENT_TYPE,
+			JGPartitionScanner.JG_OPTIONS,
 			JGPartitionScanner.JG_COMMENT,
 			JGPartitionScanner.JG_JAVA,
 			JGPartitionScanner.JG_ARGS
@@ -80,7 +82,14 @@ public class JGConfiguration extends SourceViewerConfiguration {
 		}
 		return jgScanner;
 	}
-
+	
+	protected JGOptionsScanner getJGOptionsScanner() {
+		if (jgOptionsScanner == null) {
+			jgOptionsScanner = new JGOptionsScanner(colorManager);
+		}
+		return jgOptionsScanner;
+	}
+	
 	protected JGCommentScanner getJGCommentScanner() {
 		if (jgCommentScanner == null) {
 			jgCommentScanner = new JGCommentScanner(colorManager);
@@ -109,6 +118,10 @@ public class JGConfiguration extends SourceViewerConfiguration {
         DefaultDamagerRepairer ddr = new DefaultDamagerRepairer(getJGScanner());
         reconciler.setRepairer(ddr, IDocument.DEFAULT_CONTENT_TYPE);
         reconciler.setDamager(ddr, IDocument.DEFAULT_CONTENT_TYPE);
+
+        ddr = new DefaultDamagerRepairer(getJGOptionsScanner());
+        reconciler.setRepairer(ddr, JGPartitionScanner.JG_OPTIONS);
+        reconciler.setDamager(ddr, JGPartitionScanner.JG_OPTIONS);
 
         ddr = new DefaultDamagerRepairer(getJGCommentScanner());
         reconciler.setRepairer(ddr, JGPartitionScanner.JG_COMMENT);
