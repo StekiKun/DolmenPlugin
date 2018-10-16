@@ -14,6 +14,8 @@ import dolmenplugin.editors.ColorManager;
 import dolmenplugin.editors.DolmenEditor;
 import jg.JGLexer;
 import jg.JGParserGenerated;
+import jge.JGELexer;
+import jge.JGEParser;
 import syntax.Grammar;
 import syntax.Grammar.TokenDecl;
 import syntax.GrammarRule;
@@ -68,7 +70,7 @@ public class JGEditor extends DolmenEditor<Grammar> {
 		if (doc == null) return null;
 		 
 		try (StringReader reader = new StringReader(doc.get())) {
-			// Try and use a relevannt input name, so that Extents
+			// Try and use a relevant input name, so that Extents
 			// can be resolved in the resulting lexer
 			String inputName;
 			IEditorInput input = this.getEditorInput();
@@ -79,8 +81,8 @@ public class JGEditor extends DolmenEditor<Grammar> {
 				inputName = this.getContentDescription();
 			}
 
-			final JGLexer jgLexer = new JGLexer(inputName, reader);
-			JGParserGenerated jgParser = new JGParserGenerated(jgLexer, JGLexer::main);
+			final JGELexer jgLexer = new JGELexer(inputName, reader);
+			JGEParser jgParser = new JGEParser(jgLexer, JGELexer::main);
 			return jgParser.start();
 		}
 		catch (LexicalError | ParsingException | Grammar.IllFormedException e) {

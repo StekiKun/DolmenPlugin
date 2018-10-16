@@ -18,6 +18,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.SubMonitor;
 
 import codegen.BaseParser.ParsingException;
+import codegen.Config;
 import codegen.GrammarOutput;
 import codegen.LexBuffer.LexicalError;
 import codegen.LexBuffer.Position;
@@ -26,11 +27,12 @@ import common.Bookkeeper;
 import common.CountingWriter;
 import dolmenplugin.base.Marker;
 import dolmenplugin.base.Utils;
-import jg.JGLexer;
-import jg.JGParserGenerated;
+import jge.JGELexer;
+import jge.JGEParser;
 import syntax.Grammar;
 import syntax.Grammars;
 import syntax.IReport;
+import syntax.Reporter;
 
 public final class JGCompile {
 
@@ -56,12 +58,21 @@ public final class JGCompile {
 			return Collections.emptyMap();
 		}
 
-		JGLexer jgLexer = null;
+		JGELexer jgLexer = null;
 		try (FileReader reader = new FileReader(cf.file)) {
-			jgLexer = new JGLexer(cf.file.getPath(), reader);
-			JGParserGenerated jgParser = new JGParserGenerated(jgLexer, JGLexer::main);
+			jgLexer = new JGELexer(cf.file.getPath(), reader);
+			JGEParser jgParser = new JGEParser(jgLexer, JGELexer::main);
 			Grammar grammar = jgParser.start();
 			tasks.done("Grammar description successfully parsed");
+
+			Reporter configReporter = new Reporter();
+			Config config = Config.ofOptions(grammar.options, configReporter);
+			List<IReport> configReports = configReporter.getReports();
+			if (!configReports.isEmpty()) {
+				Marker.addAll(res, configReports);
+				tasks.infos("(" + configReports.size() + " potential problem" +
+						(configReports.size() > 1 ? "s" : "") + " found)");
+			}
 			
 			Grammars.PredictionTable predictTable =
 				Grammars.predictionTable(grammar, Grammars.analyseGrammar(grammar, null));
@@ -78,7 +89,7 @@ public final class JGCompile {
 			try (Writer writer =
 					new CountingWriter(new FileWriter(cf.classFile, false))) {
 				writer.append("package " + cf.classPackage.getElementName() + ";\n\n");
-				smap = GrammarOutput.outputDefault(writer, cf.className, grammar, predictTable);
+				smap = GrammarOutput.output(writer, cf.className, config, grammar, predictTable);
 				tasks.leaveWith("Generated parser in " + cf.classResource);
 			} catch (IOException e) {
 				e.printStackTrace(log);
