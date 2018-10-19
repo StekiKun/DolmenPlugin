@@ -185,8 +185,8 @@ public abstract class JLOutlineNode extends OutlineNode<JLOutlineNode> {
 		public JLOutlineNode[] computeChildren() {
 			JLOutlineNode[] children = new JLOutlineNode[entry.clauses.size()];
 			int i = 0;
-			for (Map.Entry<Located<Regular>, Extent> e : entry.clauses.entrySet()) {	
-				children[i++] = ofClause(e);
+			for (Lexer.Clause clause : entry.clauses) {	
+				children[i++] = ofClause(clause);
 			}
 			return children;
 		}
@@ -236,9 +236,9 @@ public abstract class JLOutlineNode extends OutlineNode<JLOutlineNode> {
 		final Located<Regular> reg;
 		final Extent extent;
 		
-		Clause(Map.Entry<Located<Regular>, Extent> entry) {
-			this.reg = entry.getKey();
-			this.extent = entry.getValue();
+		Clause(Lexer.Clause clause) {
+			this.reg = clause.regular;
+			this.extent = clause.action;
 		}
 
 		@Override
@@ -270,10 +270,10 @@ public abstract class JLOutlineNode extends OutlineNode<JLOutlineNode> {
 		}
 	}
 	/**
-	 * @param entry
+	 * @param clause
 	 * @return the outline node associated to the given clause
 	 */
-	public static JLOutlineNode ofClause(Map.Entry<Located<Regular>, Extent> entry) {
-		return new Clause(entry);
+	public static JLOutlineNode ofClause(Lexer.Clause clause) {
+		return new Clause(clause);
 	}
 }
