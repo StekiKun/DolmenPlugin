@@ -28,8 +28,8 @@ import common.Bookkeeper;
 import common.CountingWriter;
 import dolmenplugin.base.Marker;
 import dolmenplugin.base.Utils;
-import jl.JLLexerGenerated;
-import jl.JLParser;
+import jle.JLELexer;
+import jle.JLEParser;
 import syntax.IReport;
 import syntax.Lexer;
 
@@ -58,11 +58,11 @@ public final class JLCompile {
 			return Collections.emptyMap();
 		}
 		
-		JLLexerGenerated jlLexer = null;
+		JLELexer jlLexer = null;
 		try (FileReader reader = new FileReader(cf.file)) {
-			jlLexer = new JLLexerGenerated(cf.file.getPath(), reader);
-			JLParser jlParser = new JLParser(jlLexer, JLLexerGenerated::main);
-			Lexer lexer = jlParser.parseLexer();
+			jlLexer = new JLELexer(cf.file.getPath(), reader);
+			JLEParser jlParser = new JLEParser(jlLexer, JLELexer::main);
+			Lexer lexer = jlParser.lexer();
 			tasks.done("Lexer description successfully parsed");
 			
 			Automata aut = Determinize.lexer(lexer, true);

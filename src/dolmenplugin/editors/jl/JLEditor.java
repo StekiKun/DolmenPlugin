@@ -12,8 +12,8 @@ import codegen.BaseParser.ParsingException;
 import codegen.LexBuffer.LexicalError;
 import dolmenplugin.editors.ColorManager;
 import dolmenplugin.editors.DolmenEditor;
-import jl.JLLexerGenerated;
-import jl.JLParser;
+import jle.JLELexer;
+import jle.JLEParser;
 import syntax.Lexer;
 import syntax.Located;
 
@@ -77,10 +77,10 @@ public class JLEditor extends DolmenEditor<Lexer> {
 				inputName = this.getContentDescription();
 			}
 			
-			final JLLexerGenerated jlLexer =
-				new JLLexerGenerated(inputName, reader);
-			JLParser jlParser = new JLParser(jlLexer, JLLexerGenerated::main);
-			return jlParser.parseLexer();
+			final JLELexer jlLexer =
+				new JLELexer(inputName, reader);
+			JLEParser jlParser = new JLEParser(jlLexer, JLELexer::main);
+			return jlParser.lexer();
 		}
 		catch (LexicalError | ParsingException | Lexer.IllFormedException e) {
 			// Use the exception as input for the outline
