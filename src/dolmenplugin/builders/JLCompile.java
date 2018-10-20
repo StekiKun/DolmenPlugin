@@ -68,7 +68,7 @@ public final class JLCompile {
 			tasks.done("Lexer description successfully parsed");
 			
 			Reporter configReporter = new Reporter();
-			Config config = Config.ofOptions(lexer.options, configReporter);
+			Config config = Config.ofLexer(lexer, configReporter);
 			List<IReport> configReports = configReporter.getReports();
 			if (!configReports.isEmpty()) {
 				Marker.addAll(res, configReports);

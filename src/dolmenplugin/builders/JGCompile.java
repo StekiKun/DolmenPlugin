@@ -66,7 +66,7 @@ public final class JGCompile {
 			tasks.done("Grammar description successfully parsed");
 
 			Reporter configReporter = new Reporter();
-			Config config = Config.ofOptions(grammar.options, configReporter);
+			Config config = Config.ofGrammar(grammar, configReporter);
 			List<IReport> configReports = configReporter.getReports();
 			if (!configReports.isEmpty()) {
 				Marker.addAll(res, configReports);
