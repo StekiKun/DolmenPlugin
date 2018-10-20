@@ -3,6 +3,7 @@ package dolmenplugin.editors;
 import java.util.regex.Pattern;
 
 import org.eclipse.jface.text.TextAttribute;
+import org.eclipse.jface.text.rules.EndOfLineRule;
 import org.eclipse.jface.text.rules.IRule;
 import org.eclipse.jface.text.rules.IToken;
 import org.eclipse.jface.text.rules.MultiLineRule;
@@ -28,6 +29,10 @@ public class OptionsScanner extends RuleBasedScanner {
 				new Token(
 					new TextAttribute(
 						manager.getColor(IColorConstants.DEFAULT), null, SWT.BOLD));
+		IToken comment =
+				new Token(
+					new TextAttribute(
+						manager.getColor(IColorConstants.COMMENT)));
 		IToken key =
 				new Token(
 					new TextAttribute(
@@ -37,10 +42,12 @@ public class OptionsScanner extends RuleBasedScanner {
 				new TextAttribute(manager.getColor(IColorConstants.STRING)));
 
 		setDefaultReturnToken(deflt);
-		IRule[] rules = new IRule[2];
+		IRule[] rules = new IRule[4];
 
+		// Rules for single-line comments and multi-line comments
+		IRule slCommentRule = new EndOfLineRule("//", comment);
+		IRule mlCommentRule = new MultiLineRule("/*", "*/", comment);
 		// Scanning rules for the key and for the string value
-		
 		final Pattern bindingPattern =
 			Pattern.compile("[a-zA-Z_][a-zA-Z0-9_]*[ \t\b\f]*=");
 		RegexpLineRule bindingsRule =
@@ -50,6 +57,8 @@ public class OptionsScanner extends RuleBasedScanner {
 		
 		rules[0] = new MultiLineRule("\"", "\"", value, '\\', false);
 		rules[1] = bindingsRule;
+		rules[2] = slCommentRule;
+		rules[3] = mlCommentRule;
 		
 		setRules(rules);
 	}
