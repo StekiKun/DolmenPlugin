@@ -8,6 +8,7 @@ import org.eclipse.jface.text.rules.Token;
 
 import dolmenplugin.editors.DolmenPartitionScanner;
 import dolmenplugin.editors.JavaActionRule;
+import dolmenplugin.editors.OptionRule;
 
 /**
  * The main partition scanner for Dolmen grammar descriptions.
@@ -39,7 +40,10 @@ public class JGPartitionScanner extends DolmenPartitionScanner {
 
 		rules[0] = new EndOfLineRule("//", jgComment);
 		rules[1] = new MultiLineRule("/*", "*/", jgComment);
-		rules[2] = new MultiLineRule("[", "]", jgOptions);
+		rules[2] = new OptionRule(jgOptions);
+		// -> the simpler MultiLine rule should be sufficient in .jg files
+		//	  since square brackets are not used in other parts of the syntax
+		// rules[2] = new MultiLineRule("[", "]", jgOptions);
 		rules[3] = new JavaActionRule(jgJava, '{', '}');
 		rules[4] = new JavaActionRule(jgArgs, '(', ')');
 		

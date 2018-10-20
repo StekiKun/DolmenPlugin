@@ -17,6 +17,7 @@ import dolmenplugin.editors.ColorManager;
 import dolmenplugin.editors.IColorConstants;
 import dolmenplugin.editors.JavaScanner;
 import dolmenplugin.editors.MarkerAnnotationHover;
+import dolmenplugin.editors.OptionsScanner;
 import dolmenplugin.editors.jg.JGContentAssistProcessor;
 import dolmenplugin.editors.jg.JGContentAssistProcessor.ContentType;
 import dolmenplugin.editors.jg.JGDocumentSetupParticipant;
@@ -35,7 +36,7 @@ public class JGConfiguration extends SourceViewerConfiguration {
 	private MarkerAnnotationHover jgAnnotationHover;
 //	private JGDoubleClickStrategy doubleClickStrategy;
 	private JGScanner jgScanner;
-	private JGOptionsScanner jgOptionsScanner;
+	private OptionsScanner jgOptionsScanner;
 	private JGCommentScanner jgCommentScanner;
 	private JavaScanner jgJavaScanner;
 	private JavaScanner jgArgsScanner;
@@ -83,9 +84,9 @@ public class JGConfiguration extends SourceViewerConfiguration {
 		return jgScanner;
 	}
 	
-	protected JGOptionsScanner getJGOptionsScanner() {
+	protected OptionsScanner getJGOptionsScanner() {
 		if (jgOptionsScanner == null) {
-			jgOptionsScanner = new JGOptionsScanner(colorManager);
+			jgOptionsScanner = new OptionsScanner(colorManager);
 		}
 		return jgOptionsScanner;
 	}

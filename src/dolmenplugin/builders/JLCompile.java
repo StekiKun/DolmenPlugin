@@ -20,6 +20,7 @@ import org.eclipse.core.runtime.SubMonitor;
 import automaton.Automata;
 import automaton.Determinize;
 import codegen.AutomataOutput;
+import codegen.Config;
 import codegen.BaseParser.ParsingException;
 import codegen.LexBuffer.LexicalError;
 import codegen.LexBuffer.Position;
@@ -32,6 +33,7 @@ import jle.JLELexer;
 import jle.JLEParser;
 import syntax.IReport;
 import syntax.Lexer;
+import syntax.Reporter;
 
 public final class JLCompile {
 
@@ -65,6 +67,15 @@ public final class JLCompile {
 			Lexer lexer = jlParser.lexer();
 			tasks.done("Lexer description successfully parsed");
 			
+			Reporter configReporter = new Reporter();
+			Config config = Config.ofOptions(lexer.options, configReporter);
+			List<IReport> configReports = configReporter.getReports();
+			if (!configReports.isEmpty()) {
+				Marker.addAll(res, configReports);
+				tasks.infos("(" + configReports.size() + " potential problem" +
+						(configReports.size() > 1 ? "s" : "") + " found)");
+			}
+			
 			Automata aut = Determinize.lexer(lexer, true);
 			tasks.done("Compiled lexer description to automata");
 			tasks.infos("(" + aut.automataCells.length + " states in " 
@@ -81,7 +92,7 @@ public final class JLCompile {
 			try (Writer writer = 
 					new CountingWriter(new FileWriter(cf.classFile, false))) {
 				writer.append("package " + cf.classPackage.getElementName() + ";\n\n");
-				smap = AutomataOutput.output(writer, cf.className, aut);
+				smap = AutomataOutput.output(writer, cf.className, config, aut);
 				tasks.leaveWith("Generated lexer in " + cf.classResource);
 			} catch (IOException e) {
 				e.printStackTrace(log);

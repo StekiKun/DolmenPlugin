@@ -1,4 +1,4 @@
-package dolmenplugin.editors.jg;
+package dolmenplugin.editors;
 
 import java.util.regex.Pattern;
 
@@ -15,14 +15,15 @@ import dolmenplugin.editors.IColorConstants;
 import dolmenplugin.editors.RegexpLineRule;
 
 /**
- * The scanner for the literal partitions in Dolmen
- * grammar descriptions.
+ * The scanner for the option partitions in Dolmen
+ * lexer and grammar descriptions. It is used in
+ * both the lexer and parser editors.
  *
  * @author Stéphane Lescuyer
  */
-public class JGOptionsScanner extends RuleBasedScanner {
+public class OptionsScanner extends RuleBasedScanner {
 
-	public JGOptionsScanner(ColorManager manager) {
+	public OptionsScanner(ColorManager manager) {
 		IToken deflt =
 				new Token(
 					new TextAttribute(

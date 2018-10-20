@@ -25,6 +25,7 @@ import dolmenplugin.editors.ColorManager;
 import dolmenplugin.editors.IColorConstants;
 import dolmenplugin.editors.JavaScanner;
 import dolmenplugin.editors.MarkerAnnotationHover;
+import dolmenplugin.editors.OptionsScanner;
 import dolmenplugin.editors.jl.JLContentAssistProcessor.ContentType;
 
 /**
@@ -40,6 +41,7 @@ public class JLConfiguration extends SourceViewerConfiguration {
 	private MarkerAnnotationHover jlAnnotationHover;
 //	private JLDoubleClickStrategy doubleClickStrategy;
 	private JLScanner jlScanner;
+	private OptionsScanner jlOptionsScanner;
 	private JLLiteralScanner jlLiteralScanner;
 	private JLCommentScanner jlCommentScanner;
 	private JavaScanner jlJavaScanner;
@@ -87,6 +89,13 @@ public class JLConfiguration extends SourceViewerConfiguration {
 		return jlScanner;
 	}
 
+	protected OptionsScanner getJLOptionsScanner() {
+		if (jlOptionsScanner == null) {
+			jlOptionsScanner = new OptionsScanner(colorManager);
+		}
+		return jlOptionsScanner;
+	}
+
 	protected JLLiteralScanner getJLLiteralScanner() {
 		if (jlLiteralScanner == null) {
 			jlLiteralScanner = new JLLiteralScanner(colorManager);
@@ -116,6 +125,10 @@ public class JLConfiguration extends SourceViewerConfiguration {
         DefaultDamagerRepairer ddr = new DefaultDamagerRepairer(getJLScanner());
         reconciler.setRepairer(ddr, IDocument.DEFAULT_CONTENT_TYPE);
         reconciler.setDamager(ddr, IDocument.DEFAULT_CONTENT_TYPE);
+
+        ddr = new DefaultDamagerRepairer(getJLOptionsScanner());
+        reconciler.setRepairer(ddr, JLPartitionScanner.JL_OPTIONS);
+        reconciler.setDamager(ddr, JLPartitionScanner.JL_OPTIONS);
 
         ddr = new DefaultDamagerRepairer(getJLLiteralScanner());
         reconciler.setRepairer(ddr, JLPartitionScanner.JL_LITERAL);
