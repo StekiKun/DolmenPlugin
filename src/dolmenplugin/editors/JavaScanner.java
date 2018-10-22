@@ -16,6 +16,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.RGB;
 
+import common.Java;
 import dolmenplugin.editors.ColorManager;
 import dolmenplugin.editors.IColorConstants;
 
@@ -30,20 +31,6 @@ import dolmenplugin.editors.IColorConstants;
  */
 public class JavaScanner extends RuleBasedScanner {
 
-	private String[] JAVA_KEYWORDS = {
-		"false", "null", "true",	// technically reserved literals, not keywords
-		"abstract", "continue", "for", "new", "switch",
-		"assert", "default", "if", "package", "synchronized",
-		"boolean", "do", "goto", "private", "this",
-		"break", "double", "implements", "protected", "throw",
-		"byte", "else", "import", "public", "throws",
-	    "case", "enum", "instanceof", "return", "transient",
-        "catch", "extends", "int", "short", "try",
-        "char", "final", "interface", "static", "void",
-        "class", "finally", "long", "strictfp", "volatile",
-        "const", "float", "native", "super", "while"
-	};
-	
 	public JavaScanner(ColorManager manager, RGB background) {
 		Color bg =
 			background == null ? null : manager.getColor(background);
@@ -78,7 +65,7 @@ public class JavaScanner extends RuleBasedScanner {
 				return Character.isJavaIdentifierPart(c);
 			}
 		}, deflt);
-		for (String kw : Arrays.asList(JAVA_KEYWORDS))
+		for (String kw : Arrays.asList(Java.KEYWORDS))
 			keywordsRule.addWord(kw, keyword);
 		
 		// Add rule for single-line comments and multi-line comments
