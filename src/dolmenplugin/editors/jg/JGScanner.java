@@ -80,6 +80,7 @@ public class JGScanner extends RuleBasedScanner {
 		keywordsRule.addWord("static", keyword);
 		keywordsRule.addWord("public", keyword);
 		keywordsRule.addWord("private", keyword);
+		keywordsRule.addWord("continue", keyword);
 		// Add rule for single-line comments and multi-line comments
 		IRule slCommentRule = new EndOfLineRule("//", comment);
 		IRule mlCommentRule = new MultiLineRule("/*", "*/", comment);

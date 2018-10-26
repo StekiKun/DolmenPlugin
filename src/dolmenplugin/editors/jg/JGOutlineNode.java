@@ -271,6 +271,8 @@ public abstract class JGOutlineNode extends OutlineNode<JGOutlineNode> {
 						.append(resolveExtentIn(document, args_), StyledString.QUALIFIER_STYLER)
 						.append(")");
 			}
+			if (prod.continuation() != null)
+				text.append(" ++");
 			return text;
 		}
 
