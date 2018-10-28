@@ -1,9 +1,11 @@
 package dolmenplugin.editors.jg;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 import codegen.BaseParser;
+import codegen.Config;
 import dolmenplugin.editors.DolmenCompletionProposal;
 import dolmenplugin.editors.DolmenCompletionProposal.Category;
 import dolmenplugin.editors.DolmenContentAssistProcessor;
@@ -30,7 +32,7 @@ public final class JGContentAssistProcessor
 	 * @author Stéphane Lescuyer
 	 */
 	public static enum ContentType {
-		DEFAULT, JAVA
+		DEFAULT, JAVA, OPTIONS
 	}
 	
 	private final ContentType contentType;
@@ -56,6 +58,9 @@ public final class JGContentAssistProcessor
 		case JAVA:
 			addSimpleCompletions(collector, prefix, Category.JAVA_KEYWORD, JAVA_KEYWORDS);
 			break;
+		case OPTIONS:
+			addSimpleCompletions(collector, prefix, Category.OPTION_KEY, JG_OPTIONS);
+			break;
 		}
 		final Grammar grammar = editor.getModel();
 		if (grammar != null) {
@@ -80,6 +85,8 @@ public final class JGContentAssistProcessor
 									Category.PARSER_FIELD, m[0], m[1], i,
 									collector.offset - i));
 				break;
+			case OPTIONS:
+				break;
 			}
 		}
 		return;
@@ -87,7 +94,7 @@ public final class JGContentAssistProcessor
 
 	private static final List<String> JG_KEYWORDS =
 		Arrays.asList(
-			"rule", "token", "public", "private", "import", "static"
+			"rule", "token", "public", "private", "import", "static", "continue"
 		);
 	private static final List<String[]> BASEPARSER_METHODS =
 		Arrays.asList(
@@ -108,5 +115,11 @@ public final class JGContentAssistProcessor
 				new String[] { "_jl_lastTokenStart", "LexBuffer.Position" },
 				new String[] { "_jl_lastTokenEnd", "LexBuffer.Position" }
 			);
-	
+	private static final List<String> JG_OPTIONS = new ArrayList<>();
+	static {
+		for (Config.Keys key : Config.Keys.values()) {
+			if (key.relevance == Config.Relevance.LEXER) continue;
+			JG_OPTIONS.add(key.key);
+		}
+	}	
 }

@@ -1,8 +1,10 @@
 package dolmenplugin.editors.jl;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import codegen.Config;
 import codegen.LexBuffer;
 import dolmenplugin.editors.DolmenCompletionProposal;
 import dolmenplugin.editors.DolmenCompletionProposal.Category;
@@ -12,11 +14,12 @@ import syntax.Lexer;
 /**
  * Implements content-assist proposals for {@link JLEditor}
  * <p>
- * For now, it supports content-assist for two partition types:
+ * For now, it supports content-assist for three partition types:
  * <ul>
  * <li> default: proposes .jl keywords and defined regexps
  * <li> semantic actions: proposes Java keywords, lexer entries and
  * 		methods inherited from {@link LexBuffer}
+ * <li> configuration options: proposes option names supported in lexers
  * </ul>
  * 
  * @author Stéphane Lescuyer
@@ -30,7 +33,7 @@ public final class JLContentAssistProcessor
 	 * @author Stéphane Lescuyer
 	 */
 	public static enum ContentType {
-		DEFAULT, JAVA
+		DEFAULT, JAVA, OPTIONS
 	}
 	
 	private final ContentType contentType;
@@ -48,13 +51,16 @@ public final class JLContentAssistProcessor
 	
 	@Override
 	protected void collectCompletionProposals(ProposalCollector collector, String prefix) {
-		// Try keywords corresponding to the content type
+		// Try keywords corresponding to the content type, and recognized options
 		switch (contentType) {
 		case DEFAULT:
 			addSimpleCompletions(collector, prefix, Category.LEXER_KEYWORD, JL_KEYWORDS);
 			break;
 		case JAVA:
 			addSimpleCompletions(collector, prefix, Category.JAVA_KEYWORD, JAVA_KEYWORDS);
+			break;
+		case OPTIONS:
+			addSimpleCompletions(collector, prefix, Category.OPTION_KEY, JL_OPTIONS);
 			break;
 		}
 		final Lexer lexer = editor.getModel();
@@ -76,6 +82,8 @@ public final class JLContentAssistProcessor
 				addJavaCompletions(collector, prefix, LEXBUFFER_METHODS,
 					(m, i) -> DolmenCompletionProposal.method(
 								Category.LEXER_METHOD, m[0], m[1], i, collector.offset - i));
+				break;
+			case OPTIONS:
 				break;
 			}
 		}
@@ -100,4 +108,11 @@ public final class JLContentAssistProcessor
 			new String[] { "error(msg)", "error(String) : LexicalError - LexBuffer" }
 		);
 	
+	private static final List<String> JL_OPTIONS = new ArrayList<>();
+	static {
+		for (Config.Keys key : Config.Keys.values()) {
+			if (key.relevance == Config.Relevance.PARSER) continue;
+			JL_OPTIONS.add(key.key);
+		}
+	}
 }

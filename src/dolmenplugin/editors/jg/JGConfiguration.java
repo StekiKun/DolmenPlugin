@@ -167,6 +167,8 @@ public class JGConfiguration extends SourceViewerConfiguration {
 		assistant.setContentAssistProcessor(
 			new JGContentAssistProcessor(jgEditor, ContentType.JAVA), JGPartitionScanner.JG_JAVA);
 		assistant.setContentAssistProcessor(
+				new JGContentAssistProcessor(jgEditor, ContentType.OPTIONS), JGPartitionScanner.JG_OPTIONS);
+		assistant.setContentAssistProcessor(
 			new JGContentAssistProcessor(jgEditor, ContentType.DEFAULT), IDocument.DEFAULT_CONTENT_TYPE);
 		return assistant;
 	}

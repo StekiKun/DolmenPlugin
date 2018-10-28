@@ -179,6 +179,8 @@ public class JLConfiguration extends SourceViewerConfiguration {
 		assistant.setContentAssistProcessor(
 			new JLContentAssistProcessor(jlEditor, ContentType.JAVA), JLPartitionScanner.JL_JAVA);
 		assistant.setContentAssistProcessor(
+			new JLContentAssistProcessor(jlEditor, ContentType.OPTIONS), JLPartitionScanner.JL_OPTIONS);
+		assistant.setContentAssistProcessor(
 			new JLContentAssistProcessor(jlEditor, ContentType.DEFAULT), IDocument.DEFAULT_CONTENT_TYPE);
 		return assistant;
 	}

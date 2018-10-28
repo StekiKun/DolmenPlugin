@@ -51,6 +51,8 @@ public abstract class DolmenCompletionProposal
 		LEXER_KEYWORD(3),
 		GRAMMAR_KEYWORD(3),
 		
+		OPTION_KEY(0),
+		
 		REGEXP(0),
 		LEXER_ENTRY(1),
 		LEXER_METHOD(2),
