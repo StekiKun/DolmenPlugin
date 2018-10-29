@@ -25,10 +25,6 @@ public class JLScanner extends RuleBasedScanner {
 
 	public JLScanner(ColorManager manager) {
 		// Single text attribute tokens
-//		IToken deflt =
-//			new Token(
-//				new TextAttribute(
-//					manager.getColor(IJLColorConstants.DEFAULT)));
 		IToken keyword =
 			new Token(
 				new TextAttribute(
@@ -83,8 +79,8 @@ public class JLScanner extends RuleBasedScanner {
 		IRule slCommentRule = new EndOfLineRule("//", comment);
 		IRule mlCommentRule = new MultiLineRule("/*", "*/", comment);
 		// Add rule for characters and strings literals
-		IRule stringRule = new SingleLineRule("\"", "\"", string, '\\');
-	    IRule charRule = new SingleLineRule("'", "'", string, '\\');
+		IRule stringRule = new PatternRule("\"", "\"", string, '\\', false, false, false);
+		IRule charRule = new PatternRule("'", "'", string, '\\', false, false, false);
 	    // Add rule for integer literals
 	    Pattern integer = Pattern.compile("0|([1-9][0-9]*)");
 	    IRule integerRule = new RegexpLineRule(integer, numeral,

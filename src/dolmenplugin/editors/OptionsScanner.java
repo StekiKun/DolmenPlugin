@@ -7,6 +7,7 @@ import org.eclipse.jface.text.rules.EndOfLineRule;
 import org.eclipse.jface.text.rules.IRule;
 import org.eclipse.jface.text.rules.IToken;
 import org.eclipse.jface.text.rules.MultiLineRule;
+import org.eclipse.jface.text.rules.PatternRule;
 import org.eclipse.jface.text.rules.RuleBasedScanner;
 import org.eclipse.jface.text.rules.Token;
 import org.eclipse.swt.SWT;
@@ -28,6 +29,10 @@ public class OptionsScanner extends RuleBasedScanner {
 		IToken deflt =
 				new Token(
 					new TextAttribute(
+						manager.getColor(IColorConstants.DEFAULT)));
+		IToken symbols =
+				new Token(
+					new TextAttribute(
 						manager.getColor(IColorConstants.DEFAULT), null, SWT.BOLD));
 		IToken comment =
 				new Token(
@@ -42,7 +47,7 @@ public class OptionsScanner extends RuleBasedScanner {
 				new TextAttribute(manager.getColor(IColorConstants.STRING)));
 
 		setDefaultReturnToken(deflt);
-		IRule[] rules = new IRule[4];
+		IRule[] rules = new IRule[5];
 
 		// Rules for single-line comments and multi-line comments
 		IRule slCommentRule = new EndOfLineRule("//", comment);
@@ -54,11 +59,17 @@ public class OptionsScanner extends RuleBasedScanner {
 			new RegexpLineRule(bindingPattern, key,
 				ch -> !Character.isJavaIdentifierPart(ch) &&
 					!Character.isWhitespace(ch) && ch != '=');
+		// Scanning rules for the square bracket delimiters
+		final Pattern delimPattern = Pattern.compile("\\[|\\]");
+		RegexpLineRule delimRule =
+			new RegexpLineRule(delimPattern, symbols,
+				ch -> ch != '[' && ch != ']');
 		
-		rules[0] = new MultiLineRule("\"", "\"", value, '\\', false);
-		rules[1] = bindingsRule;
-		rules[2] = slCommentRule;
-		rules[3] = mlCommentRule;
+		rules[0] = delimRule;
+		rules[1] = new PatternRule("\"", "\"", value, '\\', false, false, false);
+		rules[2] = bindingsRule;
+		rules[3] = slCommentRule;
+		rules[4] = mlCommentRule;
 		
 		setRules(rules);
 	}

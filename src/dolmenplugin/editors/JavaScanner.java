@@ -8,8 +8,8 @@ import org.eclipse.jface.text.rules.IRule;
 import org.eclipse.jface.text.rules.IToken;
 import org.eclipse.jface.text.rules.IWordDetector;
 import org.eclipse.jface.text.rules.MultiLineRule;
+import org.eclipse.jface.text.rules.PatternRule;
 import org.eclipse.jface.text.rules.RuleBasedScanner;
-import org.eclipse.jface.text.rules.SingleLineRule;
 import org.eclipse.jface.text.rules.Token;
 import org.eclipse.jface.text.rules.WordRule;
 import org.eclipse.swt.SWT;
@@ -17,8 +17,6 @@ import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.RGB;
 
 import common.Java;
-import dolmenplugin.editors.ColorManager;
-import dolmenplugin.editors.IColorConstants;
 
 /**
  * The scanner for the Java semantic actions in both Dolmen
@@ -72,8 +70,8 @@ public class JavaScanner extends RuleBasedScanner {
 		IRule slCommentRule = new EndOfLineRule("//", comment);
 		IRule mlCommentRule = new MultiLineRule("/*", "*/", comment);
 		// Add rule for characters and strings literals
-		IRule stringRule = new SingleLineRule("\"", "\"", string, '\\');
-	    IRule charRule = new SingleLineRule("'", "'", string, '\\');
+		IRule stringRule = new PatternRule("\"", "\"", string, '\\', false, false, false);
+		IRule charRule = new PatternRule("'", "'", string, '\\', false, false, false);
 	            
 		IRule[] rules = new IRule[] {
 			keywordsRule, slCommentRule, mlCommentRule,

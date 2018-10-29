@@ -46,7 +46,7 @@ public final class RegexpLineRule implements IRule {
 	public RegexpLineRule(Pattern pattern, IToken token, Predicate<Character> stop) {
 		this.pattern = pattern;
 		this.token = token;
-		this.stop = stop == null ? (Character c) -> { return true; } : stop;
+		this.stop = stop == null ? (Character c) -> { return false; } : stop;
 	}
 
 	@Override
