@@ -11,6 +11,8 @@ import org.eclipse.jface.text.ITypedRegion;
 import org.eclipse.jface.text.rules.FastPartitioner;
 import org.eclipse.jface.text.rules.IPartitionTokenScanner;
 
+import dolmenplugin.editors.DolmenPartitioner;
+
 /**
  * The document setup participant for Dolmen lexer descriptions.
  * <p>
@@ -35,7 +37,7 @@ public class JLDocumentSetupParticipant implements IDocumentSetupParticipant {
 		if (document_ instanceof IDocumentExtension3) {
 			IDocumentExtension3 document = (IDocumentExtension3) document_;
 			IDocumentPartitioner partitioner =
-				new FastPartitioner(
+				new DolmenPartitioner(
 					new JLPartitionScanner(),
 					JLPartitionScanner.CONTENT_TYPES);
 			document.setDocumentPartitioner(PARTITIONING_ID, partitioner);

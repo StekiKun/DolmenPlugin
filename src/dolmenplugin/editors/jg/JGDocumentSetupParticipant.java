@@ -4,7 +4,8 @@ import org.eclipse.core.filebuffers.IDocumentSetupParticipant;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IDocumentExtension3;
 import org.eclipse.jface.text.IDocumentPartitioner;
-import org.eclipse.jface.text.rules.FastPartitioner;
+
+import dolmenplugin.editors.DolmenPartitioner;
 
 /**
  * The document setup participant for Dolmen grammar descriptions.
@@ -30,7 +31,7 @@ public class JGDocumentSetupParticipant implements IDocumentSetupParticipant {
 		if (document_ instanceof IDocumentExtension3) {
 			IDocumentExtension3 document = (IDocumentExtension3) document_;
 			IDocumentPartitioner partitioner =
-				new FastPartitioner(
+				new DolmenPartitioner(
 					new JGPartitionScanner(),
 					JGPartitionScanner.CONTENT_TYPES);
 			document.setDocumentPartitioner(PARTITIONING_ID, partitioner);
