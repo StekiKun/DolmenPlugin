@@ -1,10 +1,12 @@
 package dolmenplugin.editors.jl;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.eclipse.jface.text.rules.EndOfLineRule;
 import org.eclipse.jface.text.rules.IPredicateRule;
 import org.eclipse.jface.text.rules.IToken;
 import org.eclipse.jface.text.rules.MultiLineRule;
-import org.eclipse.jface.text.rules.SingleLineRule;
 import org.eclipse.jface.text.rules.Token;
 
 import dolmenplugin.editors.DolmenPartitionScanner;
@@ -24,27 +26,27 @@ public class JLPartitionScanner extends DolmenPartitionScanner {
 	public final static String JL_OPTIONS = "__jl_options";
 	public final static String JL_COMMENT = "__jl_comment";
 	public final static String JL_JAVA = "__jl_java";
-	public final static String JL_LITERAL = "__jl_literal";
+	// public final static String JL_LITERAL = "__jl_literal";
 
 	public final static String[] CONTENT_TYPES =
-		new String[] { JL_OPTIONS, JL_COMMENT, JL_LITERAL, JL_JAVA };
+		new String[] { JL_OPTIONS, JL_COMMENT, /* JL_LITERAL ,*/JL_JAVA };
 	
 	public JLPartitionScanner() {
 		super(JL_JAVA);
 		IToken jlOptions = new Token(JL_OPTIONS);
 		IToken jlComment = new Token(JL_COMMENT);
 		IToken jlJava = new Token(JL_JAVA);
-		IToken jlLiteral = new Token(JL_LITERAL);
+		// IToken jlLiteral = new Token(JL_LITERAL);
 
-		IPredicateRule[] rules = new IPredicateRule[6];
+		List<IPredicateRule> rules = new ArrayList<IPredicateRule>(4);
 
-		rules[0] = new EndOfLineRule("//", jlComment);
-		rules[1] = new MultiLineRule("/*", "*/", jlComment);
-		rules[2] = new SingleLineRule("\"", "\"", jlLiteral, '\\');
-		rules[3] = new SingleLineRule("'", "'", jlLiteral, '\\');
-		rules[4] = new OptionRule(jlOptions);
-		rules[5] = new JavaActionRule(jlJava, '{', '}');
+		rules.add(new EndOfLineRule("//", jlComment));
+		rules.add(new MultiLineRule("/*", "*/", jlComment));
+		// rules[2] = new SingleLineRule("\"", "\"", jlLiteral, '\\');
+		// rules[3] = new SingleLineRule("'", "'", jlLiteral, '\\');
+		rules.add(new OptionRule(jlOptions));
+		rules.add(new JavaActionRule(jlJava, '{', '}'));
 
-		setPredicateRules(rules);
+		setPredicateRules(rules.toArray(new IPredicateRule[0]));
 	}
 }

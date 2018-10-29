@@ -42,7 +42,6 @@ public class JLConfiguration extends SourceViewerConfiguration {
 //	private JLDoubleClickStrategy doubleClickStrategy;
 	private JLScanner jlScanner;
 	private OptionsScanner jlOptionsScanner;
-	private JLLiteralScanner jlLiteralScanner;
 	private JLCommentScanner jlCommentScanner;
 	private JavaScanner jlJavaScanner;
 	
@@ -60,8 +59,7 @@ public class JLConfiguration extends SourceViewerConfiguration {
 		return new String[] {
 			IDocument.DEFAULT_CONTENT_TYPE,
 			JLPartitionScanner.JL_COMMENT,
-			JLPartitionScanner.JL_JAVA,
-			JLPartitionScanner.JL_LITERAL
+			JLPartitionScanner.JL_JAVA
 		};
 	}
 
@@ -96,13 +94,6 @@ public class JLConfiguration extends SourceViewerConfiguration {
 		return jlOptionsScanner;
 	}
 
-	protected JLLiteralScanner getJLLiteralScanner() {
-		if (jlLiteralScanner == null) {
-			jlLiteralScanner = new JLLiteralScanner(colorManager);
-		}
-		return jlLiteralScanner;
-	}
-	
 	protected JLCommentScanner getJLCommentScanner() {
 		if (jlCommentScanner == null) {
 			jlCommentScanner = new JLCommentScanner(colorManager);
@@ -129,10 +120,6 @@ public class JLConfiguration extends SourceViewerConfiguration {
         ddr = new DefaultDamagerRepairer(getJLOptionsScanner());
         reconciler.setRepairer(ddr, JLPartitionScanner.JL_OPTIONS);
         reconciler.setDamager(ddr, JLPartitionScanner.JL_OPTIONS);
-
-        ddr = new DefaultDamagerRepairer(getJLLiteralScanner());
-        reconciler.setRepairer(ddr, JLPartitionScanner.JL_LITERAL);
-        reconciler.setDamager(ddr, JLPartitionScanner.JL_LITERAL);
 
         ddr = new DefaultDamagerRepairer(getJLCommentScanner());
         reconciler.setRepairer(ddr, JLPartitionScanner.JL_COMMENT);
