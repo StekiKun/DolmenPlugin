@@ -147,6 +147,15 @@ public class JGEditor extends DolmenEditor<Grammar> {
 		return null;
 	}
 
+	/**
+	 * Only supports {@link GrammarRule.class} and {@link TokenDecl.class}.
+	 * 
+	 * @param name
+	 * @param clazz
+	 * @return the references in the model for the entity with the given	
+	 * 	{@code name} and {@code clazz}, or {@code null} if the model is
+	 * 	not available or {@code clazz} is not supported
+	 */
 	private List<Located<?>> findReferencesFor(String name, Class<?> clazz) {
 		if (model == null) return null;
 		if (clazz == TokenDecl.class) {
@@ -213,6 +222,14 @@ public class JGEditor extends DolmenEditor<Grammar> {
 		return findDeclarationFor(sword.word);
 	}
 	
+	/**
+	 * If the selection matches the location of an entity's declaration,
+	 * or if the selection is empty and the caret is over the entity's declaration,
+	 * this returns the corresponding location. 
+	 * 
+	 * @param selection
+	 * @return the declaration described by the {@code selection}
+	 */
 	private @Nullable Located<String> findSelectedDeclaration(ITextSelection selection) {
 		if (model == null) return null;
 		for (TokenDecl token : model.tokenDecls) {

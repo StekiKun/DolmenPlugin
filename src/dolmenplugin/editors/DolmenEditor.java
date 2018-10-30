@@ -61,6 +61,13 @@ public abstract class DolmenEditor<T> extends TextEditor
 	 * but the contents that were saved last).
 	 */
 	protected boolean uptodate;
+
+	/**
+	 * The current annotations which have been added to the editor
+	 * as part of the occurrence marking mechanism, or {@code null}
+	 * if there are currently no such annotations 
+	 */
+	private Annotation[] markedOccurrences = null;
 	
 	protected DolmenEditor() {
 		this.model = null;
@@ -101,7 +108,7 @@ public abstract class DolmenEditor<T> extends TextEditor
 	public T getModel(ByRef<Boolean> stale) {
 		if (stale == null) return model;
 		synchronized (this) {
-			stale.set(!uptodate);
+			stale.set(!uptodate || isDirty());
 			return model;
 		}
 	}
@@ -153,35 +160,49 @@ public abstract class DolmenEditor<T> extends TextEditor
 	
 	@Override
 	public final void selectionChanged(IWorkbenchPart part, ISelection selection) {
-		if (part != DolmenEditor.this) {
-			System.out.println("Selection changed somewhere else");
-			return;
-		}
-		if (!(selection instanceof ITextSelection)) return;
-		ITextSelection textSelection = (ITextSelection) selection;
-		String msg = String.format(
-			"Selected {offset = %d, length = %d, lines = %d-%d, text = %s}",
-			textSelection.getOffset(), textSelection.getLength(),
-			textSelection.getStartLine(), textSelection.getEndLine(),
-			textSelection.getText());
-		System.out.println(msg);
-		
-		@Nullable Occurrences occurrences = findOccurrencesFor(textSelection);
-		if (occurrences == null) {
+		if (part != DolmenEditor.this) return;
+
+		// There is no point in annotating with an obsolete model, this will
+		// only confuse users with ill-placed annotations
+		if (!uptodate || isDirty()) {
 			removeOccurrences();
 			return;
 		}
-		System.out.println("Declaration: " + occurrences.declaration.toString());
-		System.out.println("References: " + occurrences.references.toString());
+		
+		if (!(selection instanceof ITextSelection)) return;
+		ITextSelection textSelection = (ITextSelection) selection;
+//		String msg = String.format(
+//			"Selected {offset = %d, length = %d, lines = %d-%d, text = %s}",
+//			textSelection.getOffset(), textSelection.getLength(),
+//			textSelection.getStartLine(), textSelection.getEndLine(),
+//			textSelection.getText());
+//		System.out.println(msg);
+		
+		@Nullable Occurrences occurrences = findOccurrencesFor(textSelection);
+		if (occurrences == null) {
+			// If there are no new occurrences, we still need to purge the old ones
+			// because the selection has changed
+			removeOccurrences();
+			return;
+		}
 		updateOccurrences(occurrences);
 	}
 	
-	private Annotation[] markedOccurrences = null;
-	
+	/**
+	 * A container class describing the result of looking for occurrences
+	 * to a certain entity. It contains the location of the entity's {@link #declaration}
+	 * and the list of locations where it is {@linkplain #references referenced}.
+	 * 
+	 * @author Stéphane Lescuyer
+	 */
 	public static final class Occurrences {
 		protected final Located<String> declaration;
 		protected final List<Located<?>> references;
 		
+		/**
+		 * @param declaration
+		 * @param references
+		 */
 		public Occurrences(Located<String> declaration, List<Located<?>> references) {
 			this.declaration = declaration;
 			this.references = references;
@@ -196,22 +217,43 @@ public abstract class DolmenEditor<T> extends TextEditor
 	 * tokens are all before rules, so depending on where the selection lies wrt
 	 * the first actual rule...).
 	 * 
+	 * The <i>selected entity</i> is determined in an editor-dependent way. It
+	 * is typically the one under the caret when {@code selection} is empty,
+	 * or the whole selection otherwise.
+	 * 
 	 * @WIP
 	 * @param selection
-	 * @return the entity selected (i.e. the caret/selection must be enclosed in 
-	 *  the entity's name declaration)
+	 * @return the occurrences of the selected entity, or {@code null} if
+	 * 	no entity is selected or no model is available
 	 */
 	protected abstract @Nullable Occurrences findOccurrencesFor(ITextSelection selection);
 
+	/**
+	 * @param loc
+	 * @param selection
+	 * @return whether the range described by {@code selection} is fully enclosed
+	 * 	in the given location {@code loc}
+	 */
 	protected static boolean enclosedInLocation(Located<?> loc, ITextSelection selection) {
 		if (selection.getOffset() < loc.start.offset) return false;
 		if (selection.getOffset() + selection.getLength() > loc.end.offset) return false;
 		return true;
 	}
 	
+	/**
+	 * The annotation types used to mark occurrences are borrowed from the JDT:
+	 *  - the declaration occurrences are highlighted using the 'write' occurrence type
+	 *  - the references to the declaration are highlighted using the default occurrence type
+	 */
 	private final static String DECL_ANNOT_TYPE = "org.eclipse.jdt.ui.occurrences.write";
 	private final static String REF_ANNOT_TYPE = "org.eclipse.jdt.ui.occurrences";
 	
+	/**
+	 * Updates the occurrence marking annotations to match the new given occurrences.
+	 * In particular this removes any formerly existing ones.
+	 * 
+	 * @param occurrences
+	 */
 	private void updateOccurrences(@Nullable Occurrences occurrences) {
 		IDocumentProvider documentProvider = getDocumentProvider();
 		if (documentProvider == null) return;
@@ -219,6 +261,7 @@ public abstract class DolmenEditor<T> extends TextEditor
 		if (!(annotationModel instanceof IAnnotationModelExtension)) return;
 		IAnnotationModelExtension model = (IAnnotationModelExtension) annotationModel;
 		
+		// Updating to no annotations means removing the potential old ones
 		if (occurrences == null) {
 			if (markedOccurrences != null) {
 				model.replaceAnnotations(markedOccurrences, null);
@@ -247,6 +290,9 @@ public abstract class DolmenEditor<T> extends TextEditor
 			new Annotation[1 + occurrences.references.size()]);
 	}
 	
+	/**
+	 * Removes all annotations due to occurrence marking
+	 */
 	private void removeOccurrences() {
 		if (markedOccurrences == null) return;
 		

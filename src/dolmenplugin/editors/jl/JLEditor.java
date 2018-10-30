@@ -126,7 +126,7 @@ public class JLEditor extends DolmenEditor<Lexer> {
 	/**
 	 * {@inheritDoc}
 	 * 
-	 * Only supports {@link Lexer.Entry.class}
+	 * Only supports {@link Lexer.Entry.class} and {@link Regular.class}.
 	 */
 	@Override
 	public <Decl> @Nullable Decl 
@@ -148,7 +148,16 @@ public class JLEditor extends DolmenEditor<Lexer> {
 		return null;
 	}
 
-	private List<Located<?>> findReferencesFor(String name, Class<?> clazz) {
+	/**
+	 * Only supports {@link Lexer.Entry.class} and {@link Regular.class}.
+	 * 
+	 * @param name
+	 * @param clazz
+	 * @return the references in the model for the entity with the given	
+	 * 	{@code name} and {@code clazz}, or {@code null} if the model is
+	 * 	not available or {@code clazz} is not supported
+	 */
+	private @Nullable List<Located<?>> findReferencesFor(String name, Class<?> clazz) {
 		if (model == null) return null;
 		if (clazz == Lexer.Entry.class) {
 			// Unfortunately, references to rules are in semantic actions
@@ -193,7 +202,15 @@ public class JLEditor extends DolmenEditor<Lexer> {
 		if (sword == null) return null;
 		return findDeclarationFor(sword.word);
 	}
-	
+
+	/**
+	 * If the selection matches the location of an entity's declaration,
+	 * or if the selection is empty and the caret is over the entity's declaration,
+	 * this returns the corresponding location. 
+	 * 
+	 * @param selection
+	 * @return the declaration described by the {@code selection}
+	 */
 	private @Nullable Located<String> findSelectedDeclaration(ITextSelection selection) {
 		if (model == null) return null;
 		for (Located<String> s : model.regulars.keySet()) {
