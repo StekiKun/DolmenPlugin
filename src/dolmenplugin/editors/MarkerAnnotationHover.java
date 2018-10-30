@@ -92,7 +92,7 @@ public class MarkerAnnotationHover implements IAnnotationHover, ITextHover {
 
 	@Override
 	public IRegion getHoverRegion(ITextViewer textViewer, int offset) {
-		// If the cursor hovers over a selection, use the whole section
+		// If the cursor hovers over a selection, use the whole selection
 		// Otherwise, use the position of the cursor
 		Point selection = textViewer.getSelectedRange();
 		if (selection.x <= offset && offset < selection.x + selection.y)

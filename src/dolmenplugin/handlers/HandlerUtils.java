@@ -4,6 +4,7 @@ import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
+import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.handlers.HandlerUtil;
 
@@ -106,4 +107,26 @@ public abstract class HandlerUtils {
 		return new SelectedWord(word, start, last - start);
 	}
 
+	/**
+	 * Finds the word corresponding to {@code selection} in the document {@code doc}.
+	 * <p>
+	 * If the selection is of length zero, this behaves as {@link #selectWord(IDocument, int)}
+	 * i.e. will find the word at (or ending at) the selection offset. Otherwise, this
+	 * returns exactly the selected text if and only if it is a word.
+	 * 
+	 * @param doc
+	 * @param offset
+	 * @return the selected word, or {@code null} if no word could be found
+	 */
+	public static @Nullable SelectedWord selectWord(IDocument doc, ITextSelection selection) {
+		if (selection.getLength() != 0) {
+			String word = selection.getText();
+			if (!Utils.isDolmenWordStart(word.charAt(0))) return null;
+			for (int i = 1; i < word.length(); ++i) {
+				if (!Utils.isDolmenWordPart(word.charAt(i))) return null;
+			}
+			return new SelectedWord(word, selection.getOffset(), selection.getLength());
+		} else
+			return HandlerUtils.selectWord(doc, selection.getOffset());
+	}
 }

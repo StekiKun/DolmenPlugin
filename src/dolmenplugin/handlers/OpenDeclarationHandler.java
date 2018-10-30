@@ -64,16 +64,8 @@ public class OpenDeclarationHandler extends AbstractHandler {
 	    IDocument doc = editor.getDocumentProvider().getDocument(editor.getEditorInput());
 	    if (doc == null) return null;
 	   
-	    ITextSelection textSelection = (ITextSelection) selection;
-	    final String word;
-		if (textSelection.getLength() != 0) {
-			word = textSelection.getText();
-		} else {
-			SelectedWord sword = HandlerUtils.selectWord(doc, textSelection.getOffset());
-			if (sword == null) return null;
-			word = sword.word;
-		}
-	    return word;
+	    SelectedWord sword = HandlerUtils.selectWord(doc, (ITextSelection) selection);
+	    return sword == null ? null : sword.word;
 	}
 	
 }

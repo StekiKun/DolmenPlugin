@@ -1,17 +1,24 @@
 package dolmenplugin.editors.jg;
 
 import java.io.StringReader;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.jface.text.IDocument;
+import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.part.FileEditorInput;
 import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
 
 import codegen.BaseParser.ParsingException;
 import codegen.LexBuffer.LexicalError;
+import common.Lists;
 import dolmenplugin.editors.ColorManager;
 import dolmenplugin.editors.DolmenEditor;
+import dolmenplugin.handlers.HandlerUtils;
+import dolmenplugin.handlers.HandlerUtils.SelectedWord;
 import jg.JGLexer;
 import jg.JGParserGenerated;
 import jge.JGELexer;
@@ -20,6 +27,7 @@ import syntax.Grammar;
 import syntax.Grammar.TokenDecl;
 import syntax.GrammarRule;
 import syntax.Located;
+import syntax.Production;
 
 /**
  * Custom editor for Dolmen grammar descriptions (.jg)
@@ -105,7 +113,7 @@ public class JGEditor extends DolmenEditor<Grammar> {
 	 * Can look for token declarations and grammar rules
 	 */
 	@Override
-	public @Nullable Located<?> findDeclarationFor(String name) {
+	public @Nullable Located<String> findDeclarationFor(String name) {
 		if (model == null) return null;
 		for (TokenDecl token : model.tokenDecls) {
 			if (token.name.val.equals(name)) return token.name;
@@ -138,5 +146,82 @@ public class JGEditor extends DolmenEditor<Grammar> {
 		}
 		return null;
 	}
+
+	private List<Located<?>> findReferencesFor(String name, Class<?> clazz) {
+		if (model == null) return null;
+		if (clazz == TokenDecl.class) {
+			// Reference to tokens are found in production items
+			return model.rules.values().stream()
+				.flatMap(rule -> rule.productions.stream())
+				.flatMap(prod -> prod.items.stream())
+				.filter(item -> item instanceof Production.Actual
+						&& ((Production.Actual) item).item.val.equals(name))
+				.map(item -> ((Production.Actual) item).item)
+				.collect(Collectors.toList());
+		}
+		else if (clazz == GrammarRule.class) {
+			// References to non-terminals are found in production items,
+			// including in continuations for the current rule
+			List<Located<?>> res = new ArrayList<>();
+			for (GrammarRule rule : model.rules.values()) {
+				rule.productions.stream()
+					.flatMap(prod -> prod.items.stream())
+					.forEach(item -> {
+						switch (item.getKind()) {
+						case ACTION:
+							break;
+						case ACTUAL:
+							Production.Actual actual = (Production.Actual) item;
+							if (actual.item.val.equals(name))
+								res.add(actual.item);
+							break;
+						case CONTINUE:
+							if (rule.name.val.equals(name))
+								res.add(((Production.Continue) item).cont);
+							break;
+						}
+					});
+			}
+			return res.isEmpty() ? Lists.empty() : res;
+		}
+		return null;
+	}
 	
+	@Override
+	protected @Nullable Occurrences findOccurrencesFor(ITextSelection selection) {
+		if (model == null) return null;
+		
+		@Nullable Located<String> decl = findDeclarationFor(selection);
+		if (decl == null) return null;
+		
+		Class<?> clazz = Character.isUpperCase(decl.val.charAt(0)) ?
+				TokenDecl.class : GrammarRule.class;
+		return new Occurrences(decl, findReferencesFor(decl.val, clazz));
+	}
+	
+	private @Nullable Located<String> findDeclarationFor(ITextSelection selection) {
+		// If the selection happens to point to a declaration, use it (it's
+		// faster and a bit more robust)
+		@Nullable Located<String> decl = findSelectedDeclaration(selection);
+		if (decl != null) return decl;
+
+		// Otherwise, do a textual match. This allows finding occurrences from
+		// a 'reference' in a semantic action or in a regexp but it's a slightly
+		// fragile approach of course.
+		@Nullable SelectedWord sword = HandlerUtils.selectWord(getDocument(), selection); 
+		if (sword == null) return null;
+		return findDeclarationFor(sword.word);
+	}
+	
+	private @Nullable Located<String> findSelectedDeclaration(ITextSelection selection) {
+		if (model == null) return null;
+		for (TokenDecl token : model.tokenDecls) {
+			if (enclosedInLocation(token.name, selection)) return token.name;
+		}
+		for (GrammarRule rule : model.rules.values()) {
+			if (enclosedInLocation(rule.name, selection))
+				return rule.name;
+		}
+		return null;
+	}
 }
