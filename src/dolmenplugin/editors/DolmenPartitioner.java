@@ -139,6 +139,61 @@ public final class DolmenPartitioner extends FastPartitioner {
 			return new Region(offset, endOffset - offset);
 		}
 	}
+	
+	/**
+	 * @param c
+	 * @return {@code true} if {@code c} is a character which
+	 * 	may affect the partitioning in an important way
+	 */
+	private static boolean isInterestingCharacter(char c) {
+		switch (c) {
+		// Comment partitions
+		case '/':
+		case '*':
+		case '\n':
+		case '\r':
+		// Literal partitions
+		case '"':
+		case '\'':
+		case '\\':
+		// Java partitions
+		case '(':
+		case '{':
+		case '}':
+		case ')':
+		// Option partitions
+		case '[':
+		case ']':
+		case '=':
+			return true;
+		default:
+			return false;
+		}
+	}
+	
+	private boolean isDangerous(DocumentEvent e) {
+		// For large document changes, just rescan
+		if (e.getLength() >= 128) return true;
+		// If the new text is not empty and has interesting characters
+		// this document change is interesting
+		String newText = e.getText();
+		if (newText != null) {
+			int newLength = newText.length();
+			if (newLength >= 128) return true;
+			for (int i = 0; i < newLength; ++i)
+				if (isInterestingCharacter(newText.charAt(i)))
+					return true;
+		}
+		// We would like to do the same with the text replaced unfortunately
+		// this is a post-change event and we can't inspect the old contents
+		// of the document. To be safe, let's call every deletion dangerous...
+		// This is gonna hurt when repeatedly keeping the DEL key pressed 
+		// to clear a line or something but reasonable users use Ctrl-DEL/BKSP
+		// or selections, or vi/emacs-mode, etc.
+		if (e.getLength() != 0) return true;
+		// This is a benign document change
+		return false;
+	}
 
 	@Override
 	public IRegion documentChanged2(DocumentEvent e) {
@@ -153,12 +208,19 @@ public final class DolmenPartitioner extends FastPartitioner {
 			int reparseStart= line.getOffset();
 			int partitionStart= -1;
 			String contentType= null;
-			int newLength= e.getText() == null ? 0 : e.getText().length();
+			int newLength = e.getText() == null ? 0 : e.getText().length();
 // !--- This is the part changed from FastPartitioner ---!
 //	We always restart at the beginning of the partition that precedes or contains
 //	the change (or at the start of the document if any).
 //	In particular there are never any resumes in the middle of a partition.
-			int first= fDocument.computeIndexInCategory(fPositionCategory, reparseStart);
+//	Now, if the text inserted contains "interesting" characters, i.e. those
+//  who can change partition bounds, we start from the beginning as it is 
+//  impossible otherwise to make sure we get the correct partitioning by partially
+//  rescanning (we could be entering the last closing '}' in a Java semantic
+//  action opened at the very start of the document 1000 lines ago...).
+			boolean benign = !isDangerous(e);
+			int first= 
+				benign ? fDocument.computeIndexInCategory(fPositionCategory, reparseStart) : 0;
 			if (first > 0)	{
 				TypedPosition partition= (TypedPosition) category[first - 1];
 				partitionStart= partition.getOffset();
