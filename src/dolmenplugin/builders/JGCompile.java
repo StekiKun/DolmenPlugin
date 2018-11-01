@@ -45,6 +45,12 @@ public final class JGCompile {
 	}
 
 	private static final Map<IFile, SourceMapping> FAILED = Collections.emptyMap();
+
+	private static void logAndMark(Bookkeeper tasks, IFile res, List<IReport> reports) {
+		if (reports.isEmpty()) return;
+		Marker.addAll(res, reports);
+		tasks.problems(reports.size());
+	}
 	
 	public Map<IFile, SourceMapping> compile(IProject project, IFile res) {
 		if (res == null || !res.exists())
@@ -67,16 +73,14 @@ public final class JGCompile {
 
 			Reporter configReporter = new Reporter();
 			Config config = Config.ofGrammar(grammar, configReporter);
-			List<IReport> configReports = configReporter.getReports();
-			if (!configReports.isEmpty()) {
-				Marker.addAll(res, configReports);
-				tasks.infos("(" + configReports.size() + " potential problem" +
-						(configReports.size() > 1 ? "s" : "") + " found)");
-			}
+			logAndMark(tasks, res, configReporter.getReports());
 			
+			Reporter depsReporter = new Reporter();
 			Grammars.PredictionTable predictTable =
-				Grammars.predictionTable(grammar, Grammars.analyseGrammar(grammar, null));
+				Grammars.predictionTable(grammar, 
+					Grammars.analyseGrammar(grammar, null, depsReporter));
 			tasks.done("Analysed grammar and built prediction table");
+			logAndMark(tasks, res, depsReporter.getReports());
 			List<IReport> conflicts = predictTable.findConflicts();
 			if (!conflicts.isEmpty()) {
 				Marker.addAll(res, conflicts);

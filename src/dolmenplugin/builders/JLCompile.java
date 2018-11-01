@@ -48,6 +48,12 @@ public final class JLCompile {
 	private static final Map<IFile, SourceMapping> FAILED = 
 		Collections.emptyMap();
 	
+	private static void logAndMark(Bookkeeper tasks, IFile res, List<IReport> reports) {
+		if (reports.isEmpty()) return;
+		Marker.addAll(res, reports);
+		tasks.problems(reports.size());
+	}
+	
 	public Map<IFile, SourceMapping> compile(IProject project, IFile res) {
 		if (res == null || !res.exists())
 			return FAILED;
@@ -69,12 +75,7 @@ public final class JLCompile {
 			
 			Reporter configReporter = new Reporter();
 			Config config = Config.ofLexer(lexer, configReporter);
-			List<IReport> configReports = configReporter.getReports();
-			if (!configReports.isEmpty()) {
-				Marker.addAll(res, configReports);
-				tasks.infos("(" + configReports.size() + " potential problem" +
-						(configReports.size() > 1 ? "s" : "") + " found)");
-			}
+			logAndMark(tasks, res, configReporter.getReports());
 			
 			Automata aut = Determinize.lexer(lexer, true);
 			tasks.done("Compiled lexer description to automata");
@@ -82,11 +83,7 @@ public final class JLCompile {
 					+ aut.automataEntries.size() + " automata)");
 			
 			List<IReport> autReports = aut.findProblems(lexer);
-			if (!autReports.isEmpty()) {
-				Marker.addAll(res, autReports);
-				tasks.infos("(" + autReports.size() + " potential problem" +
-						(autReports.size() > 1 ? "s" : "") + " found)");
-			}
+			logAndMark(tasks, res, autReports);
 			
 			SourceMapping smap;
 			try (Writer writer = 
