@@ -44,6 +44,7 @@ public class JLConfiguration extends SourceViewerConfiguration {
 	private OptionsScanner jlOptionsScanner;
 	private JLCommentScanner jlCommentScanner;
 	private JavaScanner jlJavaScanner;
+	private JLLiteralScanner jlLiteralScanner;
 	
 	private ColorManager colorManager;
 	private JLEditor jlEditor;
@@ -59,7 +60,8 @@ public class JLConfiguration extends SourceViewerConfiguration {
 		return new String[] {
 			IDocument.DEFAULT_CONTENT_TYPE,
 			JLPartitionScanner.JL_COMMENT,
-			JLPartitionScanner.JL_JAVA
+			JLPartitionScanner.JL_JAVA,
+			JLPartitionScanner.JL_LITERAL
 		};
 	}
 
@@ -107,6 +109,13 @@ public class JLConfiguration extends SourceViewerConfiguration {
 		}
 		return jlJavaScanner;
 	}
+
+	protected JLLiteralScanner getJLLiteralScanner() {
+		if (jlLiteralScanner == null) {
+			jlLiteralScanner = new JLLiteralScanner(colorManager);
+		}
+		return jlLiteralScanner;
+	}
 	
 	@Override
 	public IPresentationReconciler getPresentationReconciler(ISourceViewer sourceViewer) {
@@ -129,7 +138,11 @@ public class JLConfiguration extends SourceViewerConfiguration {
         reconciler.setRepairer(ddr, JLPartitionScanner.JL_JAVA);
         reconciler.setDamager(ddr, JLPartitionScanner.JL_JAVA);
 
-		return reconciler;
+        ddr = new DefaultDamagerRepairer(getJLLiteralScanner());
+        reconciler.setRepairer(ddr, JLPartitionScanner.JL_LITERAL);
+        reconciler.setDamager(ddr, JLPartitionScanner.JL_LITERAL);
+
+        return reconciler;
 	}
 	
 	@Override
