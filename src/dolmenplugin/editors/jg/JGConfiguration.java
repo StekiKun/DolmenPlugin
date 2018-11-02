@@ -16,7 +16,7 @@ import org.eclipse.jface.text.source.SourceViewerConfiguration;
 import dolmenplugin.editors.ColorManager;
 import dolmenplugin.editors.IColorConstants;
 import dolmenplugin.editors.JavaScanner;
-import dolmenplugin.editors.MarkerAnnotationHover;
+import dolmenplugin.editors.DolmenAnnotationHover;
 import dolmenplugin.editors.OptionsScanner;
 import dolmenplugin.editors.jg.JGContentAssistProcessor;
 import dolmenplugin.editors.jg.JGContentAssistProcessor.ContentType;
@@ -33,7 +33,7 @@ import dolmenplugin.editors.jg.JGPartitionScanner;
  * @author Stéphane Lescuyer
  */
 public class JGConfiguration extends SourceViewerConfiguration {
-	private MarkerAnnotationHover jgAnnotationHover;
+	private DolmenAnnotationHover jgAnnotationHover;
 //	private JGDoubleClickStrategy doubleClickStrategy;
 	private JGScanner jgScanner;
 	private OptionsScanner jgOptionsScanner;
@@ -46,7 +46,7 @@ public class JGConfiguration extends SourceViewerConfiguration {
 
 	public JGConfiguration(ColorManager colorManager, JGEditor jgEditor) {
 		this.colorManager = colorManager;
-		this.jgAnnotationHover = new MarkerAnnotationHover();
+		this.jgAnnotationHover = new DolmenAnnotationHover();
 		this.jgEditor = jgEditor;
 	}
 

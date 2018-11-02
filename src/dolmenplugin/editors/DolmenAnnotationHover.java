@@ -46,7 +46,7 @@ import syntax.Regular;
  * 
  * @author Stéphane Lescuyer
  */
-public class MarkerAnnotationHover implements IAnnotationHover, ITextHover {
+public class DolmenAnnotationHover implements IAnnotationHover, ITextHover {
 
 	/**
 	 * Helper function used to implement both annotation and text hovers.
