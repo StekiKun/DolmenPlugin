@@ -6,9 +6,13 @@ import java.util.List;
 
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.jface.text.BadLocationException;
+import org.eclipse.jface.text.DefaultInformationControl;
 import org.eclipse.jface.text.IDocument;
+import org.eclipse.jface.text.IInformationControl;
+import org.eclipse.jface.text.IInformationControlCreator;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.ITextHover;
+import org.eclipse.jface.text.ITextHoverExtension;
 import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.Position;
 import org.eclipse.jface.text.Region;
@@ -17,16 +21,19 @@ import org.eclipse.jface.text.source.IAnnotationHover;
 import org.eclipse.jface.text.source.IAnnotationModel;
 import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.editors.text.EditorsUI;
 import org.eclipse.ui.texteditor.SimpleMarkerAnnotation;
 
 import dolmenplugin.editors.jg.JGEditor;
 import dolmenplugin.editors.jl.JLEditor;
 import dolmenplugin.handlers.HandlerUtils;
+import dolmenplugin.handlers.HandlerUtils.SelectedWord;
 import syntax.Grammar.TokenDecl;
 import syntax.GrammarRule;
 import syntax.Lexer;
@@ -46,7 +53,8 @@ import syntax.Regular;
  * 
  * @author Stéphane Lescuyer
  */
-public class DolmenAnnotationHover implements IAnnotationHover, ITextHover {
+public class DolmenAnnotationHover 
+	implements IAnnotationHover, ITextHover, ITextHoverExtension {
 
 	/**
 	 * Helper function used to implement both annotation and text hovers.
@@ -132,9 +140,14 @@ public class DolmenAnnotationHover implements IAnnotationHover, ITextHover {
 		}
 		if (editor == null) return null;
 		try {
-			String selected = hoverRegion.getLength() == 0 ?
-				HandlerUtils.selectWord(doc, hoverRegion.getOffset()).word :
-				doc.get(hoverRegion.getOffset(), hoverRegion.getLength());
+			final String selected;
+			if (hoverRegion.getLength() == 0) {
+				SelectedWord sw = HandlerUtils.selectWord(doc, hoverRegion.getOffset());
+				if (sw == null) return null;
+				selected = sw.word;
+			}
+			else
+				selected = doc.get(hoverRegion.getOffset(), hoverRegion.getLength());
 			
 			return getDescriptionFor(editor, selected);
 		} catch (BadLocationException e) {
@@ -142,6 +155,18 @@ public class DolmenAnnotationHover implements IAnnotationHover, ITextHover {
 		}
 	}
 
+
+	@Override
+	public IInformationControlCreator getHoverControlCreator() {
+		return new IInformationControlCreator() {
+			@Override
+			public IInformationControl createInformationControl(Shell shell) {
+				return new DefaultInformationControl(shell,
+					EditorsUI.getTooltipAffordanceString());
+			}
+		};
+	}
+	
 	@Override
 	public IRegion getHoverRegion(ITextViewer textViewer, int offset) {
 		// If the cursor hovers over a selection, use the whole selection
@@ -180,7 +205,7 @@ public class DolmenAnnotationHover implements IAnnotationHover, ITextHover {
 		buf.append(" ");
 		buf.append(entry.returnType.find());
 		buf.append(" ");
-		buf.append(entry.name.val);
+		buf.append("<b>").append(entry.name.val).append("</b>");
 		if (entry.args != null) {
 			buf.append("(").append(entry.args.find()).append(")");
 		}
@@ -188,7 +213,9 @@ public class DolmenAnnotationHover implements IAnnotationHover, ITextHover {
 	}
 	
 	private String getHoverInfo(TokenDecl decl) {
-		return decl.toString();
+		return "token " +
+				(decl.valueType == null ? "" : "{" + decl.valueType.find() + "} ") +
+				"<b>" + decl.name.val + "</b>";
 	}
 	
 	private String getHoverInfo(GrammarRule rule) {
@@ -197,10 +224,11 @@ public class DolmenAnnotationHover implements IAnnotationHover, ITextHover {
 		buf.append(" ");
 		buf.append(rule.returnType.find());
 		buf.append(" ");
-		buf.append(rule.name.val);
+		buf.append("<b>").append(rule.name.val).append("</b>");
 		if (rule.args != null) {
 			buf.append("(").append(rule.args.find()).append(")");
 		}
 		return buf.toString();
 	}
+
 }
