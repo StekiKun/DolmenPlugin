@@ -3,7 +3,6 @@ package dolmenplugin.editors.jg;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.jface.text.IDocument;
@@ -23,21 +22,22 @@ import jg.JGLexer;
 import jg.JGParserGenerated;
 import jge.JGELexer;
 import jge.JGEParser;
-import syntax.Grammar;
-import syntax.Grammar.TokenDecl;
-import syntax.GrammarRule;
 import syntax.Located;
-import syntax.Production;
+import syntax.PGrammar;
+import syntax.PGrammarRule;
+import syntax.PProduction;
+import syntax.PProduction.ActualExpr;
+import syntax.TokenDecl;
 
 /**
  * Custom editor for Dolmen grammar descriptions (.jg)
  * <p>
  * The model description for the contents of this editor
- * is a syntactic Dolmen lexer {@link syntax.Lexer}.
+ * is a syntactic Dolmen parametric grammar {@link syntax.PGrammar}.
  * 
  * @author Stéphane Lescuyer
  */
-public class JGEditor extends DolmenEditor<Grammar> {
+public class JGEditor extends DolmenEditor<PGrammar> {
 
 	private ColorManager colorManager;
 	private JGOutlinePage contentOutlinePage;
@@ -73,7 +73,7 @@ public class JGEditor extends DolmenEditor<Grammar> {
 	 * Parses the grammar description using {@link JGLexer} and {@link JGParserGenerated}
 	 */
 	@Override
-	protected @Nullable Grammar parseModel() {
+	protected @Nullable PGrammar parseModel() {
 		IDocument doc = getDocument();
 		if (doc == null) return null;
 		 
@@ -93,7 +93,7 @@ public class JGEditor extends DolmenEditor<Grammar> {
 			JGEParser jgParser = new JGEParser(jgLexer, JGELexer::main);
 			return jgParser.start();
 		}
-		catch (LexicalError | ParsingException | Grammar.IllFormedException e) {
+		catch (LexicalError | ParsingException | PGrammar.IllFormedException e) {
 			// Use the exception as input for the outline
 			if (contentOutlinePage != null)
 				contentOutlinePage.setInput(e);
@@ -102,7 +102,7 @@ public class JGEditor extends DolmenEditor<Grammar> {
 	}
 
 	@Override
-	protected void modelChanged(Grammar model) {
+	protected void modelChanged(PGrammar model) {
 		if (contentOutlinePage != null)
 			contentOutlinePage.setInput(model);
 	}
@@ -118,7 +118,7 @@ public class JGEditor extends DolmenEditor<Grammar> {
 		for (TokenDecl token : model.tokenDecls) {
 			if (token.name.val.equals(name)) return token.name;
 		}
-		for (GrammarRule rule : model.rules.values()) {
+		for (PGrammarRule rule : model.rules.values()) {
 			if (rule.name.val.equals(name)) return rule.name;
 		}
 		return null;
@@ -127,7 +127,7 @@ public class JGEditor extends DolmenEditor<Grammar> {
 	/**
 	 * {@inheritDoc}
 	 * 
-	 * Only supports {@link GrammarRule.class} and {@link TokenDecl.class}
+	 * Only supports {@link PGrammarRule.class} and {@link TokenDecl.class}
 	 */
 	@Override
 	public <Decl> @Nullable Decl 
@@ -138,8 +138,8 @@ public class JGEditor extends DolmenEditor<Grammar> {
 			}
 			return null;
 		}
-		if (clazz == GrammarRule.class) {
-			for (GrammarRule rule : model.rules.values()) {
+		if (clazz == PGrammarRule.class) {
+			for (PGrammarRule rule : model.rules.values()) {
 				if (rule.name.val.equals(name)) return clazz.cast(rule);
 			}
 			return null;
@@ -148,7 +148,7 @@ public class JGEditor extends DolmenEditor<Grammar> {
 	}
 
 	/**
-	 * Only supports {@link GrammarRule.class} and {@link TokenDecl.class}.
+	 * Only supports {@link PGrammarRule.class} and {@link TokenDecl.class}.
 	 * 
 	 * @param name
 	 * @param clazz
@@ -160,19 +160,21 @@ public class JGEditor extends DolmenEditor<Grammar> {
 		if (model == null) return null;
 		if (clazz == TokenDecl.class) {
 			// Reference to tokens are found in production items
-			return model.rules.values().stream()
+			List<Located<?>> res = new ArrayList<>();
+			model.rules.values().stream()
 				.flatMap(rule -> rule.productions.stream())
 				.flatMap(prod -> prod.items.stream())
-				.filter(item -> item instanceof Production.Actual
-						&& ((Production.Actual) item).item.val.equals(name))
-				.map(item -> ((Production.Actual) item).item)
-				.collect(Collectors.toList());
+				.forEach(item -> {
+					if (item instanceof PProduction.Actual)
+						addReferencesFor(res, name, ((PProduction.Actual) item).item);
+				});
+			return res.isEmpty() ? Lists.empty() : res;
 		}
-		else if (clazz == GrammarRule.class) {
+		else if (clazz == PGrammarRule.class) {
 			// References to non-terminals are found in production items,
 			// including in continuations for the current rule
 			List<Located<?>> res = new ArrayList<>();
-			for (GrammarRule rule : model.rules.values()) {
+			for (PGrammarRule rule : model.rules.values()) {
 				rule.productions.stream()
 					.flatMap(prod -> prod.items.stream())
 					.forEach(item -> {
@@ -180,13 +182,12 @@ public class JGEditor extends DolmenEditor<Grammar> {
 						case ACTION:
 							break;
 						case ACTUAL:
-							Production.Actual actual = (Production.Actual) item;
-							if (actual.item.val.equals(name))
-								res.add(actual.item);
+							PProduction.Actual actual = (PProduction.Actual) item;
+							addReferencesFor(res, name, actual.item);
 							break;
 						case CONTINUE:
 							if (rule.name.val.equals(name))
-								res.add(((Production.Continue) item).cont);
+								res.add(((PProduction.Continue) item).cont);
 							break;
 						}
 					});
@@ -194,6 +195,22 @@ public class JGEditor extends DolmenEditor<Grammar> {
 			return res.isEmpty() ? Lists.empty() : res;
 		}
 		return null;
+	}
+
+	/**
+	 * Add located references to the symbol {@code name} in
+	 * the actual expression {@code aexpr} to the reference list {@code refs}
+	 * 
+	 * @param refs
+	 * @param name
+	 * @param aexpr
+	 */
+	private void addReferencesFor(List<Located<?>> refs, 
+			String name, ActualExpr aexpr) {
+		if (aexpr.symb.val.equals(name))
+			refs.add(aexpr.symb);
+		for (ActualExpr sexpr : aexpr.params)
+			addReferencesFor(refs, name, sexpr);
 	}
 	
 	@Override
@@ -203,8 +220,11 @@ public class JGEditor extends DolmenEditor<Grammar> {
 		@Nullable Located<String> decl = findDeclarationFor(selection);
 		if (decl == null) return null;
 		
+		// TODO FIXME: find the current rule and maybe it is a formal
+		//	we are looking at...
+		
 		Class<?> clazz = Character.isUpperCase(decl.val.charAt(0)) ?
-				TokenDecl.class : GrammarRule.class;
+				TokenDecl.class : PGrammarRule.class;
 		return new Occurrences(decl, findReferencesFor(decl.val, clazz));
 	}
 	
@@ -235,9 +255,15 @@ public class JGEditor extends DolmenEditor<Grammar> {
 		for (TokenDecl token : model.tokenDecls) {
 			if (enclosedInLocation(token.name, selection)) return token.name;
 		}
-		for (GrammarRule rule : model.rules.values()) {
+		for (PGrammarRule rule : model.rules.values()) {
 			if (enclosedInLocation(rule.name, selection))
 				return rule.name;
+	// TODO FIXME activate this once the remainder of the system 
+	//		expects formal parameter declarations
+	//		for (Located<String> param : rule.params) {
+	//			if (enclosedInLocation(param, selection))
+	//				return param;
+	//		}
 		}
 		return null;
 	}

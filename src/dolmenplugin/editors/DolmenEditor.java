@@ -21,7 +21,7 @@ import common.Maps;
 import dolmenplugin.editors.jg.JGEditor;
 import dolmenplugin.editors.jl.JLEditor;
 import dolmenplugin.lib.ByRef;
-import syntax.Grammar;
+import syntax.PGrammar;
 import syntax.Lexer;
 import syntax.Located;
 
@@ -32,7 +32,7 @@ import syntax.Located;
  * <p> 
  * It shares the task of handling the <i>model description</i>
  * of the editor's contents, namely a {@link Lexer} for 
- * {@link JLEditor} and a {@link Grammar} for {@link JGEditor}.
+ * {@link JLEditor} and a {@link PGrammar} for {@link JGEditor}.
  * <p>
  * This class updates the model every time the editor's contents
  * are saved. Subclassers can make additional calls to 

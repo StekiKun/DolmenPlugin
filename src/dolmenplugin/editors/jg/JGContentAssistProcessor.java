@@ -9,7 +9,7 @@ import codegen.Config;
 import dolmenplugin.editors.DolmenCompletionProposal;
 import dolmenplugin.editors.DolmenCompletionProposal.Category;
 import dolmenplugin.editors.DolmenContentAssistProcessor;
-import syntax.Grammar;
+import syntax.PGrammar;
 
 /**
  * Implements content-assist proposals for {@link JGEditor}
@@ -24,7 +24,7 @@ import syntax.Grammar;
  * @author Stéphane Lescuyer
  */
 public final class JGContentAssistProcessor
-	extends DolmenContentAssistProcessor<Grammar, JGEditor> {
+	extends DolmenContentAssistProcessor<PGrammar, JGEditor> {
 
 	/**
 	 * Content types for which the content-assist process can be configured
@@ -62,7 +62,7 @@ public final class JGContentAssistProcessor
 			addSimpleCompletions(collector, prefix, Category.OPTION_KEY, JG_OPTIONS);
 			break;
 		}
-		final Grammar grammar = editor.getModel();
+		final PGrammar grammar = editor.getModel();
 		if (grammar != null) {
 			switch (contentType) {
 			case DEFAULT:
