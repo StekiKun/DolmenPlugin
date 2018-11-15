@@ -34,9 +34,10 @@ import dolmenplugin.editors.jg.JGEditor;
 import dolmenplugin.editors.jl.JLEditor;
 import dolmenplugin.handlers.HandlerUtils;
 import dolmenplugin.handlers.HandlerUtils.SelectedWord;
-import syntax.Grammar.TokenDecl;
-import syntax.GrammarRule;
+import syntax.TokenDecl;
+import syntax.PGrammarRule;
 import syntax.Lexer;
+import syntax.Located;
 import syntax.Regular;
 
 /**
@@ -189,7 +190,7 @@ public class DolmenAnnotationHover
 			// Supports TokenDecl and GrammarRule
 			TokenDecl token = editor.findDeclarationFor(selected, TokenDecl.class);
 			if (token != null) return getHoverInfo(token);
-			GrammarRule rule = editor.findDeclarationFor(selected, GrammarRule.class);
+			PGrammarRule rule = editor.findDeclarationFor(selected, PGrammarRule.class);
 			if (rule != null) return getHoverInfo(rule);
 		}
 		return null;
@@ -218,13 +219,23 @@ public class DolmenAnnotationHover
 				"<b>" + decl.name.val + "</b>";
 	}
 	
-	private String getHoverInfo(GrammarRule rule) {
+	private String getHoverInfo(PGrammarRule rule) {
 		StringBuilder buf = new StringBuilder();
 		buf.append(rule.visibility ? "public" : "private");
 		buf.append(" ");
 		buf.append(rule.returnType.find());
 		buf.append(" ");
 		buf.append("<b>").append(rule.name.val).append("</b>");
+		if (!rule.params.isEmpty()) {
+			boolean first = true;
+			buf.append("<i>").append("&lt;");
+			for (Located<String> formal : rule.params) {
+				if (first) first = false;
+				else buf.append(", ");
+				buf.append(formal.val);
+			}
+			buf.append("&gt;").append("</i>");
+		}
 		if (rule.args != null) {
 			buf.append("(").append(rule.args.find()).append(")");
 		}
