@@ -29,10 +29,15 @@ import dolmenplugin.base.Marker;
 import dolmenplugin.base.Utils;
 import jge.JGELexer;
 import jge.JGEParser;
-import syntax.Grammar;
-import syntax.Grammars;
+import syntax.PGrammar;
+import syntax.PGrammars;
 import syntax.IReport;
 import syntax.Reporter;
+import syntax.IReport.Severity;
+import unparam.Expansion;
+import unparam.Expansion.PGrammarNotExpandable;
+import unparam.Grammar;
+import unparam.Grammars;
 
 public final class JGCompile {
 
@@ -68,26 +73,45 @@ public final class JGCompile {
 		try (FileReader reader = new FileReader(cf.file)) {
 			jgLexer = new JGELexer(cf.file.getPath(), reader);
 			JGEParser jgParser = new JGEParser(jgLexer, JGELexer::main);
-			Grammar grammar = jgParser.start();
+			PGrammar pgrammar = jgParser.start();
 			tasks.done("Grammar description successfully parsed");
 
 			Reporter configReporter = new Reporter();
-			Config config = Config.ofGrammar(grammar, configReporter);
+			Config config = Config.ofPGrammar(pgrammar, configReporter);
 			logAndMark(tasks, res, configReporter.getReports());
+			
+			tasks.enter("Grammar expansion");
+			Reporter pdepsReporter = new Reporter();
+			PGrammars.Dependencies deps = PGrammars.dependencies(pgrammar.rules);
+			PGrammars.findUnusedSymbols(pgrammar, deps, pdepsReporter);
+			PGrammars.analyseGrammar(pgrammar, deps, pdepsReporter);
+			tasks.done("Analysed parametric rules");
+			logAndMark(tasks, res, pdepsReporter.getReports());
+			if (pdepsReporter.hasErrors()) {
+				tasks.aborted("Inconsistent use of parametric rules");
+				return FAILED;
+			}
+
+			Expansion.checkExpandability(pgrammar);
+			tasks.done("Expandability check successful");
+			Grammar grammar = Expansion.of(pgrammar);
+			tasks.leaveWith("Expanded to ground grammar");
+			tasks.infos("(" + grammar.rules.size() + " ground non-terminals"
+					+ " from " + pgrammar.rules.size() + " rules)");
 			
 			Reporter depsReporter = new Reporter();
 			Grammars.PredictionTable predictTable =
 				Grammars.predictionTable(grammar, 
 					Grammars.analyseGrammar(grammar, null, depsReporter));
-			tasks.done("Analysed grammar and built prediction table");
+			tasks.done("Analysed expanded grammar and built prediction table");
 			logAndMark(tasks, res, depsReporter.getReports());
 			List<IReport> conflicts = predictTable.findConflicts();
 			if (!conflicts.isEmpty()) {
 				Marker.addAll(res, conflicts);
-				tasks.aborted("Grammar is not LL(1)");
+				tasks.aborted("Expanded grammar is not LL(1)");
 				return FAILED;
 			}
-			tasks.done("Grammar is LL(1)");
+			tasks.done("Expanded grammar is LL(1)");
 			
 			SourceMapping smap;
 			try (Writer writer =
@@ -132,9 +156,21 @@ public final class JGCompile {
 			Marker.addError(res, e.getMessage(), start.line, start.offset, end);
 			tasks.aborted("Syntax error in grammar description");
 		}
+		catch (PGrammar.IllFormedException e) {
+			Marker.addAll(res, e.reports);
+			tasks.aborted("Grammar description is not well-formed");
+		}
 		catch (Grammar.IllFormedException e) {
 			Marker.addAll(res, e.reports);
 			tasks.aborted("Grammar description is not well-formed");
+		}
+		catch (PGrammarNotExpandable e) {
+			// TODO define report in Dolmen + better message
+			Marker.addAll(res, 
+				Collections.singletonList(IReport.of(
+				"This rule can lead to infinite expansion via formal parameter " + e.formal.val,
+				Severity.ERROR, e.rule)));
+			tasks.aborted("Grammar is not expandable");
 		}
 		catch (FileNotFoundException e) {
 			e.printStackTrace(log);
