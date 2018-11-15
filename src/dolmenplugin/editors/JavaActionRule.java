@@ -5,11 +5,14 @@ import org.eclipse.jface.text.rules.IPredicateRule;
 import org.eclipse.jface.text.rules.IToken;
 import org.eclipse.jface.text.rules.Token;
 
+import dolmenplugin.base.Utils;
+
 /**
  * Predicate rule which matches Java semantic actions
  * enclosed in (possibly nested) some specifiable opening
- * and closing characters. It is used both by the
- * lexer and parser editors.
+ * and closing characters. It can allow both semantic
+ * actions with and without holes, as it is used by the
+ * lexer and parser editors alike.
  * 
  * @author Stéphane Lescuyer
  */
@@ -18,11 +21,13 @@ public class JavaActionRule implements IPredicateRule {
 	private final IToken successToken;
 	private final char open;
 	private final char close;
+	private final boolean withHoles;
 
-	public JavaActionRule(IToken successToken, char open, char close) {
+	public JavaActionRule(IToken successToken, char open, char close, boolean withHoles) {
 		this.successToken = successToken;
 		this.open = open;
 		this.close = close;
+		this.withHoles = withHoles;
 	}
 
 	@Override
@@ -110,6 +115,10 @@ public class JavaActionRule implements IPredicateRule {
 					continue;					
 				}
 				switch (c) {
+				case '#': {
+					if (withHoles && !inHole()) break loop;
+					continue;
+				}
 				case '/': {
 					switch ((int) next()) {
 					case '/': {
@@ -143,6 +152,19 @@ public class JavaActionRule implements IPredicateRule {
 				}
 			}
 			return abort();
+		}
+		
+		private boolean inHole() {
+			int c;
+			c = next();
+			if (c < 'a' || c > 'z') return false;
+			while ((c = next()) != ICharacterScanner.EOF) {
+				// Approximate scanning: allows empty names
+				// whereas the syntax does not.
+				if (Utils.isDolmenWordPart((char) c)) continue;
+				return true;
+			}
+			return false;
 		}
 		
 		private boolean inSLComment() {

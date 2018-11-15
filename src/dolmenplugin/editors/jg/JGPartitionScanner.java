@@ -44,8 +44,8 @@ public class JGPartitionScanner extends DolmenPartitionScanner {
 		// -> the simpler MultiLine rule should be sufficient in .jg files
 		//	  since square brackets are not used in other parts of the syntax
 		// rules[2] = new MultiLineRule("[", "]", jgOptions);
-		rules[3] = new JavaActionRule(jgJava, '{', '}');
-		rules[4] = new JavaActionRule(jgArgs, '(', ')');
+		rules[3] = new JavaActionRule(jgJava, '{', '}', true);
+		rules[4] = new JavaActionRule(jgArgs, '(', ')', true);
 		
 		setPredicateRules(rules);
 	}

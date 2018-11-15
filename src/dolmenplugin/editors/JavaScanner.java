@@ -1,6 +1,9 @@
 package dolmenplugin.editors;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+import java.util.regex.Pattern;
 
 import org.eclipse.jface.text.TextAttribute;
 import org.eclipse.jface.text.rules.EndOfLineRule;
@@ -17,6 +20,7 @@ import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.RGB;
 
 import common.Java;
+import dolmenplugin.base.Utils;
 
 /**
  * The scanner for the Java semantic actions in both Dolmen
@@ -24,12 +28,14 @@ import common.Java;
  * <p>
  * It uses a rule-based scanner to recognizes all Java
  * keywords, as well as Java comments and string literals.
+ * It can be configured to recognize holes in
+ * semantic actions or to ignore them.
  *
  * @author Stéphane Lescuyer
  */
 public class JavaScanner extends RuleBasedScanner {
 
-	public JavaScanner(ColorManager manager, RGB background) {
+	public JavaScanner(boolean withHoles, ColorManager manager, RGB background) {
 		Color bg =
 			background == null ? null : manager.getColor(background);
 		
@@ -42,6 +48,10 @@ public class JavaScanner extends RuleBasedScanner {
 			new Token(
 				new TextAttribute(
 					manager.getColor(IColorConstants.KEYWORD), bg, SWT.BOLD));
+		IToken hole =
+				new Token(
+					new TextAttribute(
+						manager.getColor(IColorConstants.IDENT), bg, SWT.BOLD));
 		IToken comment =
 			new Token(
 				new TextAttribute(
@@ -72,12 +82,20 @@ public class JavaScanner extends RuleBasedScanner {
 		// Add rule for characters and strings literals
 		IRule stringRule = new PatternRule("\"", "\"", string, '\\', false, false, false);
 		IRule charRule = new PatternRule("'", "'", string, '\\', false, false, false);
-	            
-		IRule[] rules = new IRule[] {
-			keywordsRule, slCommentRule, mlCommentRule,
-			stringRule, charRule
-		};
-		setRules(rules);
+		// Add rule for holes if needed
+		Pattern holePattern = Pattern.compile("#[a-z]\\w*");
+		IRule holeRule = new RegexpLineRule(holePattern, hole,
+			ch -> ch != '#' && !Utils.isDolmenWordPart(ch));
+	    
+		List<IRule> rules = new ArrayList<IRule>(6);
+		rules.add(keywordsRule);
+		rules.add(slCommentRule);
+		rules.add(mlCommentRule);
+		rules.add(stringRule);
+		rules.add(charRule);
+		if (withHoles)
+			rules.add(holeRule);
+		setRules(rules.toArray(new IRule[rules.size()]));
 		
 		setDefaultReturnToken(
 			new Token(

@@ -46,7 +46,7 @@ public class JLPartitionScanner extends DolmenPartitionScanner {
 		rules.add(new PatternRule("\"", "\"", jlLiteral, '\\', false, false, false));
 		rules.add(new PatternRule("'", "'", jlLiteral, '\\', false, false, false));
 		rules.add(new OptionRule(jlOptions));
-		rules.add(new JavaActionRule(jlJava, '{', '}'));
+		rules.add(new JavaActionRule(jlJava, '{', '}', false));
 
 		setPredicateRules(rules.toArray(new IPredicateRule[rules.size()]));
 	}
