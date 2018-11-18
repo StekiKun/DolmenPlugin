@@ -25,15 +25,15 @@ import codegen.LexBuffer.Position;
 import codegen.SourceMapping;
 import common.Bookkeeper;
 import common.CountingWriter;
+import common.Lists;
 import dolmenplugin.base.Marker;
 import dolmenplugin.base.Utils;
 import jge.JGELexer;
 import jge.JGEParser;
+import syntax.IReport;
 import syntax.PGrammar;
 import syntax.PGrammars;
-import syntax.IReport;
 import syntax.Reporter;
-import syntax.IReport.Severity;
 import unparam.Expansion;
 import unparam.Expansion.PGrammarNotExpandable;
 import unparam.Grammar;
@@ -165,11 +165,7 @@ public final class JGCompile {
 			tasks.aborted("Grammar description is not well-formed");
 		}
 		catch (PGrammarNotExpandable e) {
-			// TODO define report in Dolmen + better message
-			Marker.addAll(res, 
-				Collections.singletonList(IReport.of(
-				"This rule can lead to infinite expansion via formal parameter " + e.formal.val,
-				Severity.ERROR, e.rule)));
+			Marker.addAll(res, Lists.singleton(e.getReport()));
 			tasks.aborted("Grammar is not expandable");
 		}
 		catch (FileNotFoundException e) {
