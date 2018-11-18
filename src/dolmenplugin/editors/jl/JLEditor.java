@@ -131,6 +131,7 @@ public class JLEditor extends DolmenEditor<Lexer> {
 	@Override
 	public <Decl> @Nullable Decl 
 		findDeclarationFor(String name, Class<Decl> clazz) {
+		if (model == null) return null;
 		if (clazz == Lexer.Entry.class) {
 			for (Lexer.Entry entry : model.entryPoints) {
 				if (entry.name.val.equals(name)) 

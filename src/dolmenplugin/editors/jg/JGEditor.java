@@ -132,6 +132,7 @@ public class JGEditor extends DolmenEditor<PGrammar> {
 	@Override
 	public <Decl> @Nullable Decl 
 		findDeclarationFor(String name, Class<Decl> clazz) {
+		if (model == null) return null;
 		if (clazz == TokenDecl.class) {
 			for (TokenDecl token : model.tokenDecls) {
 				if (token.name.val.equals(name)) return clazz.cast(token);
