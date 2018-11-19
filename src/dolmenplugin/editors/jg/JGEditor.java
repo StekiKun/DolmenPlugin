@@ -3,6 +3,7 @@ package dolmenplugin.editors.jg;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.jface.text.IDocument;
@@ -25,7 +26,10 @@ import jge.JGEParser;
 import syntax.Located;
 import syntax.PGrammar;
 import syntax.PGrammarRule;
+import syntax.PGrammars;
+import syntax.PGrammars.Sort;
 import syntax.PProduction;
+import syntax.Reporter;
 import syntax.PProduction.ActualExpr;
 import syntax.TokenDecl;
 
@@ -42,11 +46,15 @@ public class JGEditor extends DolmenEditor<PGrammar> {
 	private ColorManager colorManager;
 	private JGOutlinePage contentOutlinePage;
 
+	// The sorts inferred for each rule of the current model
+	private @Nullable Map<String, List<Sort>> formalSorts;
+	
 	public JGEditor() {
 		super();
 		colorManager = new ColorManager();
 		setSourceViewerConfiguration(new JGConfiguration(colorManager, this));
 //		setDocumentProvider(new JGDocumentProvider());
+		this.formalSorts = null;
 	}
 	
 	public void dispose() {
@@ -105,6 +113,22 @@ public class JGEditor extends DolmenEditor<PGrammar> {
 	protected void modelChanged(PGrammar model) {
 		if (contentOutlinePage != null)
 			contentOutlinePage.setInput(model);
+		Reporter reporter = new Reporter();
+		formalSorts = PGrammars.analyseGrammar(model,
+			PGrammars.dependencies(model.rules), reporter);
+	}
+	
+	/**
+	 * @param ruleName
+	 * @return the sorts inferred for the formal parameters
+	 * 	of rule {@code ruleName}, in order of declaration,
+	 *  or {@code null} if no model is available or {@code ruleName}
+	 *  is not a non-terminal of the model
+	 */
+	public @Nullable List<Sort> getFormalSorts(String ruleName) {
+		if (model == null || formalSorts == null) 
+			return null;
+		return formalSorts.get(ruleName);
 	}
 
 	/**

@@ -36,6 +36,7 @@ import dolmenplugin.handlers.HandlerUtils;
 import dolmenplugin.handlers.HandlerUtils.SelectedWord;
 import syntax.TokenDecl;
 import syntax.PGrammarRule;
+import syntax.PGrammars.Sort;
 import syntax.Lexer;
 import syntax.Located;
 import syntax.Regular;
@@ -187,11 +188,13 @@ public class DolmenAnnotationHover
 			if (entry != null) return getHoverInfo(entry);
 		}
 		else if (editor instanceof JGEditor) {
+			JGEditor jgEditor = (JGEditor) editor;
 			// Supports TokenDecl and GrammarRule
 			TokenDecl token = editor.findDeclarationFor(selected, TokenDecl.class);
 			if (token != null) return getHoverInfo(token);
 			PGrammarRule rule = editor.findDeclarationFor(selected, PGrammarRule.class);
-			if (rule != null) return getHoverInfo(rule);
+			if (rule != null) 
+				return getHoverInfo(rule, jgEditor.getFormalSorts(rule.name.val));
 		}
 		return null;
 	}
@@ -219,7 +222,7 @@ public class DolmenAnnotationHover
 				"<b>" + decl.name.val + "</b>";
 	}
 	
-	private String getHoverInfo(PGrammarRule rule) {
+	private String getHoverInfo(PGrammarRule rule, @Nullable List<Sort> sorts) {
 		StringBuilder buf = new StringBuilder();
 		buf.append(rule.visibility ? "public" : "private");
 		buf.append(" ");
@@ -238,6 +241,19 @@ public class DolmenAnnotationHover
 		}
 		if (rule.args != null) {
 			buf.append("(").append(rule.args.find()).append(")");
+		}
+		// Add description of sorts inferred for formals if available
+		if (sorts != null && !sorts.isEmpty()) {
+			buf.append("<p/>");
+			buf.append("<ul>\n");
+			for (int i = 0; i < sorts.size(); ++i) {
+				Located<String> fi = rule.params.get(i);
+				Sort si = sorts.get(i);
+				buf.append("<li>");
+				buf.append("<i>").append(fi.val).append("</i>: ");
+				buf.append(si.toString());
+			}
+			buf.append("</ul>\n");
 		}
 		return buf.toString();
 	}
