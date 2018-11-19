@@ -244,14 +244,33 @@ public class DolmenAnnotationHover
 		}
 		// Add description of sorts inferred for formals if available
 		if (sorts != null && !sorts.isEmpty()) {
-			buf.append("<p/>");
+			buf.append("<p/><br/>");
 			buf.append("<ul>\n");
 			for (int i = 0; i < sorts.size(); ++i) {
 				Located<String> fi = rule.params.get(i);
 				Sort si = sorts.get(i);
 				buf.append("<li>");
-				buf.append("<i>").append(fi.val).append("</i>: ");
-				buf.append(si.toString());
+				buf.append("<i>").append(fi.val).append("</i> ");
+				switch (si) {
+				case ALL:
+					buf.append(" can be anything");
+					break;
+				case ARGS:
+					buf.append(" must expect arguments");
+					break;
+				case ARGS_VALUED:
+					buf.append(" must be valued and expect arguments");
+					break;
+				case NO_ARGS:
+					buf.append(" must not expect arguments");
+					break;
+				case NO_ARGS_VALUED:
+					buf.append(" must be valued and not expect arguments");
+					break;
+				case VALUED:
+					buf.append(" must be valued");
+					break;
+				}
 			}
 			buf.append("</ul>\n");
 		}
