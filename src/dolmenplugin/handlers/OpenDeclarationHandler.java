@@ -36,9 +36,10 @@ public class OpenDeclarationHandler extends AbstractHandler {
 	    // Find the selection to which the command should be applied
 	    final String selectedWord = findSelectedWord(editor);
 	    if (selectedWord == null) return null;
+	    final ITextSelection selection = (ITextSelection) editor.getSelectionProvider().getSelection();
 
 	    // Look for a declaration matching the selection in the editor's model
-	    Located<?> declaration = editor.findDeclarationFor(selectedWord);
+	    Located<?> declaration = editor.findDeclarationFor(selectedWord, selection);
 	    if (declaration == null) return null;
 	    
 	    editor.selectAndReveal(declaration.start.offset, declaration.length());

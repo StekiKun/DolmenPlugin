@@ -13,9 +13,11 @@ import org.eclipse.jface.text.IInformationControlCreator;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.ITextHover;
 import org.eclipse.jface.text.ITextHoverExtension;
+import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.Position;
 import org.eclipse.jface.text.Region;
+import org.eclipse.jface.text.TextSelection;
 import org.eclipse.jface.text.source.Annotation;
 import org.eclipse.jface.text.source.IAnnotationHover;
 import org.eclipse.jface.text.source.IAnnotationModel;
@@ -31,6 +33,7 @@ import org.eclipse.ui.editors.text.EditorsUI;
 import org.eclipse.ui.texteditor.SimpleMarkerAnnotation;
 
 import dolmenplugin.editors.jg.JGEditor;
+import dolmenplugin.editors.jg.JGEditor.FormalDecl;
 import dolmenplugin.editors.jl.JLEditor;
 import dolmenplugin.handlers.HandlerUtils;
 import dolmenplugin.handlers.HandlerUtils.SelectedWord;
@@ -151,7 +154,7 @@ public class DolmenAnnotationHover
 			else
 				selected = doc.get(hoverRegion.getOffset(), hoverRegion.getLength());
 			
-			return getDescriptionFor(editor, selected);
+			return getDescriptionFor(editor, hoverRegion, selected);
 		} catch (BadLocationException e) {
 			return null;
 		}
@@ -179,22 +182,34 @@ public class DolmenAnnotationHover
 		return new Region(offset, 0);
 	}
 
-	private String getDescriptionFor(DolmenEditor<?> editor, String selected) {
+	private String getDescriptionFor(DolmenEditor<?> editor, IRegion hoverRegion, String selected) {
+		ITextSelection ts = new TextSelection(hoverRegion.getOffset(), hoverRegion.getLength());
 		if (editor instanceof JLEditor) {
 			// Supports Regular and Lexer.Entry
-			Regular reg = editor.findDeclarationFor(selected, Regular.class);
+			Regular reg = editor.findDeclarationFor(selected, ts, Regular.class);
 			if (reg != null) return getHoverInfo(selected, reg);
-			Lexer.Entry entry = editor.findDeclarationFor(selected, Lexer.Entry.class);
+			Lexer.Entry entry = editor.findDeclarationFor(selected, ts, Lexer.Entry.class);
 			if (entry != null) return getHoverInfo(entry);
 		}
 		else if (editor instanceof JGEditor) {
 			JGEditor jgEditor = (JGEditor) editor;
-			// Supports TokenDecl and GrammarRule
-			TokenDecl token = editor.findDeclarationFor(selected, TokenDecl.class);
-			if (token != null) return getHoverInfo(token);
-			PGrammarRule rule = editor.findDeclarationFor(selected, PGrammarRule.class);
-			if (rule != null) 
-				return getHoverInfo(rule, jgEditor.getFormalSorts(rule.name.val));
+			// Supports TokenDecl, GrammarRule and FormalDecl
+			JGEditor.SelectedDeclaration decl = jgEditor.findSelectedDeclarationFor(selected, ts);
+			if (decl == null) return null;
+			if (decl.declarationClass == TokenDecl.class) {
+				TokenDecl token = editor.findDeclarationFor(selected, ts, TokenDecl.class);
+				if (token != null) return getHoverInfo(token);				
+			}
+			else if (decl.declarationClass == FormalDecl.class) {
+				FormalDecl formal = editor.findDeclarationFor(selected, ts, FormalDecl.class);
+				if (formal != null) 
+					return getHoverInfo(formal.rule, formal.param, jgEditor.getFormalSorts(formal.rule.name.val));
+			}
+			else if (decl.declarationClass == PGrammarRule.class) {
+				PGrammarRule rule = editor.findDeclarationFor(selected, ts, PGrammarRule.class);
+				if (rule != null)
+					return getHoverInfo(rule, null, jgEditor.getFormalSorts(rule.name.val));
+			}
 		}
 		return null;
 	}
@@ -222,7 +237,8 @@ public class DolmenAnnotationHover
 				"<b>" + decl.name.val + "</b>";
 	}
 	
-	private String getHoverInfo(PGrammarRule rule, @Nullable List<Sort> sorts) {
+	private String getHoverInfo(PGrammarRule rule, 
+			@Nullable Located<String> param, @Nullable List<Sort> sorts) {
 		StringBuilder buf = new StringBuilder();
 		buf.append(rule.visibility ? "public" : "private");
 		buf.append(" ");
@@ -235,7 +251,10 @@ public class DolmenAnnotationHover
 			for (Located<String> formal : rule.params) {
 				if (first) first = false;
 				else buf.append(", ");
-				buf.append(formal.val);
+				if (param != null && formal.val.equals(param.val))
+					buf.append("<b>").append(formal.val).append("</b>");
+				else
+					buf.append(formal.val);
 			}
 			buf.append("&gt;").append("</i>");
 		}
@@ -248,8 +267,10 @@ public class DolmenAnnotationHover
 			buf.append("<ul>\n");
 			for (int i = 0; i < sorts.size(); ++i) {
 				Located<String> fi = rule.params.get(i);
+				boolean focussed = fi.equals(param);
 				Sort si = sorts.get(i);
 				buf.append("<li>");
+				if (focussed) buf.append("<b>");
 				buf.append("<i>").append(fi.val).append("</i> ");
 				switch (si) {
 				case ALL:
@@ -271,10 +292,10 @@ public class DolmenAnnotationHover
 					buf.append(" must be valued");
 					break;
 				}
+				if (focussed) buf.append("</b>");
 			}
 			buf.append("</ul>\n");
 		}
 		return buf.toString();
 	}
-
 }

@@ -313,21 +313,23 @@ public abstract class DolmenEditor<T> extends TextEditor
 	 * instead in this case.
 	 * 
 	 * @param name
+	 * @param selection		where {@code name} was referenced
 	 * @return the place where an entity called {@code name} 
-	 * 	is declared in this editor's model, or {@code null}
+	 *  is declared in this editor's model, or {@code null}
 	 * 	if none could be found
 	 */
-	public abstract @Nullable Located<?> findDeclarationFor(String name);
+	public abstract @Nullable Located<?> findDeclarationFor(String name, ITextSelection selection);
 	
 	/**
 	 * 
 	 * @param name
+	 * @param selection		where {@code name} was referenced
 	 * @param clazz
 	 * @return the declaration of the type given by {@code clazz}
 	 * 	with the given {@code name} in this editor's model, or
 	 * 	{@code null} if none could be found
 	 */
 	public abstract <Decl> @Nullable Decl 
-		findDeclarationFor(String name, Class<Decl> clazz);
+		findDeclarationFor(String name, ITextSelection selection, Class<Decl> clazz);
 	
 }

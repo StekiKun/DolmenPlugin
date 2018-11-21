@@ -4,6 +4,7 @@ import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.jface.text.IDocument;
@@ -14,6 +15,7 @@ import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
 
 import codegen.BaseParser.ParsingException;
 import codegen.LexBuffer.LexicalError;
+import codegen.LexBuffer.Position;
 import common.Lists;
 import dolmenplugin.editors.ColorManager;
 import dolmenplugin.editors.DolmenEditor;
@@ -24,13 +26,14 @@ import jg.JGParserGenerated;
 import jge.JGELexer;
 import jge.JGEParser;
 import syntax.Located;
+import syntax.PExtent;
 import syntax.PGrammar;
 import syntax.PGrammarRule;
 import syntax.PGrammars;
 import syntax.PGrammars.Sort;
 import syntax.PProduction;
-import syntax.Reporter;
 import syntax.PProduction.ActualExpr;
+import syntax.Reporter;
 import syntax.TokenDecl;
 
 /**
@@ -130,32 +133,122 @@ public class JGEditor extends DolmenEditor<PGrammar> {
 			return null;
 		return formalSorts.get(ruleName);
 	}
+	
+	/**
+	 * A descriptor for a formal parameter declaration, characterized
+	 * by the {@link #rule} where the parameter is declared, and
+	 * its {@linkplain #param name}. It is used to denote formal
+	 * parameters when marking occurrences or finding declaration sites.
+	 * 
+	 * @author Stéphane Lescuyer
+	 */
+	public static final class FormalDecl {
+		/**
+		 * The rule where the formal is declared
+		 */
+		public final PGrammarRule rule;
+		/**
+		 * The formal parameter's name at declaration site
+		 */
+		public final Located<String> param;
+		
+		public FormalDecl(PGrammarRule rule, Located<String> param) {
+			this.rule = rule;
+			this.param = param;
+			for (Located<String> p : rule.params) {
+				if (p == param) return;
+			}
+			throw new IllegalArgumentException("" + param.val + " is not a formal parameter of " + rule);
+		}
+	}
+	
+	/**
+	 * @param rule
+	 * @param selection
+	 * @return whether the range of {@code selection} is enclosed in 
+	 * 	the definition of the rule {@code rule}
+	 */
+	private static boolean enclosedInRule(PGrammarRule rule, ITextSelection selection) {
+		// Approximate the range of the rule in the source
+		int first = rule.returnType.startPos;
+		PProduction lastProd = rule.productions.get(rule.productions.size() - 1);
+		PProduction.Item lastItem = lastProd.items.get(lastProd.items.size() - 1);
+		int last = -1;
+		switch (lastItem.getKind()) {
+		case ACTION:
+			last = ((PProduction.ActionItem) lastItem).extent.endPos;
+			break;
+		case ACTUAL:
+			PProduction.Actual actual = (PProduction.Actual) lastItem;
+			if (actual.args != null) {
+				last = actual.args.endPos;
+				break;
+			}
+			ActualExpr aexpr = ((PProduction.Actual) lastItem).item;
+			while (!aexpr.params.isEmpty())
+				aexpr = aexpr.params.get(aexpr.params.size() - 1);
+			last = aexpr.symb.end.offset;
+			break;
+		case CONTINUE:
+			last = ((PProduction.Continue) lastItem).cont.end.offset;
+			break;
+		}
+		// Check whether selection is included in the rule's range
+		if (selection.getOffset() < first) return false;
+		if (selection.getOffset() + selection.getLength() > last) return false;
+		return true;
+	}
 
 	/**
 	 * {@inheritDoc}
 	 * 
-	 * Can look for token declarations and grammar rules
+	 * Can look for token declarations, grammar rules and formal parameters
 	 */
 	@Override
-	public @Nullable Located<String> findDeclarationFor(String name) {
+	public @Nullable Located<String> findDeclarationFor(String name, ITextSelection selection) {
+		@Nullable SelectedDeclaration decl = findSelectedDeclarationFor(name, selection);
+		return decl == null ? null : decl.declarationName;
+	}
+	
+	/**
+	 * @param name
+	 * @param selection
+	 * @return the declaration corresponding to the given {@code name}
+	 * 	as referred in the range described by {@code selection}, or
+	 *  {@code null} if no model is available or no such declaration
+	 *  can be found
+	 */
+	public @Nullable SelectedDeclaration 
+		findSelectedDeclarationFor(String name, ITextSelection selection) {
 		if (model == null) return null;
 		for (TokenDecl token : model.tokenDecls) {
-			if (token.name.val.equals(name)) return token.name;
+			if (token.name.val.equals(name)) 
+				return new SelectedDeclaration(token.name, TokenDecl.class);
 		}
+		// Look for a formal parameter first, and then for a non-terminal
 		for (PGrammarRule rule : model.rules.values()) {
-			if (rule.name.val.equals(name)) return rule.name;
+			for (Located<String> param : rule.params) {
+				if (param.val.equals(name) && enclosedInRule(rule, selection))
+					return new SelectedDeclaration(param, FormalDecl.class);
+			}
 		}
-		return null;
+		try {
+			return new SelectedDeclaration(model.rule(name).name, PGrammarRule.class);
+		}
+		catch (IllegalArgumentException e) {
+			return null;
+		}
 	}
 	
 	/**
 	 * {@inheritDoc}
 	 * 
-	 * Only supports {@link PGrammarRule.class} and {@link TokenDecl.class}
+	 * Only supports {@link PGrammarRule.class}, {@link FormalDecl.class} 
+	 * and {@link TokenDecl.class}
 	 */
 	@Override
 	public <Decl> @Nullable Decl 
-		findDeclarationFor(String name, Class<Decl> clazz) {
+		findDeclarationFor(String name, ITextSelection selection, Class<Decl> clazz) {
 		if (model == null) return null;
 		if (clazz == TokenDecl.class) {
 			for (TokenDecl token : model.tokenDecls) {
@@ -163,25 +256,36 @@ public class JGEditor extends DolmenEditor<PGrammar> {
 			}
 			return null;
 		}
-		if (clazz == PGrammarRule.class) {
+		else if (clazz == PGrammarRule.class) {
 			for (PGrammarRule rule : model.rules.values()) {
 				if (rule.name.val.equals(name)) return clazz.cast(rule);
 			}
 			return null;
 		}
+		else if (clazz == FormalDecl.class) {
+			for (PGrammarRule rule : model.rules.values()) {
+				for (Located<String> param : rule.params) {
+					if (param.val.equals(name) && enclosedInRule(rule, selection))
+						return clazz.cast(new FormalDecl(rule, param));
+				}
+			}
+		}
 		return null;
 	}
 
 	/**
-	 * Only supports {@link PGrammarRule.class} and {@link TokenDecl.class}.
+	 * Only supports {@link PGrammarRule.class}, {@link FormalDecl.class}
+	 * and {@link TokenDecl.class}.
 	 * 
 	 * @param name
+	 * @param selection		where {@code name} was referenced
 	 * @param clazz
 	 * @return the references in the model for the entity with the given	
 	 * 	{@code name} and {@code clazz}, or {@code null} if the model is
 	 * 	not available or {@code clazz} is not supported
 	 */
-	private List<Located<?>> findReferencesFor(String name, Class<?> clazz) {
+	private List<Located<?>> findReferencesFor(String name, 
+			ITextSelection selection, Class<?> clazz) {
 		if (model == null) return null;
 		if (clazz == TokenDecl.class) {
 			// Reference to tokens are found in production items
@@ -219,6 +323,39 @@ public class JGEditor extends DolmenEditor<PGrammar> {
 			}
 			return res.isEmpty() ? Lists.empty() : res;
 		}
+		else if (clazz == FormalDecl.class) {
+			// References to formal parameters are found in the production items
+			// of the rule where they are declared, as well as in holes of the
+			// return type, arguments and action items
+			List<Located<?>> res = new ArrayList<>();
+			for (PGrammarRule rule : model.rules.values()) {
+				// We look for the actual rule and formal parameter
+				Optional<Located<String>> param = rule.params.stream()
+						.filter(p -> p.val.equals(name)).findFirst();
+				if (!param.isPresent()) continue;
+				if (!enclosedInRule(rule, selection)) continue;
+				// We have found the rule, let's find all occurrences now
+				addHoleReferences(res, name, rule.returnType);
+				addHoleReferences(res, name, rule.args);
+				rule.productions.stream()
+					.flatMap(prod -> prod.items.stream())
+					.forEach(item -> {
+						switch (item.getKind()) {
+						case ACTION:
+							addHoleReferences(res, name, ((PProduction.ActionItem) item).extent);
+							break;
+						case ACTUAL:
+							PProduction.Actual actual = (PProduction.Actual) item;
+							addReferencesFor(res, name, actual.item);
+							addHoleReferences(res, name, actual.args);
+							break;
+						case CONTINUE:
+							break;
+						}						
+					});
+			}
+			return res.isEmpty() ? Lists.empty() : res;
+		}
 		return null;
 	}
 
@@ -238,25 +375,63 @@ public class JGEditor extends DolmenEditor<PGrammar> {
 			addReferencesFor(refs, name, sexpr);
 	}
 	
+	/**
+	 * Add located references to the formal parameter {@code name}
+	 * in the holes of the parameterized extent {@link extent}. 
+	 * References are added to the reference list {@code refs}.
+	 * 
+	 * @param refs
+	 * @param name
+	 * @param extent
+	 */
+	private void addHoleReferences(List<Located<?>> refs,
+			String name, @Nullable PExtent extent) {
+		if (extent == null) return;
+		for (PExtent.Hole hole : extent.holes) {
+			if (hole.name.equals(name)) {
+				int base = extent.startPos;
+				refs.add(Located.of(hole.name,
+					new Position(extent.filename, base + hole.offset, 
+							hole.startLine, hole.startCol),
+					new Position(extent.filename, base + hole.endOffset() + 1, 
+							hole.startLine, hole.startCol + hole.length())));
+			}
+		}
+	}
+	
+	/**
+	 * Container class which packs together a declaration site and
+	 * a {@link Class} object representing the kind of declared entity
+	 * 
+	 * @author Stéphane Lescuyer
+	 */
+	public final static class SelectedDeclaration {
+		/** The name and site of the declaration */
+		public final Located<String> declarationName;
+		/** The kind of entity being declared */
+		public final Class<?> declarationClass;
+		
+		SelectedDeclaration(Located<String> declarationName, Class<?> declarationClass) {
+			this.declarationName = declarationName;
+			this.declarationClass = declarationClass;
+		}
+	}
+	
 	@Override
 	protected @Nullable Occurrences findOccurrencesFor(ITextSelection selection) {
 		if (model == null) return null;
 		
-		@Nullable Located<String> decl = findDeclarationFor(selection);
+		@Nullable SelectedDeclaration decl = findDeclarationFor(selection);
 		if (decl == null) return null;
-		
-		// TODO FIXME: find the current rule and maybe it is a formal
-		//	we are looking at...
-		
-		Class<?> clazz = Character.isUpperCase(decl.val.charAt(0)) ?
-				TokenDecl.class : PGrammarRule.class;
-		return new Occurrences(decl, findReferencesFor(decl.val, clazz));
+				
+		return new Occurrences(decl.declarationName,
+			findReferencesFor(decl.declarationName.val, selection, decl.declarationClass));
 	}
 	
-	private @Nullable Located<String> findDeclarationFor(ITextSelection selection) {
+	private @Nullable SelectedDeclaration findDeclarationFor(ITextSelection selection) {
 		// If the selection happens to point to a declaration, use it (it's
 		// faster and a bit more robust)
-		@Nullable Located<String> decl = findSelectedDeclaration(selection);
+		@Nullable SelectedDeclaration decl = findSelectedDeclaration(selection);
 		if (decl != null) return decl;
 
 		// Otherwise, do a textual match. This allows finding occurrences from
@@ -264,7 +439,7 @@ public class JGEditor extends DolmenEditor<PGrammar> {
 		// fragile approach of course.
 		@Nullable SelectedWord sword = HandlerUtils.selectWord(getDocument(), selection); 
 		if (sword == null) return null;
-		return findDeclarationFor(sword.word);
+		return findSelectedDeclarationFor(sword.word, selection);
 	}
 	
 	/**
@@ -275,20 +450,19 @@ public class JGEditor extends DolmenEditor<PGrammar> {
 	 * @param selection
 	 * @return the declaration described by the {@code selection}
 	 */
-	private @Nullable Located<String> findSelectedDeclaration(ITextSelection selection) {
+	private @Nullable SelectedDeclaration findSelectedDeclaration(ITextSelection selection) {
 		if (model == null) return null;
 		for (TokenDecl token : model.tokenDecls) {
-			if (enclosedInLocation(token.name, selection)) return token.name;
+			if (enclosedInLocation(token.name, selection)) 
+				return new SelectedDeclaration(token.name, TokenDecl.class);
 		}
 		for (PGrammarRule rule : model.rules.values()) {
 			if (enclosedInLocation(rule.name, selection))
-				return rule.name;
-	// TODO FIXME activate this once the remainder of the system 
-	//		expects formal parameter declarations
-	//		for (Located<String> param : rule.params) {
-	//			if (enclosedInLocation(param, selection))
-	//				return param;
-	//		}
+				return new SelectedDeclaration(rule.name, PGrammarRule.class);
+			for (Located<String> param : rule.params) {
+				if (enclosedInLocation(param, selection))
+					return new SelectedDeclaration(param, FormalDecl.class);
+			}
 		}
 		return null;
 	}
