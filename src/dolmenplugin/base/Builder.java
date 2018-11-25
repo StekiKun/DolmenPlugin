@@ -29,6 +29,7 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.SubMonitor;
 import org.eclipse.core.runtime.jobs.IJobFunction;
 import org.eclipse.core.runtime.jobs.ISchedulingRule;
+import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.jdt.core.IJavaModelMarker;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
@@ -537,9 +538,9 @@ public final class Builder extends IncrementalProjectBuilder
 				int start = jdtMarker.getAttribute(IMarker.CHAR_START, -1);
 				int end = jdtMarker.getAttribute(IMarker.CHAR_END, -1);
 				int length = end - start;
-				int srcPos = smap.map(start, length);
-				if (srcPos == -1) return Status.OK_STATUS;
-				IMarker copy = Marker.copyFromJDT(dolmenRes, jdtMarker, srcPos, srcPos + length);
+				SourceMapping.@Nullable Origin origin = smap.map(start, length);
+				if (origin == null) return Status.OK_STATUS;
+				IMarker copy = Marker.copyFromJDT(dolmenRes, jdtMarker, origin);
 				forwardedMarkers.put(jdtMarker, copy);
 				return Status.OK_STATUS;
 			}

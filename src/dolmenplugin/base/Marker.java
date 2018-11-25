@@ -161,19 +161,29 @@ public final class Marker {
 	 * 
 	 * @param res
 	 * @param jdtMarker	the marker to copy
-	 * @param start		the start offset
-	 * @param end		the end offset
+	 * @param origin	the origin of the marker's region in {@code res}
 	 */
 	public static IMarker copyFromJDT(IResource res, IMarker jdtMarker,
-			int start, int end) {
+			SourceMapping.Origin origin) {
 		try {
 			IMarker jdtProblem = res.createMarker(Marker.ID);
+			// TODO: better display of replacements in message or other attribute
+			// TODO: avoid adding different instantiations of the same problem
+			//		to the exact same source region
 			jdtMarker.getAttributes().forEach((s, o) -> {
 				try {
 					// Tweak message to show its true origin
 					if (IMarker.MESSAGE.equals(s)) {
-						String msg = "[Java Problem] " + o;
-						jdtProblem.setAttribute(s, msg);
+						StringBuilder msg = new StringBuilder();
+						msg.append("[Java Problem] ").append(o);
+						if (!origin.replacements.isEmpty()) {
+							msg.append("\nWith instances:\n");
+							origin.replacements.forEach((hole, rep) -> {
+								msg.append(" - ").append(hole)
+									.append(" -> ").append(rep);
+							});
+						}
+						jdtProblem.setAttribute(s, msg.toString());
 					}
 					else 
 						jdtProblem.setAttribute(s, o);
@@ -184,8 +194,8 @@ public final class Marker {
 			// Override the positional and source attributes
 			jdtProblem.setAttribute(IMarker.SOURCE_ID, JDT_SOURCE_ID);
 			// jdtProblem.setAttribute(IMarker.LINE_NUMBER, line);
-			jdtProblem.setAttribute(IMarker.CHAR_START, start);
-			jdtProblem.setAttribute(IMarker.CHAR_END, end);
+			jdtProblem.setAttribute(IMarker.CHAR_START, origin.offset);
+			jdtProblem.setAttribute(IMarker.CHAR_END, origin.offset + origin.length);
 			return jdtProblem;
 		} catch (CoreException e1) {
 			e1.printStackTrace();
