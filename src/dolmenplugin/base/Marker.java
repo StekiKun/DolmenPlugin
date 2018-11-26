@@ -167,7 +167,6 @@ public final class Marker {
 			SourceMapping.Origin origin) {
 		try {
 			IMarker jdtProblem = res.createMarker(Marker.ID);
-			// TODO: better display of replacements in message or other attribute
 			// TODO: avoid adding different instantiations of the same problem
 			//		to the exact same source region
 			jdtMarker.getAttributes().forEach((s, o) -> {
@@ -175,14 +174,10 @@ public final class Marker {
 					// Tweak message to show its true origin
 					if (IMarker.MESSAGE.equals(s)) {
 						StringBuilder msg = new StringBuilder();
-						msg.append("[Java Problem] ").append(o);
-						if (!origin.replacements.isEmpty()) {
-							msg.append("\nWith instances:\n");
-							origin.replacements.forEach((hole, rep) -> {
-								msg.append(" - ").append(hole)
-									.append(" -> ").append(rep);
-							});
-						}
+						msg.append("[Java Problem");
+						if (origin.ruleName != null)
+							msg.append(" in ").append(origin.ruleName);
+						msg.append("] ").append(o);
 						jdtProblem.setAttribute(s, msg.toString());
 					}
 					else 
