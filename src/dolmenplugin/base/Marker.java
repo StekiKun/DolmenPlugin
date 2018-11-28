@@ -1,9 +1,12 @@
 package dolmenplugin.base;
 
+import java.util.Map;
+
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.jdt.annotation.Nullable;
 
 import codegen.SourceMapping;
 import syntax.IReport;
@@ -167,28 +170,15 @@ public final class Marker {
 			SourceMapping.Origin origin) {
 		try {
 			IMarker jdtProblem = res.createMarker(Marker.ID);
-			// TODO: avoid adding different instantiations of the same problem
-			//		to the exact same source region
 			jdtMarker.getAttributes().forEach((s, o) -> {
 				try {
-					// Tweak message to show its true origin
-					if (IMarker.MESSAGE.equals(s)) {
-						StringBuilder msg = new StringBuilder();
-						msg.append("[Java Problem");
-						if (origin.ruleName != null)
-							msg.append(" in ").append(origin.ruleName);
-						msg.append("] ").append(o);
-						jdtProblem.setAttribute(s, msg.toString());
-					}
-					else 
-						jdtProblem.setAttribute(s, o);
+					jdtProblem.setAttribute(s, o);
 				} catch (CoreException e) {
 					e.printStackTrace();
 				}
 			});
 			// Override the positional and source attributes
 			jdtProblem.setAttribute(IMarker.SOURCE_ID, JDT_SOURCE_ID);
-			// jdtProblem.setAttribute(IMarker.LINE_NUMBER, line);
 			jdtProblem.setAttribute(IMarker.CHAR_START, origin.offset);
 			jdtProblem.setAttribute(IMarker.CHAR_END, origin.offset + origin.length);
 			return jdtProblem;
@@ -197,5 +187,53 @@ public final class Marker {
 			return null;
 		}
 	}
-	
+
+	/**
+	 * Updates the {@linkplain IMarker#MESSAGE message} attribute in
+	 * {@code dolmenMarker} based on the set of rule names {@code rules}
+	 * that it has been forwarded from
+	 * 
+	 * @param dolmenMarker
+	 * @param jdtMarkerMessage 	the original problem message in the JDT
+	 * @param rules
+	 */
+	public static void updateMessage(IMarker dolmenMarker, 
+			String jdtMarkerMessage, Map<@Nullable String, Integer> rules) {
+		StringBuilder msg = new StringBuilder();
+		msg.append("[Java Problem] ").append(jdtMarkerMessage);
+		
+		if (rules.size() == 1) {
+			Map.Entry<@Nullable String, Integer> only = rules.entrySet().iterator().next();
+			// When no instantiation we don't add anything
+			if (only.getKey() != null) {
+				msg.append("(in rule ").append(only.getKey()).append(")");
+			}
+		}
+		else {
+			int sz = rules.size();
+			// Find the most frequent rule among those reporting the problem
+			// To break ties, use the shortest rule name
+			Map.Entry<@Nullable String, Integer> mostFrequent = 
+				rules.entrySet().iterator().next();
+			for (Map.Entry<@Nullable String, Integer> entry : rules.entrySet()) {
+				if (entry.getValue() > mostFrequent.getValue())
+					mostFrequent = entry;
+				else if (entry.getValue() == mostFrequent.getValue()
+					&& entry.getKey().length() < mostFrequent.getKey().length()) {
+					mostFrequent = entry;
+				}
+			}
+			msg.append("  (in rule ").append(mostFrequent.getKey());
+			msg.append(" and ").append(sz - 1)
+				.append(sz > 2 ? " others)" : " other)");
+		}
+		
+		// Update the message attribute
+		try {
+			dolmenMarker.setAttribute(IMarker.MESSAGE, msg.toString());
+		} catch (CoreException e) {
+			e.printStackTrace();
+			return;
+		}
+	}
 }
