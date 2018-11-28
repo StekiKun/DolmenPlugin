@@ -3,7 +3,9 @@ package dolmenplugin.editors;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.function.Function;
 
+import org.eclipse.core.resources.IMarker;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.DefaultInformationControl;
@@ -32,6 +34,7 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.editors.text.EditorsUI;
 import org.eclipse.ui.texteditor.SimpleMarkerAnnotation;
 
+import dolmenplugin.base.Marker;
 import dolmenplugin.editors.jg.JGEditor;
 import dolmenplugin.editors.jg.JGEditor.FormalDecl;
 import dolmenplugin.editors.jl.JLEditor;
@@ -68,9 +71,11 @@ public class DolmenAnnotationHover
 	 * 
 	 * @param sourceViewer
 	 * @param region
+	 * @param html		if {@code true}, build an HTML description, otherwise use raw text
 	 * @return an adequate hover info, or {@code null} if no info should be displayed
 	 */
-	private String getMarkersInfo(ISourceViewer sourceViewer, IRegion region) {
+	private String getMarkersInfo(
+			ISourceViewer sourceViewer, IRegion region, boolean html) {
 		IAnnotationModel annotModel = sourceViewer.getAnnotationModel();
 		
 		// Find all *marker* annotations in the given source 
@@ -88,15 +93,27 @@ public class DolmenAnnotationHover
 			if (p.overlapsWith(region.getOffset(), region.getLength()))
 				annots.add(ma);
 		}
-		
+
+		final String attr = html ? Marker.DOLMEN_MARKER_HTML_MESSAGE : IMarker.MESSAGE;
+		Function<SimpleMarkerAnnotation, String> messageOf =
+			annot -> annot.getMarker().getAttribute(attr, "!no message!");
+
 		if (annots.isEmpty()) return null;
 		if (annots.size() == 1)
-			return annots.get(0).getText();
+			return messageOf.apply(annots.get(0));
 		// Concatenate the messages for the various markers 
 		StringBuilder buf = new StringBuilder();
 		buf.append(annots.size()).append(" problems here:");
-		for (int i = 0; i < annots.size(); ++i)
-			buf.append("\n-").append(annots.get(i).getText());
+		if (html) {
+			buf.append("<ul>");
+			for (int i = 0; i < annots.size(); ++i)
+				buf.append("<li>").append(messageOf.apply(annots.get(i)));
+			buf.append("</ul>");
+		}
+		else {
+			for (int i = 0; i < annots.size(); ++i)
+				buf.append("\n-").append(messageOf.apply(annots.get(i)));
+		}
 		return buf.toString();
 	}
 	
@@ -110,7 +127,7 @@ public class DolmenAnnotationHover
 		} catch (BadLocationException e) {
 			return null;
 		}
-		return getMarkersInfo(sourceViewer, reg);
+		return getMarkersInfo(sourceViewer, reg, false);
 	}
 
 	@Override
@@ -120,7 +137,7 @@ public class DolmenAnnotationHover
 
 		// Try markers in the hover region
 		ISourceViewer sourceViewer = (ISourceViewer) textViewer;
-		@Nullable String hover = getMarkersInfo(sourceViewer, hoverRegion);
+		@Nullable String hover = getMarkersInfo(sourceViewer, hoverRegion, true);
 		if (hover != null) return hover;
 		
 		// Otherwise find a declaration corresponding to the hovered region

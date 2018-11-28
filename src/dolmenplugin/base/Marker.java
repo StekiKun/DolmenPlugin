@@ -33,6 +33,12 @@ public final class Marker {
 	 */
 	private static final String JDT_SOURCE_ID = "JDT";
 
+	
+	/**
+	 * Marker attribute name for HTML messages in Dolmen markers
+	 */
+	public static final String DOLMEN_MARKER_HTML_MESSAGE = "dolmenplugin.base.marker.htmlMessage";
+	
 	/**
 	 * Whether source mappings should be turned into markers
 	 */
@@ -199,14 +205,19 @@ public final class Marker {
 	 */
 	public static void updateMessage(IMarker dolmenMarker, 
 			String jdtMarkerMessage, Map<@Nullable String, Integer> rules) {
+		StringBuilder html = new StringBuilder();
 		StringBuilder msg = new StringBuilder();
 		msg.append("[Java Problem] ").append(jdtMarkerMessage);
+		html.append("<b>[Java Problem]</b> ").append(escapeHtml(jdtMarkerMessage));
 		
 		if (rules.size() == 1) {
 			Map.Entry<@Nullable String, Integer> only = rules.entrySet().iterator().next();
 			// When no instantiation we don't add anything
 			if (only.getKey() != null) {
-				msg.append("(in rule ").append(only.getKey()).append(")");
+				msg.append(" (in rule ").append(only.getKey()).append(")");
+				html.append(" <i>(in rule ")
+					.append(escapeHtml(only.getKey()))
+					.append(")</i>");
 			}
 		}
 		else {
@@ -226,14 +237,39 @@ public final class Marker {
 			msg.append("  (in rule ").append(mostFrequent.getKey());
 			msg.append(" and ").append(sz - 1)
 				.append(sz > 2 ? " others)" : " other)");
+			html.append("  <i>(in rule ")
+				.append(escapeHtml(mostFrequent.getKey()))
+				.append(" and ").append(sz - 1)
+				.append(sz > 2 ? " others)" : " other)").append("</i>");
 		}
 		
 		// Update the message attribute
 		try {
 			dolmenMarker.setAttribute(IMarker.MESSAGE, msg.toString());
+			dolmenMarker.setAttribute(DOLMEN_MARKER_HTML_MESSAGE, html.toString());
 		} catch (CoreException e) {
 			e.printStackTrace();
 			return;
 		}
 	}
+
+	/**
+	 * @param s
+	 * @return {@code s} where characters reserved in HTML have been escaped
+	 */
+	private static String escapeHtml(String s) {
+		StringBuilder buf = new StringBuilder(s.length() + 5);
+		s.chars().forEach(c -> {
+			switch (c) {
+			case '&':	buf.append("&amp"); break;
+			case '"':   buf.append("&quot;"); break;
+			case '<':	buf.append("&lt;"); break;
+			case '>':   buf.append("&gt;"); break;
+			default:
+				buf.append((char)c);
+			}
+		});
+		return buf.toString();
+	}
+	
 }
