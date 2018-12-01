@@ -21,7 +21,7 @@ import org.eclipse.ui.views.contentoutline.ContentOutlinePage;
 import dolmenplugin.base.Images;
 import dolmenplugin.editors.OutlineFilterAction;
 import dolmenplugin.editors.OutlineNode;
-import syntax.Grammar;
+import syntax.PGrammar;
 
 /**
  * Implementation of the <i>outline view</i> for 
@@ -90,7 +90,7 @@ public class JGOutlinePage extends ContentOutlinePage {
 	}
 	
 	private boolean acceptable(Object input) {
-		if (input instanceof Grammar) return true;
+		if (input instanceof PGrammar) return true;
 		if (input instanceof Exception) return true;
 		return false;
 	}

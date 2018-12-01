@@ -100,14 +100,14 @@ public class JGConfiguration extends SourceViewerConfiguration {
 	
 	protected JavaScanner getJGJavaScanner() {
 		if (jgJavaScanner == null) {
-			jgJavaScanner = new JavaScanner(colorManager, IColorConstants.JAVA_BG);
+			jgJavaScanner = new JavaScanner(true, colorManager, IColorConstants.JAVA_BG);
 		}
 		return jgJavaScanner;
 	}
 	
 	protected JavaScanner getJGArgsScanner() {
 		if (jgArgsScanner == null) {
-			jgArgsScanner = new JavaScanner(colorManager, null);
+			jgArgsScanner = new JavaScanner(true, colorManager, null);
 		}
 		return jgArgsScanner;
 	}

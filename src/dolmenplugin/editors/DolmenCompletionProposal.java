@@ -13,8 +13,8 @@ import org.eclipse.swt.graphics.Point;
 
 import dolmenplugin.Activator;
 import dolmenplugin.base.Images;
-import syntax.Grammar.TokenDecl;
-import syntax.GrammarRule;
+import syntax.TokenDecl;
+import syntax.PGrammarRule;
 import syntax.Lexer;
 
 /**
@@ -29,7 +29,7 @@ import syntax.Lexer;
  * @see #regexp(String, syntax.Regular, int)
  * @see #lexerEntry(syntax.Lexer.Entry, int)
  * @see #token(TokenDecl, int, int)
- * @see #rule(GrammarRule, int, int)
+ * @see #rule(PGrammarRule, int, int)
  * @see #method(Category, String, String, int, int)
  * @see #field(Category, String, String, int, int)
  * 
@@ -227,19 +227,19 @@ public abstract class DolmenCompletionProposal
 	}
 
 	private static final class Rule extends DolmenCompletionProposal {
-		private Rule(GrammarRule rule, int offset, int length) {
+		private Rule(PGrammarRule rule, int offset, int length) {
 			super(Category.GRAMMAR_RULE, rule.name.val + "()", offset, length,
 					cursor(rule),
 					Images.RULE(rule.visibility), 
 					display(rule));
 		}
 		
-		private static int cursor(GrammarRule rule) {
+		private static int cursor(PGrammarRule rule) {
 			int c = rule.name.val.length() + 2;
 			if (rule.args != null) c--;
 			return c;
 		}
-		private static StyledString display(GrammarRule rule) {
+		private static StyledString display(PGrammarRule rule) {
 			StyledString display =
 				new StyledString(rule.name.val + "(" + 
 					(rule.args == null ? "" : rule.args.find()) + ")");
@@ -249,7 +249,7 @@ public abstract class DolmenCompletionProposal
 		}
 	}
 	public static DolmenCompletionProposal
-		rule(GrammarRule rule, int offset, int length) {
+		rule(PGrammarRule rule, int offset, int length) {
 		return new Rule(rule, offset, length);
 	}
 	

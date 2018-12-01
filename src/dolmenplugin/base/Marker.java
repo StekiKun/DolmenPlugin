@@ -1,9 +1,12 @@
 package dolmenplugin.base;
 
+import java.util.Map;
+
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.jdt.annotation.Nullable;
 
 import codegen.SourceMapping;
 import syntax.IReport;
@@ -30,6 +33,12 @@ public final class Marker {
 	 */
 	private static final String JDT_SOURCE_ID = "JDT";
 
+	
+	/**
+	 * Marker attribute name for HTML messages in Dolmen markers
+	 */
+	public static final String DOLMEN_MARKER_HTML_MESSAGE = "dolmenplugin.base.marker.htmlMessage";
+	
 	/**
 	 * Whether source mappings should be turned into markers
 	 */
@@ -161,36 +170,106 @@ public final class Marker {
 	 * 
 	 * @param res
 	 * @param jdtMarker	the marker to copy
-	 * @param start		the start offset
-	 * @param end		the end offset
+	 * @param origin	the origin of the marker's region in {@code res}
 	 */
 	public static IMarker copyFromJDT(IResource res, IMarker jdtMarker,
-			int start, int end) {
+			SourceMapping.Origin origin) {
 		try {
 			IMarker jdtProblem = res.createMarker(Marker.ID);
 			jdtMarker.getAttributes().forEach((s, o) -> {
 				try {
-					// Tweak message to show its true origin
-					if (IMarker.MESSAGE.equals(s)) {
-						String msg = "[Java Problem] " + o;
-						jdtProblem.setAttribute(s, msg);
-					}
-					else 
-						jdtProblem.setAttribute(s, o);
+					jdtProblem.setAttribute(s, o);
 				} catch (CoreException e) {
 					e.printStackTrace();
 				}
 			});
 			// Override the positional and source attributes
 			jdtProblem.setAttribute(IMarker.SOURCE_ID, JDT_SOURCE_ID);
-			// jdtProblem.setAttribute(IMarker.LINE_NUMBER, line);
-			jdtProblem.setAttribute(IMarker.CHAR_START, start);
-			jdtProblem.setAttribute(IMarker.CHAR_END, end);
+			jdtProblem.setAttribute(IMarker.CHAR_START, origin.offset);
+			jdtProblem.setAttribute(IMarker.CHAR_END, origin.offset + origin.length);
 			return jdtProblem;
 		} catch (CoreException e1) {
 			e1.printStackTrace();
 			return null;
 		}
+	}
+
+	/**
+	 * Updates the {@linkplain IMarker#MESSAGE message} attribute in
+	 * {@code dolmenMarker} based on the set of rule names {@code rules}
+	 * that it has been forwarded from
+	 * 
+	 * @param dolmenMarker
+	 * @param jdtMarkerMessage 	the original problem message in the JDT
+	 * @param rules
+	 */
+	public static void updateMessage(IMarker dolmenMarker, 
+			String jdtMarkerMessage, Map<@Nullable String, Integer> rules) {
+		StringBuilder html = new StringBuilder();
+		StringBuilder msg = new StringBuilder();
+		msg.append("[Java Problem] ").append(jdtMarkerMessage);
+		html.append("<b>[Java Problem]</b> ").append(escapeHtml(jdtMarkerMessage));
+		
+		if (rules.size() == 1) {
+			Map.Entry<@Nullable String, Integer> only = rules.entrySet().iterator().next();
+			// When no instantiation we don't add anything
+			if (only.getKey() != null) {
+				msg.append(" (in rule ").append(only.getKey()).append(")");
+				html.append(" <i>(in rule ")
+					.append(escapeHtml(only.getKey()))
+					.append(")</i>");
+			}
+		}
+		else {
+			int sz = rules.size();
+			// Find the most frequent rule among those reporting the problem
+			// To break ties, use the shortest rule name
+			Map.Entry<@Nullable String, Integer> mostFrequent = 
+				rules.entrySet().iterator().next();
+			for (Map.Entry<@Nullable String, Integer> entry : rules.entrySet()) {
+				if (entry.getValue() > mostFrequent.getValue())
+					mostFrequent = entry;
+				else if (entry.getValue() == mostFrequent.getValue()
+					&& entry.getKey().length() < mostFrequent.getKey().length()) {
+					mostFrequent = entry;
+				}
+			}
+			msg.append("  (in rule ").append(mostFrequent.getKey());
+			msg.append(" and ").append(sz - 1)
+				.append(sz > 2 ? " others)" : " other)");
+			html.append("  <i>(in rule ")
+				.append(escapeHtml(mostFrequent.getKey()))
+				.append(" and ").append(sz - 1)
+				.append(sz > 2 ? " others)" : " other)").append("</i>");
+		}
+		
+		// Update the message attribute
+		try {
+			dolmenMarker.setAttribute(IMarker.MESSAGE, msg.toString());
+			dolmenMarker.setAttribute(DOLMEN_MARKER_HTML_MESSAGE, html.toString());
+		} catch (CoreException e) {
+			e.printStackTrace();
+			return;
+		}
+	}
+
+	/**
+	 * @param s
+	 * @return {@code s} where characters reserved in HTML have been escaped
+	 */
+	private static String escapeHtml(String s) {
+		StringBuilder buf = new StringBuilder(s.length() + 5);
+		s.chars().forEach(c -> {
+			switch (c) {
+			case '&':	buf.append("&amp"); break;
+			case '"':   buf.append("&quot;"); break;
+			case '<':	buf.append("&lt;"); break;
+			case '>':   buf.append("&gt;"); break;
+			default:
+				buf.append((char)c);
+			}
+		});
+		return buf.toString();
 	}
 	
 }

@@ -6,6 +6,7 @@ import java.util.List;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.viewers.StyledString;
+import org.eclipse.jface.viewers.StyledString.Styler;
 import org.eclipse.swt.graphics.Image;
 
 import codegen.BaseParser;
@@ -15,13 +16,14 @@ import dolmenplugin.Activator;
 import dolmenplugin.base.Images;
 import dolmenplugin.editors.OutlineNode;
 import syntax.Extent;
-import syntax.Grammar;
-import syntax.Grammar.TokenDecl;
-import syntax.GrammarRule;
+import syntax.PGrammar;
+import syntax.TokenDecl;
+import syntax.PGrammarRule;
 import syntax.IReport;
 import syntax.Located;
-import syntax.Production;
-import syntax.Production.Actual;
+import syntax.PProduction;
+import syntax.PProduction.Actual;
+import syntax.PProduction.ActualExpr;
 
 /**
  * {@link JGOutlineNode} is a specialization of {@link OutlineNode}
@@ -50,14 +52,14 @@ public abstract class JGOutlineNode extends OutlineNode<JGOutlineNode> {
 	 *  description} or an exception
 	 */
 	public static List<OutlineNode<JGOutlineNode>> roots(Object input) {
-		if (input instanceof Grammar) {
-			Grammar grammar = (Grammar) input;
+		if (input instanceof PGrammar) {
+			PGrammar grammar = (PGrammar) input;
 			List<OutlineNode<JGOutlineNode>> roots =
 				new ArrayList<>(grammar.tokenDecls.size() + grammar.rules.size() + 2);
 			for (TokenDecl decl : grammar.tokenDecls)
 				roots.add(of(decl));
 			roots.add(of("Header", grammar.header));
-			for (GrammarRule rule : grammar.rules.values())
+			for (PGrammarRule rule : grammar.rules.values())
 				roots.add(of(rule));
 			roots.add(of("Footer", grammar.footer));
 			return roots;
@@ -68,8 +70,8 @@ public abstract class JGOutlineNode extends OutlineNode<JGOutlineNode> {
 		else if (input instanceof BaseParser.ParsingException) {
 			return Lists.singleton(of((BaseParser.ParsingException) input));
 		}
-		else if (input instanceof Grammar.IllFormedException) {
-			List<IReport> reports = ((Grammar.IllFormedException) input).reports;
+		else if (input instanceof PGrammar.IllFormedException) {
+			List<IReport> reports = ((PGrammar.IllFormedException) input).reports;
 			List<OutlineNode<JGOutlineNode>> roots = new ArrayList<>(reports.size());
 			for (IReport report : reports)
 				roots.add(of(report));
@@ -168,14 +170,14 @@ public abstract class JGOutlineNode extends OutlineNode<JGOutlineNode> {
 	}	
 
 	/**
-	 * Outline node representing a {@link GrammarRule grammar rule}
+	 * Outline node representing a {@link PGrammarRule parametric grammar rule}
 	 * 
 	 * @author Stéphane Lescuyer
 	 */
 	static final class Rule extends Internal {
-		final GrammarRule rule;
+		final PGrammarRule rule;
 		
-		Rule(GrammarRule rule) {
+		Rule(PGrammarRule rule) {
 			this.rule = rule;
 		}
 
@@ -188,7 +190,7 @@ public abstract class JGOutlineNode extends OutlineNode<JGOutlineNode> {
 		protected JGOutlineNode[] computeChildren() {
 			JGOutlineNode[] children = new JGOutlineNode[rule.productions.size()];
 			int i = 0;
-			for (Production prod : rule.productions) {
+			for (PProduction prod : rule.productions) {
 				children[i++] = of(prod);
 			}
 			return children;
@@ -202,6 +204,18 @@ public abstract class JGOutlineNode extends OutlineNode<JGOutlineNode> {
 		@Override
 		public StyledString computeText(IDocument document) {
 			StyledString text = new StyledString(rule.name.val);
+			if (!rule.params.isEmpty()) {
+				final Styler pstyler = StyledString.COUNTER_STYLER;
+				boolean first = true;
+				text.append("<");
+				for (Located<String> param : rule.params) {
+					if (first) first = false;
+					else text.append(", ");
+					text.append(param.val, pstyler);
+				}
+				text.append(">");
+			}
+			
 			if (rule.args != null) {
 				text.append("(")
 					.append(resolveExtentIn(document, rule.args), StyledString.QUALIFIER_STYLER)
@@ -226,21 +240,21 @@ public abstract class JGOutlineNode extends OutlineNode<JGOutlineNode> {
 	 * @param rule
 	 * @return the outline node representing the given rule
 	 */
-	public static JGOutlineNode of(GrammarRule rule) {
+	public static JGOutlineNode of(PGrammarRule rule) {
 		return new Rule(rule);
 	}
 	
 	/**
-	 * Outline node representing a {@link Production production}
+	 * Outline node representing a {@link PProduction production}
 	 * in a grammar rule.
 	 * <i>It does not have associated input location for now.</i>
 	 * 
 	 * @author Stéphane Lescuyer
 	 */
 	static final class Prod extends Leaf {
-		final Production prod;
+		final PProduction prod;
 		
-		Prod(Production prod) {
+		Prod(PProduction prod) {
 			this.prod = prod;
 		}
 
@@ -261,10 +275,7 @@ public abstract class JGOutlineNode extends OutlineNode<JGOutlineNode> {
 				if (bind != null)
 					text.append(bind.val, StyledString.QUALIFIER_STYLER)
 						.append(" = ", StyledString.QUALIFIER_STYLER);
-				if (!actual.isTerminal())
-					text.append(actual.item.val);
-				else
-					text.append(actual.item.val, StyledString.COUNTER_STYLER);
+				append(text, actual.item);
 				@Nullable Extent args_ = actual.args;
 				if (args_ != null)
 					text.append("(")
@@ -274,6 +285,24 @@ public abstract class JGOutlineNode extends OutlineNode<JGOutlineNode> {
 			if (prod.continuation() != null)
 				text.append(" ++");
 			return text;
+		}
+		
+		private void append(StyledString text, ActualExpr aexpr) {
+			if (!aexpr.isTerminal()) {
+				text.append(aexpr.symb.val);
+				if (!aexpr.params.isEmpty()) {
+					boolean first = true;
+					text.append("<");
+					for (ActualExpr sexpr : aexpr.params) {
+						if (first) first = false;
+						else text.append(", ");
+						append(text, sexpr);
+					}
+					text.append(">");
+				}
+			}
+			else
+				text.append(aexpr.symb.val, StyledString.COUNTER_STYLER);			
 		}
 
 		@Override
@@ -290,7 +319,7 @@ public abstract class JGOutlineNode extends OutlineNode<JGOutlineNode> {
 	 * @param prod
 	 * @return the outline node representing the given production
 	 */
-	public static JGOutlineNode of(Production prod) {
+	public static JGOutlineNode of(PProduction prod) {
 		return new Prod(prod);
 	}
 }

@@ -112,7 +112,7 @@ public class JLEditor extends DolmenEditor<Lexer> {
 	 * Can look for regexp definitions and lexer entries
 	 */
 	@Override
-	public @Nullable Located<String> findDeclarationFor(String name) {
+	public @Nullable Located<String> findDeclarationFor(String name, ITextSelection selection) {
 		if (model == null) return null;
 		for (Located<String> s : model.regulars.keySet()) {
 			if (s.val.equals(name)) return s;
@@ -130,7 +130,8 @@ public class JLEditor extends DolmenEditor<Lexer> {
 	 */
 	@Override
 	public <Decl> @Nullable Decl 
-		findDeclarationFor(String name, Class<Decl> clazz) {
+		findDeclarationFor(String name, ITextSelection selection, Class<Decl> clazz) {
+		if (model == null) return null;
 		if (clazz == Lexer.Entry.class) {
 			for (Lexer.Entry entry : model.entryPoints) {
 				if (entry.name.val.equals(name)) 
@@ -200,7 +201,7 @@ public class JLEditor extends DolmenEditor<Lexer> {
 		// fragile approach of course.
 		@Nullable SelectedWord sword = HandlerUtils.selectWord(getDocument(), selection); 
 		if (sword == null) return null;
-		return findDeclarationFor(sword.word);
+		return findDeclarationFor(sword.word, selection);
 	}
 
 	/**

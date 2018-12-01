@@ -3,7 +3,9 @@ package dolmenplugin.editors;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.function.Function;
 
+import org.eclipse.core.resources.IMarker;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.DefaultInformationControl;
@@ -13,9 +15,11 @@ import org.eclipse.jface.text.IInformationControlCreator;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.ITextHover;
 import org.eclipse.jface.text.ITextHoverExtension;
+import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.Position;
 import org.eclipse.jface.text.Region;
+import org.eclipse.jface.text.TextSelection;
 import org.eclipse.jface.text.source.Annotation;
 import org.eclipse.jface.text.source.IAnnotationHover;
 import org.eclipse.jface.text.source.IAnnotationModel;
@@ -30,13 +34,17 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.editors.text.EditorsUI;
 import org.eclipse.ui.texteditor.SimpleMarkerAnnotation;
 
+import dolmenplugin.base.Marker;
 import dolmenplugin.editors.jg.JGEditor;
+import dolmenplugin.editors.jg.JGEditor.FormalDecl;
 import dolmenplugin.editors.jl.JLEditor;
 import dolmenplugin.handlers.HandlerUtils;
 import dolmenplugin.handlers.HandlerUtils.SelectedWord;
-import syntax.Grammar.TokenDecl;
-import syntax.GrammarRule;
+import syntax.TokenDecl;
+import syntax.PGrammarRule;
+import syntax.PGrammars.Sort;
 import syntax.Lexer;
+import syntax.Located;
 import syntax.Regular;
 
 /**
@@ -63,9 +71,11 @@ public class DolmenAnnotationHover
 	 * 
 	 * @param sourceViewer
 	 * @param region
+	 * @param html		if {@code true}, build an HTML description, otherwise use raw text
 	 * @return an adequate hover info, or {@code null} if no info should be displayed
 	 */
-	private String getMarkersInfo(ISourceViewer sourceViewer, IRegion region) {
+	private String getMarkersInfo(
+			ISourceViewer sourceViewer, IRegion region, boolean html) {
 		IAnnotationModel annotModel = sourceViewer.getAnnotationModel();
 		
 		// Find all *marker* annotations in the given source 
@@ -83,15 +93,27 @@ public class DolmenAnnotationHover
 			if (p.overlapsWith(region.getOffset(), region.getLength()))
 				annots.add(ma);
 		}
-		
+
+		final String attr = html ? Marker.DOLMEN_MARKER_HTML_MESSAGE : IMarker.MESSAGE;
+		Function<SimpleMarkerAnnotation, String> messageOf =
+			annot -> annot.getMarker().getAttribute(attr, "!no message!");
+
 		if (annots.isEmpty()) return null;
 		if (annots.size() == 1)
-			return annots.get(0).getText();
+			return messageOf.apply(annots.get(0));
 		// Concatenate the messages for the various markers 
 		StringBuilder buf = new StringBuilder();
 		buf.append(annots.size()).append(" problems here:");
-		for (int i = 0; i < annots.size(); ++i)
-			buf.append("\n-").append(annots.get(i).getText());
+		if (html) {
+			buf.append("<ul>");
+			for (int i = 0; i < annots.size(); ++i)
+				buf.append("<li>").append(messageOf.apply(annots.get(i)));
+			buf.append("</ul>");
+		}
+		else {
+			for (int i = 0; i < annots.size(); ++i)
+				buf.append("\n-").append(messageOf.apply(annots.get(i)));
+		}
 		return buf.toString();
 	}
 	
@@ -105,7 +127,7 @@ public class DolmenAnnotationHover
 		} catch (BadLocationException e) {
 			return null;
 		}
-		return getMarkersInfo(sourceViewer, reg);
+		return getMarkersInfo(sourceViewer, reg, false);
 	}
 
 	@Override
@@ -115,7 +137,7 @@ public class DolmenAnnotationHover
 
 		// Try markers in the hover region
 		ISourceViewer sourceViewer = (ISourceViewer) textViewer;
-		@Nullable String hover = getMarkersInfo(sourceViewer, hoverRegion);
+		@Nullable String hover = getMarkersInfo(sourceViewer, hoverRegion, true);
 		if (hover != null) return hover;
 		
 		// Otherwise find a declaration corresponding to the hovered region
@@ -149,7 +171,7 @@ public class DolmenAnnotationHover
 			else
 				selected = doc.get(hoverRegion.getOffset(), hoverRegion.getLength());
 			
-			return getDescriptionFor(editor, selected);
+			return getDescriptionFor(editor, hoverRegion, selected);
 		} catch (BadLocationException e) {
 			return null;
 		}
@@ -177,20 +199,34 @@ public class DolmenAnnotationHover
 		return new Region(offset, 0);
 	}
 
-	private String getDescriptionFor(DolmenEditor<?> editor, String selected) {
+	private String getDescriptionFor(DolmenEditor<?> editor, IRegion hoverRegion, String selected) {
+		ITextSelection ts = new TextSelection(hoverRegion.getOffset(), hoverRegion.getLength());
 		if (editor instanceof JLEditor) {
 			// Supports Regular and Lexer.Entry
-			Regular reg = editor.findDeclarationFor(selected, Regular.class);
+			Regular reg = editor.findDeclarationFor(selected, ts, Regular.class);
 			if (reg != null) return getHoverInfo(selected, reg);
-			Lexer.Entry entry = editor.findDeclarationFor(selected, Lexer.Entry.class);
+			Lexer.Entry entry = editor.findDeclarationFor(selected, ts, Lexer.Entry.class);
 			if (entry != null) return getHoverInfo(entry);
 		}
 		else if (editor instanceof JGEditor) {
-			// Supports TokenDecl and GrammarRule
-			TokenDecl token = editor.findDeclarationFor(selected, TokenDecl.class);
-			if (token != null) return getHoverInfo(token);
-			GrammarRule rule = editor.findDeclarationFor(selected, GrammarRule.class);
-			if (rule != null) return getHoverInfo(rule);
+			JGEditor jgEditor = (JGEditor) editor;
+			// Supports TokenDecl, GrammarRule and FormalDecl
+			JGEditor.SelectedDeclaration decl = jgEditor.findSelectedDeclarationFor(selected, ts);
+			if (decl == null) return null;
+			if (decl.declarationClass == TokenDecl.class) {
+				TokenDecl token = editor.findDeclarationFor(selected, ts, TokenDecl.class);
+				if (token != null) return getHoverInfo(token);				
+			}
+			else if (decl.declarationClass == FormalDecl.class) {
+				FormalDecl formal = editor.findDeclarationFor(selected, ts, FormalDecl.class);
+				if (formal != null) 
+					return getHoverInfo(formal.rule, formal.param, jgEditor.getFormalSorts(formal.rule.name.val));
+			}
+			else if (decl.declarationClass == PGrammarRule.class) {
+				PGrammarRule rule = editor.findDeclarationFor(selected, ts, PGrammarRule.class);
+				if (rule != null)
+					return getHoverInfo(rule, null, jgEditor.getFormalSorts(rule.name.val));
+			}
 		}
 		return null;
 	}
@@ -218,17 +254,65 @@ public class DolmenAnnotationHover
 				"<b>" + decl.name.val + "</b>";
 	}
 	
-	private String getHoverInfo(GrammarRule rule) {
+	private String getHoverInfo(PGrammarRule rule, 
+			@Nullable Located<String> param, @Nullable List<Sort> sorts) {
 		StringBuilder buf = new StringBuilder();
 		buf.append(rule.visibility ? "public" : "private");
 		buf.append(" ");
 		buf.append(rule.returnType.find());
 		buf.append(" ");
 		buf.append("<b>").append(rule.name.val).append("</b>");
+		if (!rule.params.isEmpty()) {
+			boolean first = true;
+			buf.append("<i>").append("&lt;");
+			for (Located<String> formal : rule.params) {
+				if (first) first = false;
+				else buf.append(", ");
+				if (param != null && formal.val.equals(param.val))
+					buf.append("<b>").append(formal.val).append("</b>");
+				else
+					buf.append(formal.val);
+			}
+			buf.append("&gt;").append("</i>");
+		}
 		if (rule.args != null) {
 			buf.append("(").append(rule.args.find()).append(")");
 		}
+		// Add description of sorts inferred for formals if available
+		if (sorts != null && !sorts.isEmpty()) {
+			buf.append("<p/><br/>");
+			buf.append("<ul>\n");
+			for (int i = 0; i < sorts.size(); ++i) {
+				Located<String> fi = rule.params.get(i);
+				boolean focussed = fi.equals(param);
+				Sort si = sorts.get(i);
+				buf.append("<li>");
+				if (focussed) buf.append("<b>");
+				buf.append("<i>").append(fi.val).append("</i> ");
+				switch (si) {
+				case ALL:
+					buf.append(" can be anything");
+					break;
+				case ARGS:
+					buf.append(" must expect arguments");
+					break;
+				case ARGS_VALUED:
+					buf.append(" must be valued and expect arguments");
+					break;
+				case NO_ARGS:
+					buf.append(" must not expect arguments");
+					break;
+				case NO_ARGS_VALUED:
+					buf.append(" must be valued and not expect arguments");
+					break;
+				case VALUED:
+					buf.append(" must be valued");
+					break;
+				}
+				if (focussed) buf.append("</b>");
+			}
+			buf.append("</ul>\n");
+		}
 		return buf.toString();
 	}
-
 }
