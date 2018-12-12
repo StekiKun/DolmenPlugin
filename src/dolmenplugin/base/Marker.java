@@ -257,7 +257,7 @@ public final class Marker {
 	 * @param s
 	 * @return {@code s} where characters reserved in HTML have been escaped
 	 */
-	private static String escapeHtml(String s) {
+	public static String escapeHtml(String s) {
 		StringBuilder buf = new StringBuilder(s.length() + 5);
 		s.chars().forEach(c -> {
 			switch (c) {

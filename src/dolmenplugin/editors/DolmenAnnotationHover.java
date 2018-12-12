@@ -94,9 +94,18 @@ public class DolmenAnnotationHover
 				annots.add(ma);
 		}
 
-		final String attr = html ? Marker.DOLMEN_MARKER_HTML_MESSAGE : IMarker.MESSAGE;
-		Function<SimpleMarkerAnnotation, String> messageOf =
-			annot -> annot.getMarker().getAttribute(attr, "!no message!");
+		
+		// A function to fetch a message from an annotation, trying
+		// to use an HTML description if any and if HTML is required
+		Function<SimpleMarkerAnnotation, String> messageOf = (annot) -> {
+			if (html) {
+				@Nullable String res = annot.getMarker().getAttribute(Marker.DOLMEN_MARKER_HTML_MESSAGE, null);
+				if (res != null) return res;
+				// Fall back to non-HTML message otherwise
+			}
+			String res = annot.getMarker().getAttribute(IMarker.MESSAGE, "!no message!");
+			return html ? Marker.escapeHtml(res) : res;
+		};
 
 		if (annots.isEmpty()) return null;
 		if (annots.size() == 1)
