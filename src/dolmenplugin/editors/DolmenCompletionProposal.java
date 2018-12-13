@@ -1,6 +1,7 @@
 package dolmenplugin.editors;
 
 import org.eclipse.jdt.annotation.Nullable;
+import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.contentassist.BoldStylerProvider;
 import org.eclipse.jface.text.contentassist.CompletionProposal;
@@ -10,12 +11,13 @@ import org.eclipse.jface.text.contentassist.IContextInformation;
 import org.eclipse.jface.viewers.StyledString;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.TextStyle;
 
 import dolmenplugin.Activator;
 import dolmenplugin.base.Images;
-import syntax.TokenDecl;
-import syntax.PGrammarRule;
 import syntax.Lexer;
+import syntax.PGrammarRule;
+import syntax.TokenDecl;
 
 /**
  * Common implementation of {@link ICompletionProposal} for completions
@@ -58,6 +60,7 @@ public abstract class DolmenCompletionProposal
 		LEXER_METHOD(2),
 		
 		TOKEN(0),
+		FORMAL(0),
 		GRAMMAR_RULE(1),
 		PARSER_METHOD(2),
 		PARSER_FIELD(2);
@@ -226,23 +229,48 @@ public abstract class DolmenCompletionProposal
 		return new Token(tokenDecl, offset, length);
 	}
 
+	private static final class Formal extends DolmenCompletionProposal {
+		private Formal(String formal, int offset, int length) {
+			super(Category.FORMAL, formal, offset, length,
+					formal.length(),
+					null,	// Find a suitable image?
+					display(formal));
+		}
+		
+		private static StyledString display(String formal) {
+			StyledString.Styler italic = new StyledString.Styler() {
+				@Override
+				public void applyStyles(TextStyle textStyle) {
+					textStyle.font = 
+						JFaceResources.getFontRegistry().getItalic(JFaceResources.TEXT_FONT);
+				}
+			};
+			return new StyledString(formal, italic);
+		}
+	}
+	public static DolmenCompletionProposal
+		formal(String formal, int offset, int length) {
+		return new Formal(formal, offset, length);
+	}
+
 	private static final class Rule extends DolmenCompletionProposal {
 		private Rule(PGrammarRule rule, int offset, int length) {
-			super(Category.GRAMMAR_RULE, rule.name.val + "()", offset, length,
+			super(Category.GRAMMAR_RULE, 
+					rule.name.val + (rule.args == null ? "" : "()"), offset, length,
 					cursor(rule),
 					Images.RULE(rule.visibility), 
 					display(rule));
 		}
 		
 		private static int cursor(PGrammarRule rule) {
-			int c = rule.name.val.length() + 2;
-			if (rule.args != null) c--;
+			int c = rule.name.val.length();
+			if (rule.args != null) c++;
 			return c;
 		}
 		private static StyledString display(PGrammarRule rule) {
 			StyledString display =
-				new StyledString(rule.name.val + "(" + 
-					(rule.args == null ? "" : rule.args.find()) + ")");
+				new StyledString(rule.name.val +
+					(rule.args == null ? "" : ("(" + rule.args.find() + ")")));
 			display.append(" : " + rule.returnType.find().trim(),
 					StyledString.DECORATIONS_STYLER);
 			return display;

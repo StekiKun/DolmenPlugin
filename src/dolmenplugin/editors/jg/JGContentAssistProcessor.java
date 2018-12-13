@@ -4,12 +4,15 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.eclipse.jdt.annotation.Nullable;
+
 import codegen.BaseParser;
 import codegen.Config;
 import dolmenplugin.editors.DolmenCompletionProposal;
 import dolmenplugin.editors.DolmenCompletionProposal.Category;
 import dolmenplugin.editors.DolmenContentAssistProcessor;
 import syntax.PGrammar;
+import syntax.PGrammarRule;
 
 /**
  * Implements content-assist proposals for {@link JGEditor}
@@ -66,13 +69,18 @@ public final class JGContentAssistProcessor
 		if (grammar != null) {
 			switch (contentType) {
 			case DEFAULT:
-				// Try rules and tokens in grammar rules
+				// Try rules and tokens in grammar rules, as well as the local formals if any
 				addPrefixCompletions(collector, prefix, grammar.tokenDecls,
 						t -> t.name.val,
 						(t, i) -> DolmenCompletionProposal.token(t, i, collector.offset - i));
 				addPrefixCompletions(collector, prefix, grammar.rules.values(),
 						r -> r.name.val + "(",
 						(r, i) -> DolmenCompletionProposal.rule(r, i, collector.offset - i));
+				@Nullable PGrammarRule rule = editor.findRuleAtOffset(collector.offset);
+				if (rule == null || rule.params.isEmpty()) break;
+				addPrefixCompletions(collector, prefix, rule.params,
+						f -> f.val,
+						(f, i) -> DolmenCompletionProposal.formal(f.val, i, collector.offset - i));
 				break;
 			case JAVA:
 				// Try methods and fields from BaseParser

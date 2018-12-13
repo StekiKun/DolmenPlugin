@@ -171,6 +171,22 @@ public class JGEditor extends DolmenEditor<PGrammar> {
 	private static boolean enclosedInRule(PGrammarRule rule, ITextSelection selection) {
 		// Approximate the range of the rule in the source
 		int first = rule.returnType.startPos;
+		int last = ruleEndOffset(rule);
+		// Check whether selection is included in the rule's range
+		if (selection.getOffset() < first) return false;
+		if (selection.getOffset() + selection.getLength() > last) return false;
+		return true;
+	}
+	
+	/**
+	 * This is an approximation as it returns the position of the end
+	 * of the last item of the last production. In particular, the closing
+	 * semicolon is past this position.
+	 * 
+	 * @param rule
+	 * @return the position of the end of the parametric {@code rule}
+	 */
+	private static int ruleEndOffset(PGrammarRule rule) {
 		PProduction lastProd = rule.productions.get(rule.productions.size() - 1);
 		PProduction.Item lastItem = lastProd.items.get(lastProd.items.size() - 1);
 		int last = -1;
@@ -193,10 +209,28 @@ public class JGEditor extends DolmenEditor<PGrammar> {
 			last = ((PProduction.Continue) lastItem).cont.end.offset;
 			break;
 		}
-		// Check whether selection is included in the rule's range
-		if (selection.getOffset() < first) return false;
-		if (selection.getOffset() + selection.getLength() > last) return false;
-		return true;
+		return last;
+	}
+	
+	/**
+	 * @param offset
+	 * @return the rule at the given offset in this editor's model,
+	 * 	or {@code null} if there is no such rule or if the model
+	 *  is not available
+	 */
+	public @Nullable PGrammarRule findRuleAtOffset(int offset) {
+		if (model == null) return null;
+		for (PGrammarRule rule : model.rules.values()) {
+			// Approximate the range of the rule in the source
+			int first = rule.returnType.startPos;
+			int last = ruleEndOffset(rule);
+			// Check whether selection is included in the rule's range
+			if (offset < first) continue;
+			if (offset > last) continue;
+			return rule;
+		}
+		// No suitable rule found
+		return null;
 	}
 
 	/**
