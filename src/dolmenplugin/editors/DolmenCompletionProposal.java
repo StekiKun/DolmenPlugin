@@ -16,6 +16,7 @@ import org.eclipse.swt.graphics.TextStyle;
 import dolmenplugin.Activator;
 import dolmenplugin.base.Images;
 import syntax.Lexer;
+import syntax.Located;
 import syntax.PGrammarRule;
 import syntax.TokenDecl;
 
@@ -256,21 +257,48 @@ public abstract class DolmenCompletionProposal
 	private static final class Rule extends DolmenCompletionProposal {
 		private Rule(PGrammarRule rule, int offset, int length) {
 			super(Category.GRAMMAR_RULE, 
-					rule.name.val + (rule.args == null ? "" : "()"), offset, length,
+					replacement(rule), offset, length,
 					cursor(rule),
 					Images.RULE(rule.visibility), 
 					display(rule));
 		}
 		
+		private static String replacement(PGrammarRule rule) {
+			if (rule.args == null && rule.params.isEmpty())
+				return rule.name.val;
+			StringBuilder buf = new StringBuilder(rule.name.val);
+			if (!rule.params.isEmpty()) {
+				boolean first = true;
+				buf.append("<");
+				for (@SuppressWarnings("unused") Located<String> param : rule.params) {
+					if (first) first = false;
+					else buf.append(", ");
+				}
+				buf.append(">");
+			}
+			if (rule.args != null)
+				buf.append("()");
+			return buf.toString();
+		}
+		
 		private static int cursor(PGrammarRule rule) {
 			int c = rule.name.val.length();
-			if (rule.args != null) c++;
+			if (rule.args != null || !rule.params.isEmpty()) c++;
 			return c;
 		}
 		private static StyledString display(PGrammarRule rule) {
-			StyledString display =
-				new StyledString(rule.name.val +
-					(rule.args == null ? "" : ("(" + rule.args.find() + ")")));
+			StyledString display = new StyledString(rule.name.val);
+			if (!rule.params.isEmpty()) {
+				boolean first = true;
+				display.append("<");
+				for (Located<String> param : rule.params) {
+					if (first) first = false;
+					else display.append(", ");
+					display.append(param.val);
+				}
+				display.append(">");
+			}
+			display.append(rule.args == null ? "" : ("(" + rule.args.find() + ")"));
 			display.append(" : " + rule.returnType.find().trim(),
 					StyledString.DECORATIONS_STYLER);
 			return display;
