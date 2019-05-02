@@ -3,7 +3,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: DolmenPlugin
 Bundle-SymbolicName: DolmenPlugin;singleton:=true
 Bundle-Version: 1.0.0.qualifier
-Bundle-Activator: dolmenplugin.Activator
+Bundle-Activator: org.stekikun.dolmenplugin.Activator
 Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime,
  org.eclipse.jface.text,
