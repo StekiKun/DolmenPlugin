@@ -16,24 +16,24 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.SubMonitor;
+import org.stekikun.dolmen.automaton.Automata;
+import org.stekikun.dolmen.automaton.Determinize;
+import org.stekikun.dolmen.codegen.AutomataOutput;
+import org.stekikun.dolmen.codegen.BaseParser.ParsingException;
+import org.stekikun.dolmen.codegen.Config;
+import org.stekikun.dolmen.codegen.LexBuffer.LexicalError;
+import org.stekikun.dolmen.codegen.LexBuffer.Position;
+import org.stekikun.dolmen.codegen.SourceMapping;
+import org.stekikun.dolmen.common.Bookkeeper;
+import org.stekikun.dolmen.common.CountingWriter;
+import org.stekikun.dolmen.jle.JLELexer;
+import org.stekikun.dolmen.jle.JLEParser;
+import org.stekikun.dolmen.syntax.IReport;
+import org.stekikun.dolmen.syntax.Lexer;
+import org.stekikun.dolmen.syntax.Reporter;
 
-import automaton.Automata;
-import automaton.Determinize;
-import codegen.AutomataOutput;
-import codegen.Config;
-import codegen.BaseParser.ParsingException;
-import codegen.LexBuffer.LexicalError;
-import codegen.LexBuffer.Position;
-import codegen.SourceMapping;
-import common.Bookkeeper;
-import common.CountingWriter;
 import dolmenplugin.base.Marker;
 import dolmenplugin.base.Utils;
-import jle.JLELexer;
-import jle.JLEParser;
-import syntax.IReport;
-import syntax.Lexer;
-import syntax.Reporter;
 
 public final class JLCompile {
 

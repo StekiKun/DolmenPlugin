@@ -7,10 +7,10 @@ import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.ui.editors.text.TextEditor;
+import org.stekikun.dolmen.syntax.Located;
 
 import dolmenplugin.editors.DolmenEditor;
 import dolmenplugin.handlers.HandlerUtils.SelectedWord;
-import syntax.Located;
 
 /**
  * This handler implements the comment <i>Toggle Comment</i>,

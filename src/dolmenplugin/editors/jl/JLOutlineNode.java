@@ -8,18 +8,18 @@ import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.viewers.StyledString;
 import org.eclipse.swt.graphics.Image;
+import org.stekikun.dolmen.codegen.BaseParser;
+import org.stekikun.dolmen.codegen.LexBuffer;
+import org.stekikun.dolmen.common.Lists;
+import org.stekikun.dolmen.syntax.Extent;
+import org.stekikun.dolmen.syntax.IReport;
+import org.stekikun.dolmen.syntax.Lexer;
+import org.stekikun.dolmen.syntax.Located;
+import org.stekikun.dolmen.syntax.Regular;
 
-import codegen.BaseParser;
-import codegen.LexBuffer;
-import common.Lists;
 import dolmenplugin.Activator;
 import dolmenplugin.base.Images;
 import dolmenplugin.editors.OutlineNode;
-import syntax.Extent;
-import syntax.IReport;
-import syntax.Lexer;
-import syntax.Located;
-import syntax.Regular;
 
 /**
  * {@link JLOutlineNode} is a specialization of {@link OutlineNode}

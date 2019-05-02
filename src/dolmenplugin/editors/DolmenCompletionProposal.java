@@ -12,13 +12,13 @@ import org.eclipse.jface.viewers.StyledString;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.TextStyle;
+import org.stekikun.dolmen.syntax.Lexer;
+import org.stekikun.dolmen.syntax.Located;
+import org.stekikun.dolmen.syntax.PGrammarRule;
+import org.stekikun.dolmen.syntax.TokenDecl;
 
 import dolmenplugin.Activator;
 import dolmenplugin.base.Images;
-import syntax.Lexer;
-import syntax.Located;
-import syntax.PGrammarRule;
-import syntax.TokenDecl;
 
 /**
  * Common implementation of {@link ICompletionProposal} for completions
@@ -160,9 +160,9 @@ public abstract class DolmenCompletionProposal
 		@SuppressWarnings("unused")
 		final String name;
 		@SuppressWarnings("unused")
-		final syntax.Regular regexp;
+		final org.stekikun.dolmen.syntax.Regular regexp;
 		
-		private Regexp(String name, syntax.Regular regexp, int offset, int length) {
+		private Regexp(String name, org.stekikun.dolmen.syntax.Regular regexp, int offset, int length) {
 			super(Category.REGEXP, name, offset, length,
 					name.length(), Images.REGEXP_DEF, new StyledString(name));
 			this.name = name;
@@ -170,7 +170,7 @@ public abstract class DolmenCompletionProposal
 		}
 	}
 	public static DolmenCompletionProposal
-		regexp(String name, syntax.Regular regexp, int offset, int length) {
+		regexp(String name, org.stekikun.dolmen.syntax.Regular regexp, int offset, int length) {
 		return new Regexp(name, regexp, offset, length);
 	}
 	

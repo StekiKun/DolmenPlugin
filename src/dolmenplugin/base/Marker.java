@@ -7,9 +7,8 @@ import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.annotation.Nullable;
-
-import codegen.SourceMapping;
-import syntax.IReport;
+import org.stekikun.dolmen.codegen.SourceMapping;
+import org.stekikun.dolmen.syntax.IReport;
 
 /**
  * Utility class for Dolmen problem markers

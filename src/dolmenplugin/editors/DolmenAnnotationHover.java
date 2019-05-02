@@ -33,6 +33,12 @@ import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.editors.text.EditorsUI;
 import org.eclipse.ui.texteditor.SimpleMarkerAnnotation;
+import org.stekikun.dolmen.syntax.Lexer;
+import org.stekikun.dolmen.syntax.Located;
+import org.stekikun.dolmen.syntax.PGrammarRule;
+import org.stekikun.dolmen.syntax.PGrammars.Sort;
+import org.stekikun.dolmen.syntax.Regular;
+import org.stekikun.dolmen.syntax.TokenDecl;
 
 import dolmenplugin.base.Marker;
 import dolmenplugin.editors.jg.JGEditor;
@@ -40,12 +46,6 @@ import dolmenplugin.editors.jg.JGEditor.FormalDecl;
 import dolmenplugin.editors.jl.JLEditor;
 import dolmenplugin.handlers.HandlerUtils;
 import dolmenplugin.handlers.HandlerUtils.SelectedWord;
-import syntax.TokenDecl;
-import syntax.PGrammarRule;
-import syntax.PGrammars.Sort;
-import syntax.Lexer;
-import syntax.Located;
-import syntax.Regular;
 
 /**
  * Class which provides hover info for annotation markers both in

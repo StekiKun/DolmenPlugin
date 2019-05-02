@@ -35,10 +35,10 @@ import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.jdt.core.IJavaModelMarker;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
+import org.stekikun.dolmen.codegen.SourceMapping;
+import org.stekikun.dolmen.common.Iterables;
+import org.stekikun.dolmen.common.Nulls;
 
-import codegen.SourceMapping;
-import common.Iterables;
-import common.Nulls;
 import dolmenplugin.builders.JGCompile;
 import dolmenplugin.builders.JLCompile;
 

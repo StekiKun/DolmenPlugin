@@ -12,29 +12,29 @@ import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.part.FileEditorInput;
 import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
+import org.stekikun.dolmen.codegen.BaseParser.ParsingException;
+import org.stekikun.dolmen.codegen.LexBuffer.LexicalError;
+import org.stekikun.dolmen.codegen.LexBuffer.Position;
+import org.stekikun.dolmen.common.Lists;
+import org.stekikun.dolmen.jg.JGLexer;
+import org.stekikun.dolmen.jg.JGParserGenerated;
+import org.stekikun.dolmen.jge.JGELexer;
+import org.stekikun.dolmen.jge.JGEParser;
+import org.stekikun.dolmen.syntax.Located;
+import org.stekikun.dolmen.syntax.PExtent;
+import org.stekikun.dolmen.syntax.PGrammar;
+import org.stekikun.dolmen.syntax.PGrammarRule;
+import org.stekikun.dolmen.syntax.PGrammars;
+import org.stekikun.dolmen.syntax.PGrammars.Sort;
+import org.stekikun.dolmen.syntax.PProduction;
+import org.stekikun.dolmen.syntax.PProduction.ActualExpr;
+import org.stekikun.dolmen.syntax.Reporter;
+import org.stekikun.dolmen.syntax.TokenDecl;
 
-import codegen.BaseParser.ParsingException;
-import codegen.LexBuffer.LexicalError;
-import codegen.LexBuffer.Position;
-import common.Lists;
 import dolmenplugin.editors.ColorManager;
 import dolmenplugin.editors.DolmenEditor;
 import dolmenplugin.handlers.HandlerUtils;
 import dolmenplugin.handlers.HandlerUtils.SelectedWord;
-import jg.JGLexer;
-import jg.JGParserGenerated;
-import jge.JGELexer;
-import jge.JGEParser;
-import syntax.Located;
-import syntax.PExtent;
-import syntax.PGrammar;
-import syntax.PGrammarRule;
-import syntax.PGrammars;
-import syntax.PGrammars.Sort;
-import syntax.PProduction;
-import syntax.PProduction.ActualExpr;
-import syntax.Reporter;
-import syntax.TokenDecl;
 
 /**
  * Custom editor for Dolmen grammar descriptions (.jg)

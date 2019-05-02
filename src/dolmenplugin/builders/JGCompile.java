@@ -16,28 +16,28 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.SubMonitor;
+import org.stekikun.dolmen.codegen.BaseParser.ParsingException;
+import org.stekikun.dolmen.codegen.Config;
+import org.stekikun.dolmen.codegen.GrammarOutput;
+import org.stekikun.dolmen.codegen.LexBuffer.LexicalError;
+import org.stekikun.dolmen.codegen.LexBuffer.Position;
+import org.stekikun.dolmen.codegen.SourceMapping;
+import org.stekikun.dolmen.common.Bookkeeper;
+import org.stekikun.dolmen.common.CountingWriter;
+import org.stekikun.dolmen.common.Lists;
+import org.stekikun.dolmen.jge.JGELexer;
+import org.stekikun.dolmen.jge.JGEParser;
+import org.stekikun.dolmen.syntax.IReport;
+import org.stekikun.dolmen.syntax.PGrammar;
+import org.stekikun.dolmen.syntax.PGrammars;
+import org.stekikun.dolmen.syntax.Reporter;
+import org.stekikun.dolmen.unparam.Expansion;
+import org.stekikun.dolmen.unparam.Expansion.PGrammarNotExpandable;
+import org.stekikun.dolmen.unparam.Grammar;
+import org.stekikun.dolmen.unparam.Grammars;
 
-import codegen.BaseParser.ParsingException;
-import codegen.Config;
-import codegen.GrammarOutput;
-import codegen.LexBuffer.LexicalError;
-import codegen.LexBuffer.Position;
-import codegen.SourceMapping;
-import common.Bookkeeper;
-import common.CountingWriter;
-import common.Lists;
 import dolmenplugin.base.Marker;
 import dolmenplugin.base.Utils;
-import jge.JGELexer;
-import jge.JGEParser;
-import syntax.IReport;
-import syntax.PGrammar;
-import syntax.PGrammars;
-import syntax.Reporter;
-import unparam.Expansion;
-import unparam.Expansion.PGrammarNotExpandable;
-import unparam.Grammar;
-import unparam.Grammars;
 
 public final class JGCompile {
 

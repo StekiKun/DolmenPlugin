@@ -10,8 +10,7 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.QualifiedName;
-
-import common.Hierarchy;
+import org.stekikun.dolmen.common.Hierarchy;
 
 /**
  * Convenient utility functions

@@ -4,12 +4,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import codegen.Config;
-import codegen.LexBuffer;
+import org.stekikun.dolmen.codegen.Config;
+import org.stekikun.dolmen.codegen.LexBuffer;
+import org.stekikun.dolmen.syntax.Lexer;
+
 import dolmenplugin.editors.DolmenCompletionProposal;
 import dolmenplugin.editors.DolmenCompletionProposal.Category;
 import dolmenplugin.editors.DolmenContentAssistProcessor;
-import syntax.Lexer;
 
 /**
  * Implements content-assist proposals for {@link JLEditor}

@@ -6,15 +6,15 @@ import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider.IStyledLabelP
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.StyledString;
 import org.eclipse.swt.graphics.Image;
+import org.stekikun.dolmen.codegen.BaseParser;
+import org.stekikun.dolmen.codegen.LexBuffer;
+import org.stekikun.dolmen.syntax.Extent;
+import org.stekikun.dolmen.syntax.IReport;
 
-import codegen.BaseParser;
-import codegen.LexBuffer;
 import dolmenplugin.Activator;
 import dolmenplugin.base.Images;
 import dolmenplugin.editors.jg.JGEditor;
 import dolmenplugin.editors.jl.JLEditor;
-import syntax.Extent;
-import syntax.IReport;
 
 /**
  * Common base class of nodes used to represent the

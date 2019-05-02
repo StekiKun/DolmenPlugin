@@ -10,21 +10,21 @@ import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.part.FileEditorInput;
 import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
+import org.stekikun.dolmen.codegen.BaseParser.ParsingException;
+import org.stekikun.dolmen.codegen.LexBuffer.LexicalError;
+import org.stekikun.dolmen.common.Lists;
+import org.stekikun.dolmen.jl.JLLexerGenerated;
+import org.stekikun.dolmen.jl.JLParser;
+import org.stekikun.dolmen.jle.JLELexer;
+import org.stekikun.dolmen.jle.JLEParser;
+import org.stekikun.dolmen.syntax.Lexer;
+import org.stekikun.dolmen.syntax.Located;
+import org.stekikun.dolmen.syntax.Regular;
 
-import codegen.BaseParser.ParsingException;
-import codegen.LexBuffer.LexicalError;
-import common.Lists;
 import dolmenplugin.editors.ColorManager;
 import dolmenplugin.editors.DolmenEditor;
 import dolmenplugin.handlers.HandlerUtils;
 import dolmenplugin.handlers.HandlerUtils.SelectedWord;
-import jl.JLLexerGenerated;
-import jl.JLParser;
-import jle.JLELexer;
-import jle.JLEParser;
-import syntax.Lexer;
-import syntax.Located;
-import syntax.Regular;
 
 /**
  * Custom editor for Dolmen lexer descriptions (.jl)

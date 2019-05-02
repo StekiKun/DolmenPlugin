@@ -18,8 +18,8 @@ import org.eclipse.jface.text.rules.WordRule;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.RGB;
+import org.stekikun.dolmen.common.Java;
 
-import common.Java;
 import dolmenplugin.base.Utils;
 
 /**

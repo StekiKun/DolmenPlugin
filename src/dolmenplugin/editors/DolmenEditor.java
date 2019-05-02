@@ -16,14 +16,14 @@ import org.eclipse.ui.ISelectionListener;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.editors.text.TextEditor;
 import org.eclipse.ui.texteditor.IDocumentProvider;
+import org.stekikun.dolmen.common.Maps;
+import org.stekikun.dolmen.syntax.Lexer;
+import org.stekikun.dolmen.syntax.Located;
+import org.stekikun.dolmen.syntax.PGrammar;
 
-import common.Maps;
 import dolmenplugin.editors.jg.JGEditor;
 import dolmenplugin.editors.jl.JLEditor;
 import dolmenplugin.lib.ByRef;
-import syntax.PGrammar;
-import syntax.Lexer;
-import syntax.Located;
 
 /**
  * Base implementation common to editors for both lexer

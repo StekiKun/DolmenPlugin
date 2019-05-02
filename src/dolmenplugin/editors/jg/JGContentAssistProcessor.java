@@ -5,14 +5,14 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.eclipse.jdt.annotation.Nullable;
+import org.stekikun.dolmen.codegen.BaseParser;
+import org.stekikun.dolmen.codegen.Config;
+import org.stekikun.dolmen.syntax.PGrammar;
+import org.stekikun.dolmen.syntax.PGrammarRule;
 
-import codegen.BaseParser;
-import codegen.Config;
 import dolmenplugin.editors.DolmenCompletionProposal;
 import dolmenplugin.editors.DolmenCompletionProposal.Category;
 import dolmenplugin.editors.DolmenContentAssistProcessor;
-import syntax.PGrammar;
-import syntax.PGrammarRule;
 
 /**
  * Implements content-assist proposals for {@link JGEditor}

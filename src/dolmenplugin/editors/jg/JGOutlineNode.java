@@ -8,22 +8,23 @@ import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.viewers.StyledString;
 import org.eclipse.jface.viewers.StyledString.Styler;
 import org.eclipse.swt.graphics.Image;
+import org.stekikun.dolmen.codegen.BaseParser;
+import org.stekikun.dolmen.codegen.LexBuffer;
+import org.stekikun.dolmen.common.Lists;
+import org.stekikun.dolmen.syntax.Extent;
+import org.stekikun.dolmen.syntax.IReport;
+import org.stekikun.dolmen.syntax.Located;
+import org.stekikun.dolmen.syntax.PGrammar;
+import org.stekikun.dolmen.syntax.PGrammarRule;
+import org.stekikun.dolmen.syntax.PProduction;
+import org.stekikun.dolmen.syntax.PProduction.Actual;
+import org.stekikun.dolmen.syntax.PProduction.ActualExpr;
+import org.stekikun.dolmen.syntax.TokenDecl;
+import org.stekikun.dolmen.unparam.Grammar;
 
-import codegen.BaseParser;
-import codegen.LexBuffer;
-import common.Lists;
 import dolmenplugin.Activator;
 import dolmenplugin.base.Images;
 import dolmenplugin.editors.OutlineNode;
-import syntax.Extent;
-import syntax.PGrammar;
-import syntax.TokenDecl;
-import syntax.PGrammarRule;
-import syntax.IReport;
-import syntax.Located;
-import syntax.PProduction;
-import syntax.PProduction.Actual;
-import syntax.PProduction.ActualExpr;
 
 /**
  * {@link JGOutlineNode} is a specialization of {@link OutlineNode}

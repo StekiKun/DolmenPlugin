@@ -17,11 +17,11 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.ui.views.contentoutline.ContentOutlinePage;
+import org.stekikun.dolmen.syntax.PGrammar;
 
 import dolmenplugin.base.Images;
 import dolmenplugin.editors.OutlineFilterAction;
 import dolmenplugin.editors.OutlineNode;
-import syntax.PGrammar;
 
 /**
  * Implementation of the <i>outline view</i> for 
