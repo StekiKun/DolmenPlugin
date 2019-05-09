@@ -109,7 +109,7 @@ public final class JLCompile {
 			return Collections.singletonMap((IFile) newRes, smap);
 		}
 		catch (LexicalError e) {
-			Position start = jlLexer.getLexemeStart();
+			Position start = e.pos == null ? jlLexer.getLexemeStart() : e.pos;
 			Position end = jlLexer.getLexemeEnd();
 			Marker.addError(res, e.getMessage(), start.line, start.offset, end.offset);
 			tasks.aborted("Lexical error in lexer description");

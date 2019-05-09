@@ -137,7 +137,7 @@ public final class JGCompile {
 			return Collections.singletonMap(newRes, smap);
 		}
 		catch (LexicalError e) {
-			Position start = jgLexer.getLexemeStart();
+			Position start = e.pos == null ? jgLexer.getLexemeStart() : e.pos;
 			Position end = jgLexer.getLexemeEnd();
 			Marker.addError(res, e.getMessage(), start.line, start.offset, end.offset);
 			tasks.aborted("Lexical error in grammar description");
