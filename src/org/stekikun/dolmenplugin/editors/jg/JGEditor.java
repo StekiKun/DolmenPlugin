@@ -187,6 +187,7 @@ public class JGEditor extends DolmenEditor<PGrammar> {
 	 */
 	private static int ruleEndOffset(PGrammarRule rule) {
 		PProduction lastProd = rule.productions.get(rule.productions.size() - 1);
+		if (lastProd.items.isEmpty()) return -1;
 		PProduction.Item lastItem = lastProd.items.get(lastProd.items.size() - 1);
 		int last = -1;
 		switch (lastItem.getKind()) {
