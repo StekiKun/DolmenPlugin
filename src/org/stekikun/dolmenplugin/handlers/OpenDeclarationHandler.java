@@ -12,14 +12,13 @@ import org.stekikun.dolmenplugin.editors.DolmenEditor;
 import org.stekikun.dolmenplugin.handlers.HandlerUtils.SelectedWord;
 
 /**
- * This handler implements the comment <i>Toggle Comment</i>,
+ * This handler implements the command <i>Open Declaration</i>,
  * which is available in the <i>Source</i> top-level menu on
- * Dolmen editors and via the Ctrl+/ shortcut.
+ * Dolmen editors and via the F3 shortcut.
  * <p>
- * It applies to the active editor's selection and comments it out
- * using single-line ('//') comments, unless the selection is already
- * completely commented using single-line comments in which case it
- * is uncommented.
+ * It applies to the active editor's selection and tries to
+ * identify the entity referenced in the selection, locate
+ * its declaration and jump to it.
  * 
  * @author Stéphane Lescuyer
  */

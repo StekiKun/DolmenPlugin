@@ -14,7 +14,7 @@ import org.eclipse.ui.editors.text.TextEditor;
 import org.stekikun.dolmenplugin.editors.DolmenEditor;
 
 /**
- * This handler implements the comment <i>Toggle Comment</i>,
+ * This handler implements the command <i>Toggle Comment</i>,
  * which is available in the <i>Source</i> top-level menu on
  * Dolmen editors and via the Ctrl+/ shortcut.
  * <p>

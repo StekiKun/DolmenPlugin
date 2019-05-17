@@ -200,6 +200,16 @@
             id="org.stekikun.dolmenplugin.OpenDeclarationCommand"
             name="Open Declaration">
       </command>
+      <command
+            description="Go to location of next annotation"
+            id="org.stekikun.dolmenplugin.NextAnnotationCommand"
+            name="NextAnnotation">
+      </command>
+      <command
+            description="Go to location of previous annotation"
+            id="org.stekikun.dolmenplugin.PreviousAnnotationCommand"
+            name="PreviousAnnotation">
+      </command>  
    </extension>
    
    <!-- Handler for the commands that appear in the custom Source menu-->
@@ -212,6 +222,14 @@
       <handler
             class="org.stekikun.dolmenplugin.handlers.OpenDeclarationHandler"
             commandId="org.stekikun.dolmenplugin.OpenDeclarationCommand">
+      </handler>
+      <handler
+            class="org.stekikun.dolmenplugin.handlers.NextAnnotationHandler"
+            commandId="org.stekikun.dolmenplugin.NextAnnotationCommand">
+      </handler>
+      <handler
+            class="org.stekikun.dolmenplugin.handlers.PreviousAnnotationHandler"
+            commandId="org.stekikun.dolmenplugin.PreviousAnnotationCommand">
       </handler>
    </extension>
    
@@ -245,6 +263,16 @@
                 commandId="org.stekikun.dolmenplugin.OpenDeclarationCommand"
                 label="Open Declaration">
             </command>
+            <!-- The Next Annotation command -->
+            <command
+                commandId="org.stekikun.dolmenplugin.NextAnnotationCommand"
+                label="Next Annotation">
+            </command>
+            <!-- The Previous Annotation command -->
+            <command
+                commandId="org.stekikun.dolmenplugin.PreviousAnnotationCommand"
+                label="PreviousAnnotation">
+            </command>
          </menu>
       </menuContribution>
    </extension>
@@ -275,6 +303,20 @@
       <key
         sequence="F3"
         commandId="org.stekikun.dolmenplugin.OpenDeclarationCommand"
+        contextId="org.stekikun.dolmenplugin.editors.DolmenScope"
+        schemeId="org.eclipse.ui.defaultAcceleratorConfiguration">
+      </key>
+      <!-- Next Annotation is bound to "Ctrl + .", as in the JDT -->
+      <key
+        sequence="M1+."
+        commandId="org.stekikun.dolmenplugin.NextAnnotationCommand"
+        contextId="org.stekikun.dolmenplugin.editors.DolmenScope"
+        schemeId="org.eclipse.ui.defaultAcceleratorConfiguration">
+      </key>
+      <!-- Previous Annotation is bound to "Ctrl + ,", as in the JDT -->
+      <key
+        sequence="M1+,"
+        commandId="org.stekikun.dolmenplugin.PreviousAnnotationCommand"
         contextId="org.stekikun.dolmenplugin.editors.DolmenScope"
         schemeId="org.eclipse.ui.defaultAcceleratorConfiguration">
       </key>
