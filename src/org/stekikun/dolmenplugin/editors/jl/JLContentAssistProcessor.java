@@ -99,13 +99,22 @@ public final class JLContentAssistProcessor
 		Arrays.asList(
 			new String[] { "getLexeme()", "getLexeme() : String - LexBuffer" },
 			new String[] { "getLexemeStart()", "getLexemeStart() : Position - LexBuffer" },
-			new String[] { "getLexemeEnd()", "getLexemeEnd() : Position" },
-			new String[] { "getSubLexeme(start, end)", "getSubLexeme(int, int) : String - LexBuffer" },
-			new String[] { "getSubLexemeOpt(start, end)", "getSubLexemeOpt(int, int) : Optional<String> - LexBuffer" },
-			new String[] { "getSubLexemeChar(pos)", "getSubLexemeChar(int) : char - LexBuffer" },
-			new String[] { "getSubLexemeOptChar(pos)", "getSubLexemeOptChar(int) : Optional<Character> - LexBuffer" },
+			new String[] { "getLexemeEnd()", "getLexemeEnd() : Position - LexBuffer" },
+			new String[] { "getLexemeLength()", "getLexemeLength() : int - LexBuffer" },
+			new String[] { "getLexemeCharAt(idx)", "getLexemeCharAt(int) : char - LexBuffer" },
+//	These methods are accessible but are meant for used by the generator
+//			new String[] { "getSubLexeme(start, end)", "getSubLexeme(int, int) : String - LexBuffer" },
+//			new String[] { "getSubLexemeOpt(start, end)", "getSubLexemeOpt(int, int) : Optional<String> - LexBuffer" },
+//			new String[] { "getSubLexemeChar(pos)", "getSubLexemeChar(int) : char - LexBuffer" },
+//			new String[] { "getSubLexemeOptChar(pos)", "getSubLexemeOptChar(int) : Optional<Character> - LexBuffer" },
 			new String[] { "newline()", "newline() : void - LexBuffer" },
-			new String[] { "error(msg)", "error(String) : LexicalError - LexBuffer" }
+			new String[] { "error(msg)", "error(String) : LexicalError - LexBuffer" },
+			new String[] { "savePosition(supplier, pos)", "savePosition(Supplier<T>, Position) : T - LexBuffer" },
+			new String[] { "savePosition(supplier)", "saveStart(Supplier<T>) : T - LexBuffer" },
+			new String[] { "savePosition(runnable, pos)", "savePosition(Runnable, Position) : void - LexBuffer" },
+			new String[] { "savePosition(runnable)", "saveStart(Runnable) : void - LexBuffer" },
+			new String[] { "peekNextChar()", "peekNextChar() : char - LexBuffer" },
+			new String[] { "peekNextChars(buf)", "peekNextChars(char[]) : int - LexBuffer" }
 		);
 	
 	private static final List<String> JL_OPTIONS = new ArrayList<>();
