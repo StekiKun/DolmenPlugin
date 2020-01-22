@@ -1,0 +1,2 @@
+= DolmenPlugin: An Eclipse Plugin for https://github.com/StekiKun/Dolmen[Dolmen]
+
