@@ -9,8 +9,8 @@
             extensions="jl"
             icon="icons/dolmen_lexer.gif"
             contributorClass="org.eclipse.ui.texteditor.BasicTextEditorActionContributor"
-            class="dolmenplugin.editors.jl.JLEditor"
-            id="dolmenplugin.editors.jl.JLEditor">
+            class="org.stekikun.dolmenplugin.editors.jl.JLEditor"
+            id="org.stekikun.dolmenplugin.editors.jl.JLEditor">
       </editor>
    </extension>
 
@@ -22,26 +22,26 @@
             extensions="jg"
             icon="icons/dolmen_parser3.gif"
             contributorClass="org.eclipse.ui.texteditor.BasicTextEditorActionContributor"
-            class="dolmenplugin.editors.jg.JGEditor"
-            id="dolmenplugin.editors.jg.JGEditor">
+            class="org.stekikun.dolmenplugin.editors.jg.JGEditor"
+            id="org.stekikun.dolmenplugin.editors.jg.JGEditor">
       </editor>
    </extension>
 
    <!-- Builder extension for .jl lexer and .jg grammar descriptions -->
    <extension point="org.eclipse.core.resources.builders"
          name="Dolmen Lexer and Grammar Builder"
-         id="dolmenplugin.base.Builder">
+         id="org.stekikun.dolmenplugin.base.Builder">
       <builder
             hasNature="true">
          <run
-          class="dolmenplugin.base.Builder">
+          class="org.stekikun.dolmenplugin.base.Builder">
          </run>
       </builder>
    </extension>
    
    <!-- Marker extension for Dolmen files -->
    <extension
-         id="dolmenplugin.base.marker"
+         id="org.stekikun.dolmenplugin.base.marker"
          name="Dolmen Problems"
          point="org.eclipse.core.resources.markers">
       <super
@@ -56,14 +56,14 @@
          id="DolmenNature" >
       <runtime>
          <run
-          class="dolmenplugin.base.Nature">
+          class="org.stekikun.dolmenplugin.base.Nature">
          </run>
       </runtime>
       <requires-nature
             id="org.eclipse.jdt.core.javanature">
       </requires-nature>
       <builder
-            id="dolmenplugin.base.Builder">
+            id="org.stekikun.dolmenplugin.base.Builder">
       </builder>
    </extension>
    
@@ -92,12 +92,12 @@
          point="org.eclipse.ui.commands">
       <command
             description="Use this command to add the Dolmen nature to the selected project"
-            id="dolmenplugin.ConvertDolmenNatureCommand"
+            id="org.stekikun.dolmenplugin.ConvertDolmenNatureCommand"
             name="Convert to Dolmen Project">
       </command>
       <command
             description="Use this command to remove the Dolmen nature from the selected project"
-            id="dolmenplugin.RemoveDolmenNatureCommand"
+            id="org.stekikun.dolmenplugin.RemoveDolmenNatureCommand"
             name="Remove Dolmen nature">
       </command>
    </extension>
@@ -106,12 +106,12 @@
    <extension
          point="org.eclipse.ui.handlers">
       <handler
-            class="dolmenplugin.handlers.ConvertDolmenNatureHandler"
-            commandId="dolmenplugin.ConvertDolmenNatureCommand">
+            class="org.stekikun.dolmenplugin.handlers.ConvertDolmenNatureHandler"
+            commandId="org.stekikun.dolmenplugin.ConvertDolmenNatureCommand">
       </handler>
       <handler
-            class="dolmenplugin.handlers.RemoveDolmenNatureHandler"
-            commandId="dolmenplugin.RemoveDolmenNatureCommand">
+            class="org.stekikun.dolmenplugin.handlers.RemoveDolmenNatureHandler"
+            commandId="org.stekikun.dolmenplugin.RemoveDolmenNatureCommand">
       </handler>
    </extension>
    
@@ -122,7 +122,7 @@
             allPopups="false"
             locationURI="popup:org.eclipse.ui.projectConfigure">
          <command
-               commandId="dolmenplugin.ConvertDolmenNatureCommand"
+               commandId="org.stekikun.dolmenplugin.ConvertDolmenNatureCommand"
                label="Add Dolmen nature"
                style="push">
          	<!-- Only visible when ALL selected projects are missing the Dolmen nature -->
@@ -143,7 +143,7 @@
             allPopups="false"
             locationURI="popup:org.eclipse.ui.projectConfigure">
          <command
-               commandId="dolmenplugin.RemoveDolmenNatureCommand"
+               commandId="org.stekikun.dolmenplugin.RemoveDolmenNatureCommand"
                label="Remove Dolmen nature"
                style="push">
              <!-- Only visible when ALL selected projects have the Dolmen nature -->
@@ -181,7 +181,7 @@
    <extension
       point="org.eclipse.ui.console.consoleFactories">
       <consoleFactory
-         class="dolmenplugin.base.Console"
+         class="org.stekikun.dolmenplugin.base.Console"
          icon="icons/sample.gif"
          label="Dolmen Console">
       </consoleFactory>
@@ -192,26 +192,44 @@
          point="org.eclipse.ui.commands">
       <command
             description="Comment or uncomment the lines of the current selection"
-            id="dolmenplugin.ToggleCommentCommand"
+            id="org.stekikun.dolmenplugin.ToggleCommentCommand"
             name="Toggle  Comment">
       </command>
       <command
             description="Go to declaration of element currently selected"
-            id="dolmenplugin.OpenDeclarationCommand"
+            id="org.stekikun.dolmenplugin.OpenDeclarationCommand"
             name="Open Declaration">
       </command>
+      <command
+            description="Go to location of next annotation"
+            id="org.stekikun.dolmenplugin.NextAnnotationCommand"
+            name="NextAnnotation">
+      </command>
+      <command
+            description="Go to location of previous annotation"
+            id="org.stekikun.dolmenplugin.PreviousAnnotationCommand"
+            name="PreviousAnnotation">
+      </command>  
    </extension>
    
    <!-- Handler for the commands that appear in the custom Source menu-->
    <extension
          point="org.eclipse.ui.handlers">
       <handler
-            class="dolmenplugin.handlers.ToggleCommentHandler"
-            commandId="dolmenplugin.ToggleCommentCommand">
+            class="org.stekikun.dolmenplugin.handlers.ToggleCommentHandler"
+            commandId="org.stekikun.dolmenplugin.ToggleCommentCommand">
       </handler>
       <handler
-            class="dolmenplugin.handlers.OpenDeclarationHandler"
-            commandId="dolmenplugin.OpenDeclarationCommand">
+            class="org.stekikun.dolmenplugin.handlers.OpenDeclarationHandler"
+            commandId="org.stekikun.dolmenplugin.OpenDeclarationCommand">
+      </handler>
+      <handler
+            class="org.stekikun.dolmenplugin.handlers.NextAnnotationHandler"
+            commandId="org.stekikun.dolmenplugin.NextAnnotationCommand">
+      </handler>
+      <handler
+            class="org.stekikun.dolmenplugin.handlers.PreviousAnnotationHandler"
+            commandId="org.stekikun.dolmenplugin.PreviousAnnotationCommand">
       </handler>
    </extension>
    
@@ -222,28 +240,38 @@
          locationURI="menu:org.eclipse.ui.main.menu?after=edit">
          <menu
             label="Source"
-            id="dolmenplugin.menus.source">
+            id="org.stekikun.dolmenplugin.menus.source">
             
             <!-- Only visible when the active editor is either a JLEditor or a JGEditor -->
             <visibleWhen
                 checkEnabled="false">
                 <with variable="activeEditorId">
                     <or>
-                        <equals value="dolmenplugin.editors.jl.JLEditor"/>
-                        <equals value="dolmenplugin.editors.jg.JGEditor"/>
+                        <equals value="org.stekikun.dolmenplugin.editors.jl.JLEditor"/>
+                        <equals value="org.stekikun.dolmenplugin.editors.jg.JGEditor"/>
                     </or>
                 </with>
             </visibleWhen>
             
             <!-- The Toggle Comment command -->
             <command
-               commandId="dolmenplugin.ToggleCommentCommand"
+               commandId="org.stekikun.dolmenplugin.ToggleCommentCommand"
                label="Toggle Comment">
             </command>
             <!-- The Open Declaration command -->
             <command
-                commandId="dolmenplugin.OpenDeclarationCommand"
+                commandId="org.stekikun.dolmenplugin.OpenDeclarationCommand"
                 label="Open Declaration">
+            </command>
+            <!-- The Next Annotation command -->
+            <command
+                commandId="org.stekikun.dolmenplugin.NextAnnotationCommand"
+                label="Next Annotation">
+            </command>
+            <!-- The Previous Annotation command -->
+            <command
+                commandId="org.stekikun.dolmenplugin.PreviousAnnotationCommand"
+                label="PreviousAnnotation">
             </command>
          </menu>
       </menuContribution>
@@ -255,7 +283,7 @@
    <extension
          point="org.eclipse.ui.contexts">
       <context
-            id="dolmenplugin.editors.DolmenScope"
+            id="org.stekikun.dolmenplugin.editors.DolmenScope"
             name="Dolmen editors"
             parentId="org.eclipse.jdt.ui.javaEditorScope">
       </context>
@@ -267,15 +295,29 @@
       <!-- Toggle Comment is bound to "Ctrl + /", as in the JDT -->
       <key
         sequence="M1+/"
-        commandId="dolmenplugin.ToggleCommentCommand"
-        contextId="dolmenplugin.editors.DolmenScope"
+        commandId="org.stekikun.dolmenplugin.ToggleCommentCommand"
+        contextId="org.stekikun.dolmenplugin.editors.DolmenScope"
         schemeId="org.eclipse.ui.defaultAcceleratorConfiguration">
       </key>
       <!-- Open Declaration is bound to "F3", as in the JDT -->
       <key
         sequence="F3"
-        commandId="dolmenplugin.OpenDeclarationCommand"
-        contextId="dolmenplugin.editors.DolmenScope"
+        commandId="org.stekikun.dolmenplugin.OpenDeclarationCommand"
+        contextId="org.stekikun.dolmenplugin.editors.DolmenScope"
+        schemeId="org.eclipse.ui.defaultAcceleratorConfiguration">
+      </key>
+      <!-- Next Annotation is bound to "Ctrl + .", as in the JDT -->
+      <key
+        sequence="M1+."
+        commandId="org.stekikun.dolmenplugin.NextAnnotationCommand"
+        contextId="org.stekikun.dolmenplugin.editors.DolmenScope"
+        schemeId="org.eclipse.ui.defaultAcceleratorConfiguration">
+      </key>
+      <!-- Previous Annotation is bound to "Ctrl + ,", as in the JDT -->
+      <key
+        sequence="M1+,"
+        commandId="org.stekikun.dolmenplugin.PreviousAnnotationCommand"
+        contextId="org.stekikun.dolmenplugin.editors.DolmenScope"
         schemeId="org.eclipse.ui.defaultAcceleratorConfiguration">
       </key>
    </extension>
@@ -292,7 +334,7 @@
          point="org.eclipse.core.filebuffers.documentSetup">
       <participant
          extensions="jl"
-         class="dolmenplugin.editors.jl.JLDocumentSetupParticipant">
+         class="org.stekikun.dolmenplugin.editors.jl.JLDocumentSetupParticipant">
       </participant>
    </extension>
    <extension
@@ -301,7 +343,7 @@
          point="org.eclipse.core.filebuffers.documentSetup">
       <participant
          extensions="jg"
-         class="dolmenplugin.editors.jg.JGDocumentSetupParticipant">
+         class="org.stekikun.dolmenplugin.editors.jg.JGDocumentSetupParticipant">
       </participant>
    </extension>
    <!-- <extension
@@ -318,11 +360,11 @@
    <extension
          point="org.eclipse.ui.decorators">
       <decorator
-         id="dolmenPlugin.decorators.DolmenDecorator"
+         id="org.stekikun.dolmenPlugin.decorators.DolmenDecorator"
          label="Dolmen files decorator"
          lightweight="true"
          adaptable="true"
-         class="dolmenplugin.decorators.DolmenDecorator"
+         class="org.stekikun.dolmenplugin.decorators.DolmenDecorator"
          state="true">
          <description>
             These decorators are used by Dolmen to mark
