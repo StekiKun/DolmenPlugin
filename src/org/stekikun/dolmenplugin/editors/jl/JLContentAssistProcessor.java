@@ -102,6 +102,7 @@ public final class JLContentAssistProcessor
 			new String[] { "getLexemeEnd()", "getLexemeEnd() : Position - LexBuffer" },
 			new String[] { "getLexemeLength()", "getLexemeLength() : int - LexBuffer" },
 			new String[] { "getLexemeCharAt(idx)", "getLexemeCharAt(int) : char - LexBuffer" },
+			new String[] { "getLexemeChars()", "getLexemeChars() : CharSequence - LexBuffer" },
 //	These methods are accessible but are meant for used by the generator
 //			new String[] { "getSubLexeme(start, end)", "getSubLexeme(int, int) : String - LexBuffer" },
 //			new String[] { "getSubLexemeOpt(start, end)", "getSubLexemeOpt(int, int) : Optional<String> - LexBuffer" },
