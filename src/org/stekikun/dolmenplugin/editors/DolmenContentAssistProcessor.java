@@ -68,12 +68,14 @@ public abstract class DolmenContentAssistProcessor<T, U extends DolmenEditor<T>>
 	
 	/**
 	 * Sub-classers must override this method to compute potential
-	 * completion proposals and add them to the given {@code collector}
+	 * completion proposals and add them to the given {@code collector}.
 	 * 
 	 * @param collector
+	 * @param document
 	 * @param prefix 	the word-prefix in the document before the cursor offset
 	 */
-	protected abstract void collectCompletionProposals(ProposalCollector collector, String prefix);
+	protected abstract void collectCompletionProposals(ProposalCollector collector, 
+			IDocument document, Prefix prefix);
 	
 	@Override
 	public final ICompletionProposal[] computeCompletionProposals(ITextViewer viewer, int offset) {
@@ -85,9 +87,9 @@ public abstract class DolmenContentAssistProcessor<T, U extends DolmenEditor<T>>
 		}
 		
 		ProposalCollector collector = new ProposalCollector(doc, offset);
-		String prefix = findPrefixAtOffset(doc, offset);
+		Prefix prefix = findPrefixAtOffset(doc, offset);
 		
-		collectCompletionProposals(collector, prefix);
+		collectCompletionProposals(collector, doc, prefix);
 		return collector.collect();
 	}
 
@@ -120,7 +122,23 @@ public abstract class DolmenContentAssistProcessor<T, U extends DolmenEditor<T>>
 		return null;
 	}
 	
-	private static String findPrefixAtOffset(IDocument document, int offset) {
+	/**
+	 * Describes a prefix string appearing before the offset at which
+	 * completion proposals must be computed.
+	 * 
+	 * @author Stéphane Lescuyer
+	 */
+	public static final class Prefix {
+		public final String prefix;
+		public final int offset;
+		
+		Prefix(String prefix, int offset) {
+			this.prefix = prefix;
+			this.offset = offset;
+		}
+	}
+	
+	private static Prefix findPrefixAtOffset(IDocument document, int offset) {
 		int soffset = offset - 1;
 		while (soffset >= 0) {
 			char ch;
@@ -128,19 +146,19 @@ public abstract class DolmenContentAssistProcessor<T, U extends DolmenEditor<T>>
 				ch = document.getChar(soffset);
 			} catch (BadLocationException e) {
 				e.printStackTrace();
-				return "";
+				return new Prefix("", offset);
 			}
 			if (!Utils.isDolmenWordPart(ch)) break;
 			--soffset;
 		}
 		++soffset;
-		if (soffset >= offset) return "";
+		if (soffset >= offset) return new Prefix("", offset);
 		try {
 			String prefix = document.get(soffset, offset - soffset);
-			return prefix;
+			return new Prefix(prefix, soffset);
 		} catch (BadLocationException e) {
 			e.printStackTrace();
-			return "";
+			return new Prefix("", offset);
 		}
 	}
 

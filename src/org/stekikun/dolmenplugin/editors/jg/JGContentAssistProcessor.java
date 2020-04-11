@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.eclipse.jdt.annotation.Nullable;
+import org.eclipse.jface.text.IDocument;
 import org.stekikun.dolmen.codegen.BaseParser;
 import org.stekikun.dolmen.codegen.Config;
 import org.stekikun.dolmen.syntax.PGrammar;
@@ -51,7 +52,9 @@ public final class JGContentAssistProcessor
 	}
 	
 	@Override
-	protected void collectCompletionProposals(ProposalCollector collector, String prefix) {
+	protected void collectCompletionProposals(ProposalCollector collector, 
+			IDocument doc, Prefix prefix_) {
+		final String prefix = prefix_.prefix;
 		// Try keywords corresponding to the content type
 		switch (contentType) {
 		case DEFAULT:

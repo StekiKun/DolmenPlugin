@@ -4,8 +4,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.eclipse.jdt.annotation.Nullable;
+import org.eclipse.jface.text.BadLocationException;
+import org.eclipse.jface.text.IDocument;
 import org.stekikun.dolmen.codegen.Config;
 import org.stekikun.dolmen.codegen.LexBuffer;
+import org.stekikun.dolmen.common.Lists;
 import org.stekikun.dolmen.syntax.Lexer;
 import org.stekikun.dolmenplugin.editors.DolmenCompletionProposal;
 import org.stekikun.dolmenplugin.editors.DolmenContentAssistProcessor;
@@ -49,8 +53,48 @@ public final class JLContentAssistProcessor
 		this.contentType = contentType;
 	}
 	
+	/**
+	 * @param document
+	 * @param prefix
+	 * @return whether {@code prefix} was preceded by a "continue" keyword
+	 * 	in {@code document}, as this may help us propose more adapted
+	 *  completion proposals
+	 */
+	private boolean followsContinue(IDocument document, Prefix prefix) {
+		int offset = prefix.offset;
+		int n = "continue ".length();
+		if (offset >= n) {
+			String prec;
+			try {
+				prec = document.get(offset - n, n);
+			} catch (BadLocationException e) {
+				return false;
+			}
+			return (prec.trim().endsWith("continue"));
+		}
+		return false;
+	}
+	
+	/**
+	 * @param lexer
+	 * @param offset
+	 * @return the lexer entry in which the semantic action at
+	 * 	offset {@code offset} lies, or {@code null} if it does not
+	 *  seem to belong to a semantic action in a rule
+	 */
+	private Lexer.@Nullable Entry findCurrentRule(Lexer lexer, int offset) {
+		Lexer.@Nullable Entry prev = null;
+		for (Lexer.Entry entry : lexer.entryPoints) {
+			if (entry.name.start.offset > offset) return prev;
+			prev = entry;
+		}
+		return null;
+	}
+	
 	@Override
-	protected void collectCompletionProposals(ProposalCollector collector, String prefix) {
+	protected void collectCompletionProposals(ProposalCollector collector, 
+			IDocument document, Prefix prefix_) {
+		final String prefix = prefix_.prefix;
 		// Try keywords corresponding to the content type, and recognized options
 		switch (contentType) {
 		case DEFAULT:
@@ -73,7 +117,20 @@ public final class JLContentAssistProcessor
 					(e, i) -> DolmenCompletionProposal.regexp(
 									e.getKey().val, e.getValue(), i, collector.offset - i));
 				break;
-			case JAVA:
+			case JAVA: {
+				if (followsContinue(document, prefix_)) {
+					// If we follow a continue statement, propose the current rule
+					// without arguments
+					Lexer.@Nullable Entry entry = findCurrentRule(lexer, prefix_.offset);
+					if (entry != null) {
+						addPrefixCompletions(collector, prefix,
+							Lists.singleton(entry),
+							e -> e.name.val + ";",
+							(e, i) -> DolmenCompletionProposal.lexerContinue(entry, i, collector.offset - i));
+						break;
+					}
+					// Otherwise fall back to default as we are in the prelude or postlude
+				}
 				// Try rules in semantic actions
 				addPrefixCompletions(collector, prefix, lexer.entryPoints,
 					e -> e.name.val + "(",
@@ -83,6 +140,7 @@ public final class JLContentAssistProcessor
 					(m, i) -> DolmenCompletionProposal.method(
 								Category.LEXER_METHOD, m[0], m[1], i, collector.offset - i));
 				break;
+			}
 			case OPTIONS:
 				break;
 			}

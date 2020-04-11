@@ -203,6 +203,35 @@ public abstract class DolmenCompletionProposal
 		lexerEntry(Lexer.Entry entry, int offset, int length) {
 		return new LexerEntry(entry, offset, length);
 	}
+
+	private static final class LexerContinue extends DolmenCompletionProposal {
+		@SuppressWarnings("unused")
+		final Lexer.Entry entry;
+		
+		private LexerContinue(Lexer.Entry entry, int offset, int length) {
+			super(Category.LEXER_ENTRY, entry.name.val + ";", offset, length,
+					cursor(entry),
+					Images.LEXER_ENTRY(entry.visibility), 
+					display(entry));
+			this.entry = entry;
+		}
+		
+		private static int cursor(Lexer.Entry entry) {
+			int c = entry.name.val.length() + 1;
+			return c;
+		}
+		private static StyledString display(Lexer.Entry entry) {
+			StyledString display = new StyledString(entry.name.val);
+			display.append(
+				" : " + entry.returnType.find().trim(),
+				StyledString.DECORATIONS_STYLER);
+			return display;
+		}
+	}
+	public static DolmenCompletionProposal
+		lexerContinue(Lexer.Entry entry, int offset, int length) {
+		return new LexerContinue(entry, offset, length);
+	}
 	
 	private static final class Token extends DolmenCompletionProposal {
 		@SuppressWarnings("unused")
