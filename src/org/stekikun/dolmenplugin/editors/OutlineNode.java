@@ -1,5 +1,6 @@
 package org.stekikun.dolmenplugin.editors;
 
+import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider.IStyledLabelProvider;
@@ -301,11 +302,22 @@ public abstract class OutlineNode<T extends OutlineNode<T>> {
 	 */
 	protected static String resolveExtentIn(IDocument doc, Extent ext) {
 		if (doc == null)
-			return "??";
+			return NO_RESOLUTION;
+		// We will try and adapt the extent's position to the document's
+		// current contents, which may be fresher than the source the
+		// extent is referring to. For that we retrieve the associated
+		// tracker if we can.
+		@Nullable DocumentTracker tracker = DolmenEditor.getTracker(doc);
+		if (tracker == null)
+			return NO_RESOLUTION;
+		DocumentTracker. @Nullable Range range = tracker.transform(ext);
+		if (range == null)
+			return NO_RESOLUTION;
 		try {
-			return doc.get(ext.startPos, ext.length());
+			return doc.get(range.getOffset(), range.getLength());
 		} catch (BadLocationException e) {
-			return "??";
+			return NO_RESOLUTION;
 		}
 	}
+	private final static String NO_RESOLUTION = "??";
 }

@@ -28,6 +28,7 @@ import org.stekikun.dolmen.syntax.PGrammars;
 import org.stekikun.dolmen.syntax.PGrammars.Sort;
 import org.stekikun.dolmen.syntax.PProduction;
 import org.stekikun.dolmen.syntax.PProduction.ActualExpr;
+import org.stekikun.dolmenplugin.base.Images;
 import org.stekikun.dolmenplugin.editors.ColorManager;
 import org.stekikun.dolmenplugin.editors.DolmenEditor;
 import org.stekikun.dolmenplugin.handlers.HandlerUtils;
@@ -57,6 +58,11 @@ public class JGEditor extends DolmenEditor<PGrammar> {
 		setSourceViewerConfiguration(new JGConfiguration(colorManager, this));
 //		setDocumentProvider(new JGDocumentProvider());
 		this.formalSorts = null;
+	}
+	
+	@Override
+	protected String getBaseTitleImage() {
+		return Images.DOLMEN_PARSER;
 	}
 	
 	public void dispose() {

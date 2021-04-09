@@ -6,6 +6,10 @@ import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.IEditorReference;
+import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.IWorkbenchWindow;
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.handlers.HandlerUtil;
 import org.stekikun.dolmenplugin.base.Utils;
 import org.stekikun.dolmenplugin.editors.DolmenEditor;
@@ -35,6 +39,46 @@ public abstract class HandlerUtils {
 			return null;
 		return (DolmenEditor<?>) editor;
 	}
+	
+	/**
+	 * A functional interface used as a callback by {@link #forEachDolmenEditor}.
+	 * 
+	 * @author Stéphane Lescuyer
+	 */
+	@FunctionalInterface
+	public static interface IDolmenEditorVisitor {
+		/**
+		 * This method will be called by {@link #forEachDolmenEditor} for
+		 * every open {@link DolmenEditor} found in the workbench.
+		 * 
+		 * @param editor	an open {@link DolmenEditor} in the workbench
+		 * @return {@code true} if the visit should continue,
+		 * 	or {@code false} if it can be aborted
+		 */
+		boolean visit(DolmenEditor<?> editor);
+	}
+	
+	/**
+	 * Calls the given {@code visitor} on every {@link DolmenEditor} currently
+	 * open in the workbench. If {@link IDolmenEditorVisitor#visit(DolmenEditor)}
+	 * returns {@code false} at some point, the visit is aborted early.
+	 * 
+	 * @param visitor
+	 */
+	public static void forEachDolmenEditor(IDolmenEditorVisitor visitor) {
+		for (IWorkbenchWindow window : PlatformUI.getWorkbench().getWorkbenchWindows()) {
+			for (IWorkbenchPage page : window.getPages()) {
+				for (IEditorReference edref : page.getEditorReferences()) {
+					IEditorPart ed = edref.getEditor(false);
+					if (ed instanceof DolmenEditor<?>) {
+						if (!visitor.visit((DolmenEditor<?>) ed))
+							return;
+					}
+				}
+			}
+		}
+	}
+
 	
 	/**
 	 * Describes a word found at selection point in an editor

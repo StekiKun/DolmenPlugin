@@ -20,6 +20,7 @@ import org.stekikun.dolmen.jle.JLEParser;
 import org.stekikun.dolmen.syntax.Lexer;
 import org.stekikun.dolmen.syntax.Located;
 import org.stekikun.dolmen.syntax.Regular;
+import org.stekikun.dolmenplugin.base.Images;
 import org.stekikun.dolmenplugin.editors.ColorManager;
 import org.stekikun.dolmenplugin.editors.DolmenEditor;
 import org.stekikun.dolmenplugin.handlers.HandlerUtils;
@@ -43,6 +44,11 @@ public class JLEditor extends DolmenEditor<Lexer> {
 		colorManager = new ColorManager();
 		setSourceViewerConfiguration(new JLConfiguration(colorManager, this));
 		// setDocumentProvider(new TextFileDocumentProvider());
+	}
+	
+	@Override
+	protected String getBaseTitleImage() {
+		return Images.DOLMEN_LEXER;
 	}
 	
 	public void dispose() {

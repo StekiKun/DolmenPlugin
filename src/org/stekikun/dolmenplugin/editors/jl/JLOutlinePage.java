@@ -20,6 +20,7 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.ui.views.contentoutline.ContentOutlinePage;
 import org.stekikun.dolmen.syntax.Lexer;
 import org.stekikun.dolmenplugin.base.Images;
+import org.stekikun.dolmenplugin.editors.DocumentTracker;
 import org.stekikun.dolmenplugin.editors.OutlineFilterAction;
 import org.stekikun.dolmenplugin.editors.OutlineNode;
 
@@ -111,21 +112,25 @@ public class JLOutlinePage extends ContentOutlinePage {
 	    // If it is an outline node, proceed, otherwise ignore
 	    if (element instanceof OutlineNode<?>) {
 	    	OutlineNode<?> node = (OutlineNode<?>) element;
-	    	final int start = node.getOffset();
-	    	final int length = node.getLength();
-	    	if (start >= 0 && length >= 0) {
-	    		try {
-	    			editor.setHighlightRange(start, length, true);
-	    			editor.selectAndReveal(start, length);
-	    		}
-	    		catch (IllegalArgumentException x) {
-	    			editor.resetHighlightRange();
-	    		}
-	    		return;
+	    	DocumentTracker tracker = editor.getDocumentTracker();
+	    	DocumentTracker.Range range;
+	    	if (tracker != null && (range = tracker.transform(node)) != null) {
+		    	final int start = range.getOffset();
+		    	final int length = range.getLength();
+		    	if (start >= 0 && length >= 0) {
+		    		try {
+		    			editor.setHighlightRange(start, length, true);
+		    			editor.selectAndReveal(start, length);
+		    		}
+		    		catch (IllegalArgumentException x) {
+		    			editor.resetHighlightRange();
+		    		}
+		    		return;
+		    	}
 	    	}
 	    }
 	    editor.resetHighlightRange();
-	    return;	    
+	    return;
 	}
 	
 	/**

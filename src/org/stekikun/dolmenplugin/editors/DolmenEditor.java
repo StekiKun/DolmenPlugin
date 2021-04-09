@@ -1,8 +1,14 @@
 package org.stekikun.dolmenplugin.editors;
 
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.WeakHashMap;
 
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IMarker;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.ITextSelection;
@@ -10,16 +16,27 @@ import org.eclipse.jface.text.Position;
 import org.eclipse.jface.text.source.Annotation;
 import org.eclipse.jface.text.source.IAnnotationModel;
 import org.eclipse.jface.text.source.IAnnotationModelExtension;
+import org.eclipse.jface.viewers.IDecoration;
 import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.ui.IEditorInput;
+import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.IEditorSite;
+import org.eclipse.ui.IPropertyListener;
 import org.eclipse.ui.ISelectionListener;
 import org.eclipse.ui.IWorkbenchPart;
+import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.editors.text.TextEditor;
+import org.eclipse.ui.part.FileEditorInput;
 import org.eclipse.ui.texteditor.IDocumentProvider;
 import org.stekikun.dolmen.common.Maps;
 import org.stekikun.dolmen.syntax.Lexer;
 import org.stekikun.dolmen.syntax.Located;
 import org.stekikun.dolmen.syntax.PGrammar;
+import org.stekikun.dolmenplugin.Activator;
+import org.stekikun.dolmenplugin.base.Images;
+import org.stekikun.dolmenplugin.base.Marker;
 import org.stekikun.dolmenplugin.editors.jg.JGEditor;
 import org.stekikun.dolmenplugin.editors.jl.JLEditor;
 import org.stekikun.dolmenplugin.lib.ByRef;
@@ -42,17 +59,22 @@ import org.stekikun.dolmenplugin.lib.ByRef;
  * @param <T>	the type of the concrete model for the editor's contents
  */
 public abstract class DolmenEditor<T> extends TextEditor
-	implements ISelectionListener {
+	implements ISelectionListener, IPropertyListener {
 	
 	/**
 	 * The Dolmen editors' common keybindings scope
 	 */
 	public static final String DOLMEN_EDITOR_SCOPE = "org.stekikun.dolmenplugin.editors.DolmenScope";
 	
+	/**
+	 * The resource file displayed in this editor, if any.
+	 */
+	protected @Nullable IFile input;
+	
 	/** 
 	 * See {@link #getModel(ByRef)}.
 	 */
-	protected T model;
+	protected @Nullable T model;
 	
 	/**
 	 * Is {@code true} if and only if {@code lexer} is up-to-date with
@@ -67,10 +89,12 @@ public abstract class DolmenEditor<T> extends TextEditor
 	 * if there are currently no such annotations 
 	 */
 	private Annotation[] markedOccurrences = null;
-	
+
 	protected DolmenEditor() {
+		this.input = null;
 		this.model = null;
 		this.uptodate = true;
+		addPropertyListener(this);
 	}
 	
 	@Override
@@ -81,14 +105,108 @@ public abstract class DolmenEditor<T> extends TextEditor
 	}
 
 	@Override
+	public void init(IEditorSite site, IEditorInput input) throws PartInitException {
+		super.init(site, input);
+		// This makes sure a model is present from the start in the editor
+		updateModel();
+		updateTitleImage();
+	}
+
+	@Override
+	protected void doSetInput(IEditorInput editorInput) throws CoreException {
+		super.doSetInput(editorInput);
+		addTracker();
+		if (editorInput instanceof FileEditorInput) {
+			this.input = ((FileEditorInput) editorInput).getFile();
+		}
+		else {
+			this.input = null;
+		}
+//		System.out.println("Input " + input.getName() + " set in editor " + this);
+	}
+
+	@Override
 	protected void initializeKeyBindingScopes() {
 		setKeyBindingScopes(new String[] { DOLMEN_EDITOR_SCOPE });
+	}
+	
+	@Override
+	public void dispose() {
+		super.dispose();
+		// Clean up the trackers that were associated to this editor
+		synchronized (DolmenEditor.class) {
+			Iterator<Map.Entry<IDocument, DocumentTracker>> entries =
+				documentTrackers.entrySet().iterator();
+			while (entries.hasNext()) {
+				Map.Entry<IDocument, DocumentTracker> entry = entries.next();
+				if (entry.getValue().editor == this) {
+					entry.getValue().dispose();
+					entries.remove();
+				}
+			}
+		}
+	}
+	
+	/**
+	 * @return the base image for the kind of resources handled by this editor
+	 */
+	protected abstract String getBaseTitleImage();
+	
+	/**
+	 * Updates the title image to be consistent with the markers on the underlying input
+	 */
+	private void updateTitleImage() {
+		final String baseImage = getBaseTitleImage();
+		@Nullable Image image = null;
+		// Look at the markers associated to the file
+		// (it's better than looking at the model since we want to decorate
+		//  auxiliary files based on their markers, and not on the set master file)
+		@Nullable IFile file = input;
+		if (file != null) {
+			try {
+				IMarker markers[] = file.findMarkers(Marker.ID, true, IResource.DEPTH_ZERO);
+				boolean hasWarnings = false, hasErrors = false;
+				for (IMarker marker : markers) {
+					int sev = marker.getAttribute(IMarker.SEVERITY, IMarker.SEVERITY_INFO);
+					if (sev == IMarker.SEVERITY_WARNING)
+						hasWarnings = true;
+					else if (sev == IMarker.SEVERITY_ERROR)
+						hasErrors = true;
+				}
+				// System.out.println(String.format("%s: warnings = %b, errors = %b", input, hasWarnings, hasErrors));
+				if (hasErrors) {
+					image = Activator.getImage(baseImage, IDecoration.BOTTOM_LEFT, Images.ERROR_OVERLAY);
+				}
+				else if (hasWarnings) {
+					image = Activator.getImage(baseImage, IDecoration.BOTTOM_LEFT, Images.WARNING_OVERLAY);
+				}
+				else {
+					// Do nothing, leave the default image
+				}
+			} catch (CoreException e) {
+				// Happens if the resource does not exist or something goes bad, we can simply ignore
+			}
+		}
+		if (image == null)
+			image = Activator.getImage(baseImage);
+		setTitleImage(image);
+	}
+
+	/**
+	 * @return the resource displayed in this editor, if any
+	 */
+	public final @Nullable IFile getInput() {
+		return input;
 	}
 	
 	/**
 	 * @return the document opened by this editor
 	 */
 	public final IDocument getDocument() {
+//		System.out.println(this.getEditorInput().getClass().toString());
+//		System.out.println(this.getDocumentProvider().getClass().toString());
+//		System.out.println(this.getDocumentProvider()
+//			.getDocument(this.getEditorInput()).getClass().toString());
 		return this.getDocumentProvider().getDocument(this.getEditorInput());
 	}
 
@@ -151,10 +269,32 @@ public abstract class DolmenEditor<T> extends TextEditor
 			uptodate = false;
 	}
 	
+	/**
+	 * Forces the editor to update its decoration based on the state of
+	 * the underlying resource
+	 */
+	public void forceUpdate() {
+		// NB: it should not be necessary to force-update the model, at least from
+		//	the builder for now, as it is updated every time editor is saved.
+		updateTitleImage();
+	}
+	
 	@Override
 	protected void editorSaved() {
 		super.editorSaved();
+		@Nullable DocumentTracker tracker = getTracker(getDocument());
+		if (tracker != null) {
+			tracker.wasSaved();
+		}
+		else {
+			System.err.println("[DolmenEditor] No document tracker found in editor for " + input);
+			// FIXME
+			// That's not normal, is it? Should we register a new
+			// tracker right here right now?
+		}
+		
 		updateModel();
+		updateTitleImage();
 	}
 	
 	@Override
@@ -162,8 +302,10 @@ public abstract class DolmenEditor<T> extends TextEditor
 		if (part != DolmenEditor.this) return;
 
 		// There is no point in annotating with an obsolete model, this will
-		// only confuse users with ill-placed annotations
-		if (!uptodate || isDirty()) {
+		// only confuse users with ill-placed annotations.
+		// With a dirty editor stemming from a good model, we have a chance
+		// to shift annotations using the document tracker.
+		if (!uptodate) { // || isDirty()) {
 			removeOccurrences();
 			return;
 		}
@@ -185,6 +327,50 @@ public abstract class DolmenEditor<T> extends TextEditor
 			return;
 		}
 		updateOccurrences(occurrences);
+	}
+	
+	private static final WeakHashMap<IDocument, DocumentTracker> documentTrackers = new WeakHashMap<>();
+	
+	private void addTracker() {
+		IDocument newDocument = getDocument();
+		if (newDocument != null) {
+			synchronized (DolmenEditor.class) {
+				DocumentTracker tracker = new DocumentTracker(this, this.getEditorInput(), newDocument);
+				newDocument.addDocumentListener(tracker);
+				documentTrackers.put(newDocument, tracker);
+			}
+		}
+	}
+	
+	public static synchronized @Nullable DocumentTracker getTracker(IDocument document) {
+		if (document == null) return null;
+		return documentTrackers.get(document);
+	}
+	
+	public final @Nullable DocumentTracker getDocumentTracker() {
+		return getTracker(getDocument());
+	}
+	
+	@Override
+	public void propertyChanged(Object source, int propId) {
+		if (propId != IEditorPart.PROP_INPUT) return;
+		if (source != this) return;	// should not happen
+//		System.out.println("Input changed in " + this.toString());
+		IEditorInput newInput = getEditorInput();
+		if (!(newInput instanceof FileEditorInput)) {
+			this.input = null;
+			this.model = null;
+			return;
+		}
+		
+		this.input = ((FileEditorInput) input).getFile();		
+		updateModel();
+		updateTitleImage();
+		// If we keep track of what the old document was, we could
+		// clean up in documentTrackers. I don't think it's worth the hassle though,
+		// because inputs rarely change in editors, and we use a weak hash map anyway
+		// so that entries will be GC'ed when the document gets collected.
+		addTracker();
 	}
 	
 	/**
@@ -271,22 +457,30 @@ public abstract class DolmenEditor<T> extends TextEditor
 		
 		final Map<Annotation, Position> newAnnotations = Maps.create();
 		final String desc = occurrences.declaration.val;
+		final DocumentTracker tracker = getDocumentTracker();
 		// The declaration annotation is highlighted slightly differently...
 		{
-			Located<String> decl = occurrences.declaration; 
-			Position pos = new Position(decl.start.offset, decl.length());
-			Annotation annot = new Annotation(DECL_ANNOT_TYPE, false, desc);
-			newAnnotations.put(annot, pos);
+			Located<String> decl = occurrences.declaration;
+			addOccurrenceAnnotation(newAnnotations, tracker, decl, true, desc);
 		}
 		// ...than the references
 		for (Located<?> loc : occurrences.references) {
-			Position pos = new Position(loc.start.offset, loc.length());
-			Annotation annot = new Annotation(REF_ANNOT_TYPE, false, desc);
-			newAnnotations.put(annot, pos);
+			addOccurrenceAnnotation(newAnnotations, tracker, loc, false, desc);
 		}
 		model.replaceAnnotations(markedOccurrences, newAnnotations);
 		markedOccurrences = newAnnotations.keySet().toArray(
 			new Annotation[1 + occurrences.references.size()]);
+	}
+	
+	private void addOccurrenceAnnotation(Map<Annotation, Position> annotations,
+			DocumentTracker tracker, Located<?> loc, boolean decl, String desc) {
+		if (tracker == null) return;
+		DocumentTracker.@Nullable Range range = tracker.transform(loc);
+		if (range == null) return;
+		Position pos = new Position(range.getOffset(), range.getLength());
+		annotations.put(
+			new Annotation(decl ? DECL_ANNOT_TYPE : REF_ANNOT_TYPE, false, desc),
+			pos);
 	}
 	
 	/**

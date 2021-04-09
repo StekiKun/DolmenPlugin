@@ -40,6 +40,7 @@ import org.stekikun.dolmen.common.Iterables;
 import org.stekikun.dolmen.common.Nulls;
 import org.stekikun.dolmenplugin.builders.JGCompile;
 import org.stekikun.dolmenplugin.builders.JLCompile;
+import org.stekikun.dolmenplugin.handlers.HandlerUtils;
 
 /**
  * ...
@@ -380,6 +381,13 @@ public final class Builder extends IncrementalProjectBuilder
 						.compile(getProject(), ifile);
 				generated.forEach((gen, smap) -> add(ifile, gen, smap));
 			}
+			// Update the editors showing that resource if any
+			HandlerUtils.forEachDolmenEditor((editor) -> {
+				if (ifile.equals(editor.getInput()))
+					editor.getEditorSite().getShell().getDisplay().asyncExec(() ->
+						editor.forceUpdate());
+				return true;
+			});
 			return true;
 		}
 		}
